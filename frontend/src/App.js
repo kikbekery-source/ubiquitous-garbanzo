@@ -1,212 +1,210 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from './hooks/useApi';
-import ProjectList from './components/ProjectList';
-import ClipList from './components/ClipList';
-import ClipReview from './components/ClipReview';
-import ProgressBar from './components/ProgressBar';
+import Dashboard from './components/Dashboard';
+import AccountDetail from './components/AccountDetail';
+import AddAccountForm from './components/AddAccountForm';
+import AddTransactionForm from './components/AddTransactionForm';
+import AlertPanel from './components/AlertPanel';
 import './App.css';
 
 export default function App() {
   const api = useApi();
-  const [projects, setProjects] = useState([]);
-  const [currentProject, setCurrentProject] = useState(null);
-  const [clips, setClips] = useState([]);
-  const [filteredClips, setFilteredClips] = useState([]);
-  const [selectedClip, setSelectedClip] = useState(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [stats, setStats] = useState(null);
-  const [filter, setFilter] = useState('all');
-  const [syncing, setSyncing] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [accountDetail, setAccountDetail] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [showAddAccount, setShowAddAccount] = useState(false);
+  const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [showAlerts, setShowAlerts] = useState(false);
+  const [view, setView] = useState('dashboard');
 
-  const loadProjects = useCallback(async () => {
+  const loadDashboard = useCallback(async () => {
     try {
-      const data = await api.get('/projects');
-      setProjects(data);
+      const data = await api.get('/dashboard');
+      setDashboardData(data);
     } catch (e) { /* ignore */ }
   }, [api]);
 
-  const loadClips = useCallback(async (projectId) => {
+  const loadAccountDetail = useCallback(async (accountId) => {
     try {
-      const [clipsData, statsData] = await Promise.all([
-        api.get(`/clips/project/${projectId}`),
-        api.get(`/export/project/${projectId}/stats`),
+      const [detail, txData] = await Promise.all([
+        api.get(`/accounts/${accountId}`),
+        api.get(`/transactions/account/${accountId}?limit=100`),
       ]);
-      setClips(clipsData);
-      setStats(statsData);
-      return clipsData;
-    } catch (e) { return []; }
+      setAccountDetail(detail);
+      setTransactions(txData.transactions || []);
+    } catch (e) { /* ignore */ }
   }, [api]);
 
-  useEffect(() => { loadProjects(); }, [loadProjects]);
+  useEffect(() => { loadDashboard(); }, [loadDashboard]);
 
-  useEffect(() => {
-    let result = clips;
-    if (filter === 'pending') result = clips.filter(c => !c.decision && c.analysis_status === 'completed');
-    else if (filter === 'approved') result = clips.filter(c => c.decision === 'approved');
-    else if (filter === 'edited') result = clips.filter(c => c.decision === 'edited');
-    else if (filter === 'discarded') result = clips.filter(c => c.decision === 'discarded');
-    else if (filter === 'unanalyzed') result = clips.filter(c => c.analysis_status !== 'completed');
-    setFilteredClips(result);
-  }, [clips, filter]);
+  const handleSelectAccount = async (account) => {
+    setSelectedAccount(account);
+    setView('detail');
+    await loadAccountDetail(account.id);
+  };
 
-  const handleSelectProject = async (project) => {
-    setCurrentProject(project);
-    setSelectedClip(null);
-    const clipsData = await loadClips(project.id);
-    if (clipsData.length > 0) {
-      setSelectedClip(clipsData[0]);
-      setSelectedIndex(0);
+  const handleBack = () => {
+    setView('dashboard');
+    setSelectedAccount(null);
+    setAccountDetail(null);
+    loadDashboard();
+  };
+
+  const handleCreateAccount = async (data) => {
+    await api.post('/accounts', data);
+    setShowAddAccount(false);
+    loadDashboard();
+  };
+
+  const handleAddTransaction = async (data) => {
+    await api.post('/transactions', data);
+    setShowAddTransaction(false);
+    if (selectedAccount) {
+      await loadAccountDetail(selectedAccount.id);
+    }
+    loadDashboard();
+  };
+
+  const handleAddEmail = async (accountId, emailData) => {
+    await api.post(`/accounts/${accountId}/emails`, emailData);
+    await loadAccountDetail(accountId);
+  };
+
+  const handleRemoveEmail = async (accountId, emailId) => {
+    await api.del(`/accounts/${accountId}/emails/${emailId}`);
+    await loadAccountDetail(accountId);
+  };
+
+  const handleToggleAccount = async (accountId, isActive) => {
+    const method = 'PUT';
+    const res = await fetch(`/api/accounts/${accountId}`, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isActive }),
+    });
+    await res.json();
+    loadDashboard();
+    if (selectedAccount && selectedAccount.id === accountId) {
+      await loadAccountDetail(accountId);
     }
   };
 
-  const handleCreateProject = async ({ name, driveFolderId }) => {
-    await api.post('/projects', { name, driveFolderId });
-    loadProjects();
+  const handleDeleteAccount = async (accountId) => {
+    await api.del(`/accounts/${accountId}`);
+    handleBack();
   };
 
-  const handleSync = async () => {
-    if (!currentProject) return;
-    setSyncing(true);
-    try {
-      await api.post(`/projects/${currentProject.id}/sync`);
-      await loadClips(currentProject.id);
-    } finally {
-      setSyncing(false);
-    }
+  const handleMarkAlertRead = async (alertId) => {
+    const res = await fetch(`/api/dashboard/alerts/${alertId}/read`, { method: 'PUT' });
+    await res.json();
+    loadDashboard();
   };
 
-  const handleAnalyzeAll = async () => {
-    if (!currentProject) return;
-    setAnalyzing(true);
-    try {
-      await api.post(`/clips/project/${currentProject.id}/analyze-all`);
-      await loadClips(currentProject.id);
-    } finally {
-      setAnalyzing(false);
-    }
+  const handleMarkAllAlertsRead = async () => {
+    const res = await fetch('/api/dashboard/alerts/read-all', { method: 'PUT' });
+    await res.json();
+    loadDashboard();
   };
 
-  const handleAnalyzeClip = async (clipId) => {
-    await api.post(`/clips/${clipId}/analyze`);
-    await loadClips(currentProject.id);
-    const updated = clips.find(c => c.id === clipId);
-    if (updated) setSelectedClip(updated);
-  };
+  const unreadCount = dashboardData?.alerts?.length || 0;
 
-  const handleReview = async (reviewData) => {
-    if (!selectedClip) return;
-    await api.post(`/clips/${selectedClip.id}/review`, reviewData);
-    const newClips = await loadClips(currentProject.id);
-    const updated = newClips.find(c => c.id === selectedClip.id);
-    if (updated) setSelectedClip(updated);
-  };
-
-  const handleSelectClip = (clip, index) => {
-    setSelectedClip(clip);
-    setSelectedIndex(index);
-  };
-
-  const handleExport = async (format) => {
-    if (!currentProject) return;
-    if (format === 'csv') {
-      window.open(`/api/export/project/${currentProject.id}/csv`, '_blank');
-    } else {
-      const data = await api.get(`/export/project/${currentProject.id}/json`);
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${currentProject.name}_report.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-  };
-
-  // Project list view
-  if (!currentProject) {
+  // Dashboard view
+  if (view === 'dashboard') {
     return (
       <div className="app">
         <header className="app-header">
-          <h1>🎬 Video Footage Analyzer</h1>
-          <p className="subtitle">วิเคราะห์และจัดหมวดหมู่วิดีโอร้านอาหารด้วย AI</p>
+          <div className="header-left">
+            <h1>Bank Transfer Alerts</h1>
+            <p className="subtitle">ระบบแจ้งเตือนการโอนเงิน & ติดตามเกณฑ์ภาษี</p>
+          </div>
+          <div className="header-actions">
+            <button className="btn btn-alert-toggle" onClick={() => setShowAlerts(!showAlerts)}>
+              {unreadCount > 0 && <span className="alert-badge">{unreadCount}</span>}
+              แจ้งเตือน
+            </button>
+            <button className="btn btn-primary" onClick={() => setShowAddAccount(true)}>
+              + เพิ่มบัญชี
+            </button>
+          </div>
         </header>
-        <main className="app-main">
-          <ProjectList
-            projects={projects}
-            onSelect={handleSelectProject}
-            onCreateProject={handleCreateProject}
-            onRefresh={loadProjects}
+
+        {showAlerts && dashboardData && (
+          <AlertPanel
+            alerts={dashboardData.alerts}
+            onMarkRead={handleMarkAlertRead}
+            onMarkAllRead={handleMarkAllAlertsRead}
+            onClose={() => setShowAlerts(false)}
           />
+        )}
+
+        {showAddAccount && (
+          <AddAccountForm
+            onSubmit={handleCreateAccount}
+            onCancel={() => setShowAddAccount(false)}
+          />
+        )}
+
+        <main className="app-main">
+          {dashboardData ? (
+            <Dashboard
+              data={dashboardData}
+              onSelectAccount={handleSelectAccount}
+              onToggleAccount={handleToggleAccount}
+            />
+          ) : (
+            <div className="loading-state">
+              <div className="spinner" />
+              <p>กำลังโหลดข้อมูล...</p>
+            </div>
+          )}
         </main>
       </div>
     );
   }
 
-  // Project detail view
+  // Account detail view
   return (
     <div className="app">
       <header className="app-header">
         <div className="header-left">
-          <button className="btn btn-ghost" onClick={() => { setCurrentProject(null); setClips([]); setSelectedClip(null); }}>
-            ← กลับ
+          <button className="btn btn-ghost" onClick={handleBack}>
+            &#8592; กลับ
           </button>
-          <h1>{currentProject.name}</h1>
+          <h1>{accountDetail?.bank_name} - {accountDetail?.account_name}</h1>
         </div>
         <div className="header-actions">
-          <button className="btn btn-secondary" onClick={handleSync} disabled={syncing}>
-            {syncing ? '🔄 กำลัง Sync...' : '📥 Sync จาก Drive'}
+          <button className="btn btn-primary" onClick={() => setShowAddTransaction(true)}>
+            + เพิ่มรายการ
           </button>
-          <button className="btn btn-primary" onClick={handleAnalyzeAll} disabled={analyzing}>
-            {analyzing ? '🧠 กำลังวิเคราะห์...' : '🤖 วิเคราะห์ทั้งหมด'}
-          </button>
-          <div className="export-group">
-            <button className="btn btn-outline" onClick={() => handleExport('json')}>📊 Export JSON</button>
-            <button className="btn btn-outline" onClick={() => handleExport('csv')}>📋 Export CSV</button>
-          </div>
         </div>
       </header>
 
-      <ProgressBar stats={stats} />
+      {showAddTransaction && selectedAccount && (
+        <AddTransactionForm
+          accountId={selectedAccount.id}
+          onSubmit={handleAddTransaction}
+          onCancel={() => setShowAddTransaction(false)}
+        />
+      )}
 
-      <main className="app-main workspace">
-        <aside className="sidebar">
-          <ClipList
-            clips={filteredClips}
-            selectedId={selectedClip?.id}
-            onSelect={handleSelectClip}
-            filter={filter}
-            onFilterChange={setFilter}
+      <main className="app-main">
+        {accountDetail ? (
+          <AccountDetail
+            account={accountDetail}
+            transactions={transactions}
+            dashboardAccount={dashboardData?.accounts?.find(a => a.id === selectedAccount?.id)}
+            onAddEmail={handleAddEmail}
+            onRemoveEmail={handleRemoveEmail}
+            onToggleAccount={handleToggleAccount}
+            onDeleteAccount={handleDeleteAccount}
           />
-        </aside>
-        <section className="content">
-          {selectedClip ? (
-            <ClipReview
-              key={selectedClip.id}
-              clip={selectedClip}
-              onReview={handleReview}
-              onAnalyze={handleAnalyzeClip}
-              onNext={() => {
-                if (selectedIndex < filteredClips.length - 1) {
-                  handleSelectClip(filteredClips[selectedIndex + 1], selectedIndex + 1);
-                }
-              }}
-              onPrev={() => {
-                if (selectedIndex > 0) {
-                  handleSelectClip(filteredClips[selectedIndex - 1], selectedIndex - 1);
-                }
-              }}
-              currentIndex={selectedIndex}
-              totalClips={filteredClips.length}
-            />
-          ) : (
-            <div className="empty-state">
-              <div className="empty-icon">🎥</div>
-              <p>เลือกคลิปจากรายการด้านซ้ายเพื่อเริ่มรีวิว</p>
-              {clips.length === 0 && <p className="text-muted">กด "Sync จาก Drive" เพื่อดึงวิดีโอเข้ามา</p>}
-            </div>
-          )}
-        </section>
+        ) : (
+          <div className="loading-state">
+            <div className="spinner" />
+            <p>กำลังโหลดข้อมูล...</p>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -1,21 +1,26 @@
-# Video Footage Analyzer - วิเคราะห์วิดีโอร้านอาหาร
+# Bank Transfer Alerts - ระบบแจ้งเตือนการโอนเงิน
 
-Web app สำหรับวิเคราะห์และจัดหมวดหมู่ footage วิดีโอร้านอาหารด้วย Gemini AI
+ระบบ Dashboard สำหรับติดตามการโอนเงินเข้า-ออกบัญชีธนาคาร พร้อมแจ้งเตือนเกณฑ์ภาษีตามกฎหมายไทย
 
 ## Features
 
-- ดึงวิดีโอจาก Google Drive folder อัตโนมัติ
-- วิเคราะห์ด้วย Gemini 2.0: ชื่อเมนู, ประเภทฉาก, confidence score
-- Review UI: เล่นวิดีโอ, ดูผล AI, ยืนยัน/แก้ไข/ตัดทิ้ง
-- Progress tracking แบบ real-time
-- Export รายงาน JSON/CSV
+- เพิ่มและจัดการบัญชีธนาคารหลายบัญชี
+- ผูกอีเมลกับแต่ละบัญชีเพื่อติดตามการแจ้งเตือน
+- บันทึกรายการรับโอนเข้า/เบิกจ่าย พร้อมสรุปรายวัน
+- **เกณฑ์ภาษีไทย** - ตรวจสอบตามกฎหมาย:
+  - เกณฑ์ 1: รับโอนเข้า >= 3,000 ครั้ง/ปี
+  - เกณฑ์ 2: รับโอนเข้า >= 400 ครั้ง + ยอดรวม >= 2,000,000 บาท/ปี
+- **แถบพลังงาน** สีเขียว-เหลือง-แดง แสดงความใกล้เกณฑ์ภาษี
+- แจ้งเตือนอัตโนมัติเมื่อใกล้ถึงเกณฑ์ (70%, 90%, เกิน)
+- **แนะนำบัญชี** ที่ยังมีที่ว่างใช้งาน
+- ปิดบัญชีอัตโนมัติเมื่อเกินเกณฑ์ เพื่อไม่ให้เข้าฐานภาษี
+- Responsive รองรับทั้งมือถือและเดสก์ท็อป
 
 ## Tech Stack
 
 - **Backend**: Node.js + Express + SQLite (better-sqlite3)
-- **Frontend**: React
-- **AI**: Google Gemini 2.0 Flash
-- **Storage**: Google Drive API
+- **Frontend**: React 18
+- **Database**: SQLite with WAL mode
 
 ## Quick Start
 
@@ -25,7 +30,6 @@ npm run install:all
 
 # 2. Set up environment
 cp backend/.env.example backend/.env
-# Edit backend/.env with your API keys
 
 # 3. Initialize database
 npm run db:init
@@ -41,27 +45,48 @@ Edit `backend/.env`:
 
 | Variable | Description |
 |----------|-------------|
-| `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` | Path to Google service account JSON |
-| `GOOGLE_DRIVE_FOLDER_ID` | Google Drive folder containing videos |
-| `GEMINI_API_KEY` | Google Gemini API key |
 | `PORT` | Backend port (default: 3001) |
-
-## Mock Mode
-
-หากไม่ได้ตั้งค่า API keys ระบบจะทำงานใน mock mode โดยใช้ข้อมูลจำลองเพื่อทดสอบ UI
+| `DB_PATH` | Database file path (default: ./data/bank_alerts.db) |
 
 ## API Endpoints
 
+### Accounts
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/health` | Health check |
-| GET | `/api/projects` | List projects |
-| POST | `/api/projects` | Create project |
-| POST | `/api/projects/:id/sync` | Sync clips from Drive |
-| GET | `/api/clips/project/:id` | List clips |
-| POST | `/api/clips/:id/analyze` | Analyze single clip |
-| POST | `/api/clips/project/:id/analyze-all` | Analyze all clips |
-| POST | `/api/clips/:id/review` | Review a clip |
-| GET | `/api/export/project/:id/json` | Export JSON report |
-| GET | `/api/export/project/:id/csv` | Export CSV report |
-| GET | `/api/export/project/:id/stats` | Get progress stats |
+| GET | `/api/accounts` | List all accounts with yearly stats |
+| POST | `/api/accounts` | Create new account |
+| GET | `/api/accounts/:id` | Get account detail with emails |
+| PUT | `/api/accounts/:id` | Update account |
+| DELETE | `/api/accounts/:id` | Delete account |
+| POST | `/api/accounts/:id/emails` | Add email to account |
+| DELETE | `/api/accounts/:id/emails/:emailId` | Remove email |
+
+### Transactions
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/transactions/account/:id` | List transactions |
+| POST | `/api/transactions` | Add transaction |
+| POST | `/api/transactions/batch` | Batch add transactions |
+| DELETE | `/api/transactions/:id` | Delete transaction |
+| GET | `/api/transactions/summary/:id` | Daily summaries |
+
+### Dashboard
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/dashboard` | Main dashboard data |
+| GET | `/api/dashboard/alerts` | Get alerts |
+| PUT | `/api/dashboard/alerts/:id/read` | Mark alert read |
+| PUT | `/api/dashboard/alerts/read-all` | Mark all read |
+| GET | `/api/dashboard/tax-settings` | Get tax settings |
+| PUT | `/api/dashboard/tax-settings` | Update tax settings |
+
+## Thai Tax Law Reference
+
+ตาม พ.ร.บ. แก้ไขเพิ่มเติมประมวลรัษฎากร (ฉบับที่ 48) พ.ศ. 2562:
+
+ธนาคารจะรายงานข้อมูลบัญชีให้กรมสรรพากร เมื่อเข้าเกณฑ์ **อย่างใดอย่างหนึ่ง**:
+
+1. **ฝาก/รับโอนเข้า >= 3,000 ครั้ง/ปี** ต่อบัญชี
+2. **ฝาก/รับโอนเข้า >= 400 ครั้ง + ยอดรวม >= 2,000,000 บาท/ปี** ต่อบัญชี
+
+ข้อมูลที่ธนาคารรายงาน: ชื่อเจ้าของบัญชี, เลขประจำตัวผู้เสียภาษี, เลขที่บัญชี, จำนวนครั้งที่ฝาก, ยอดรวมที่ฝาก

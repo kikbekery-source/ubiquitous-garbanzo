@@ -1,7 +1,7 @@
 {
-  "name": "video-footage-analyzer-backend",
+  "name": "bank-transfer-alerts-backend",
   "version": "1.0.0",
-  "description": "Backend for restaurant video footage analysis with Gemini AI",
+  "description": "Backend for Bank Transfer Alert System",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -9,13 +9,10 @@
     "db:init": "node src/db/init.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
     "better-sqlite3": "^11.7.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "googleapis": "^144.0.0",
-    "multer": "^1.4.5-lts.1",
     "uuid": "^11.1.0"
   }
 }

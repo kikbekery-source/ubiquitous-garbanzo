@@ -2,7 +2,7 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/footage.db');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/bank_alerts.db');
 
 function ensureDir(filePath) {
   const dir = path.dirname(filePath);
@@ -17,58 +17,80 @@ function initDatabase(dbPath = DB_PATH) {
   db.pragma('foreign_keys = ON');
 
   db.exec(`
-    CREATE TABLE IF NOT EXISTS projects (
+    CREATE TABLE IF NOT EXISTS bank_accounts (
       id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      drive_folder_id TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      account_number TEXT NOT NULL,
+      bank_name TEXT NOT NULL,
+      account_name TEXT NOT NULL,
+      is_active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime'))
     );
 
-    CREATE TABLE IF NOT EXISTS clips (
+    CREATE TABLE IF NOT EXISTS linked_emails (
       id TEXT PRIMARY KEY,
-      project_id TEXT NOT NULL,
-      drive_file_id TEXT NOT NULL,
-      filename TEXT NOT NULL,
-      mime_type TEXT,
-      duration_seconds REAL,
-      thumbnail_url TEXT,
-      drive_web_view_link TEXT,
-      drive_download_link TEXT,
-      file_size INTEGER,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+      account_id TEXT NOT NULL,
+      email TEXT NOT NULL,
+      description TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE CASCADE
     );
 
-    CREATE TABLE IF NOT EXISTS analyses (
+    CREATE TABLE IF NOT EXISTS transactions (
       id TEXT PRIMARY KEY,
-      clip_id TEXT NOT NULL UNIQUE,
-      menu_name TEXT,
-      scene_type TEXT CHECK(scene_type IN ('production', 'preparation', 'conversation', 'other')),
-      confidence_score REAL,
-      ai_raw_response TEXT,
-      status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'analyzing', 'completed', 'failed')),
-      error_message TEXT,
-      analyzed_at DATETIME,
-      FOREIGN KEY (clip_id) REFERENCES clips(id) ON DELETE CASCADE
+      account_id TEXT NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('deposit', 'withdrawal')),
+      amount REAL NOT NULL,
+      description TEXT,
+      transaction_date TEXT NOT NULL,
+      source_email TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE CASCADE
     );
 
-    CREATE TABLE IF NOT EXISTS reviews (
+    CREATE TABLE IF NOT EXISTS daily_summaries (
       id TEXT PRIMARY KEY,
-      clip_id TEXT NOT NULL UNIQUE,
-      decision TEXT CHECK(decision IN ('approved', 'edited', 'discarded')),
-      final_menu_name TEXT,
-      final_scene_type TEXT,
-      notes TEXT,
-      reviewed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (clip_id) REFERENCES clips(id) ON DELETE CASCADE
+      account_id TEXT NOT NULL,
+      summary_date TEXT NOT NULL,
+      deposit_count INTEGER DEFAULT 0,
+      deposit_total REAL DEFAULT 0,
+      withdrawal_count INTEGER DEFAULT 0,
+      withdrawal_total REAL DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE CASCADE,
+      UNIQUE(account_id, summary_date)
     );
 
-    CREATE INDEX IF NOT EXISTS idx_clips_project ON clips(project_id);
-    CREATE INDEX IF NOT EXISTS idx_analyses_clip ON analyses(clip_id);
-    CREATE INDEX IF NOT EXISTS idx_analyses_status ON analyses(status);
-    CREATE INDEX IF NOT EXISTS idx_reviews_clip ON reviews(clip_id);
-    CREATE INDEX IF NOT EXISTS idx_reviews_decision ON reviews(decision);
+    CREATE TABLE IF NOT EXISTS alerts (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      alert_type TEXT NOT NULL,
+      message TEXT NOT NULL,
+      severity TEXT NOT NULL CHECK(severity IN ('info', 'warning', 'danger')),
+      is_read INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS tax_settings (
+      id TEXT PRIMARY KEY DEFAULT 'default',
+      transaction_limit_primary INTEGER DEFAULT 3000,
+      transaction_limit_secondary INTEGER DEFAULT 400,
+      amount_limit_secondary REAL DEFAULT 2000000,
+      fiscal_year TEXT DEFAULT '2026',
+      updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    INSERT OR IGNORE INTO tax_settings (id) VALUES ('default');
+
+    CREATE INDEX IF NOT EXISTS idx_transactions_account ON transactions(account_id);
+    CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(transaction_date);
+    CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+    CREATE INDEX IF NOT EXISTS idx_daily_summaries_account ON daily_summaries(account_id);
+    CREATE INDEX IF NOT EXISTS idx_daily_summaries_date ON daily_summaries(summary_date);
+    CREATE INDEX IF NOT EXISTS idx_linked_emails_account ON linked_emails(account_id);
+    CREATE INDEX IF NOT EXISTS idx_alerts_account ON alerts(account_id);
+    CREATE INDEX IF NOT EXISTS idx_alerts_read ON alerts(is_read);
   `);
 
   return db;

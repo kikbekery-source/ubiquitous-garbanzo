@@ -1,7 +1,7 @@
 {
-  "name": "video-footage-analyzer",
+  "name": "bank-transfer-alerts",
   "version": "1.0.0",
-  "description": "Web app for analyzing and categorizing restaurant video footage with Gemini AI",
+  "description": "ระบบแจ้งเตือนการโอนเงิน - Bank Transfer Alert System with Thai Tax Threshold Monitoring",
   "scripts": {
     "install:all": "cd backend && npm install && cd ../frontend && npm install",
     "dev:backend": "cd backend && npm run dev",
