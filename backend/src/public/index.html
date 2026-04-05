@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Footage Analyzer - วิเคราะห์วิดีโอร้านอาหาร</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--bg-card:#1a1d27;--bg-hover:#242836;--bg-input:#13151d;--border:#2a2e3d;--text:#e4e6f0;--text-muted:#8b8fa3;--primary:#6c5ce7;--primary-hover:#7c6ef7;--success:#00b894;--warning:#fdcb6e;--danger:#e17055;--info:#74b9ff;--radius:12px;--radius-sm:8px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans Thai',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.app{max-width:1440px;margin:0 auto;padding:0 24px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.4rem}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+.subtitle{color:var(--text-muted);font-size:.85rem}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--primary-hover)}
+.btn-secondary{background:var(--bg-hover);color:var(--text);border:1px solid var(--border)}
+.btn-outline{background:transparent;color:var(--text-muted);border:1px solid var(--border)}
+.btn-outline:hover{background:var(--bg-hover);color:var(--text)}
+.btn-ghost{background:transparent;color:var(--text-muted);border:none}
+.btn-ghost:hover{color:var(--text);background:var(--bg-hover)}
+.btn-success{background:var(--success);color:#fff}
+.btn-approve{background:var(--success);color:#fff}
+.btn-edit-action{background:var(--warning);color:#333}
+.btn-discard{background:var(--danger);color:#fff}
+input,select,textarea{padding:8px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:.9rem}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(108,92,231,.3)}
+textarea{resize:vertical;min-height:60px}
+
+/* Progress */
+.progress-section{padding:16px 0;border-bottom:1px solid var(--border)}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.progress-track{display:flex;height:8px;background:var(--bg-hover);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.progress-seg{height:100%;transition:width .3s}
+.seg-approved{background:var(--success)}
+.seg-edited{background:var(--warning)}
+.seg-discarded{background:var(--danger)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--text-muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.dot-approved{background:var(--success)}
+.dot-edited{background:var(--warning)}
+.dot-discarded{background:var(--danger)}
+.dot-pending{background:var(--info)}
+
+/* Workspace */
+.workspace{display:grid;grid-template-columns:320px 1fr;gap:24px;padding:24px 0;min-height:calc(100vh - 220px)}
+
+/* Sidebar */
+.sidebar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 240px)}
+.sidebar-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)}
+.sidebar-header h3{font-size:.9rem}
+.clip-items{overflow-y:auto;flex:1}
+.clip-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
+.clip-item:hover{background:var(--bg-hover)}
+.clip-item.active{background:var(--bg-hover);border-left:3px solid var(--primary)}
+.clip-icon{font-size:1.1rem;flex-shrink:0}
+.clip-info{flex:1;min-width:0}
+.clip-name{font-size:.82rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clip-meta{display:flex;gap:6px;margin-top:2px}
+.menu-tag{font-size:.7rem;color:var(--primary);background:rgba(108,92,231,.15);padding:1px 6px;border-radius:4px}
+.conf-tag{font-size:.7rem;color:var(--text-muted)}
+.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sd-approved{background:var(--success)}
+.sd-edited{background:var(--warning)}
+.sd-discarded{background:var(--danger)}
+.sd-pending{background:var(--info)}
+.sd-none{background:var(--border)}
+
+/* Content */
+.content{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.clip-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.clip-counter{font-size:.9rem;color:var(--text-muted)}
+.review-layout{display:grid;grid-template-columns:1fr 360px;gap:24px}
+
+/* Video */
+.video-box{aspect-ratio:16/9;background:#000;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--text-muted)}
+.video-box .icon{font-size:3rem;margin-bottom:12px}
+.video-title{margin-top:12px;font-size:.95rem;font-weight:500}
+
+/* Analysis */
+.analysis-card{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px}
+.analysis-card h4{font-size:.8rem;color:var(--text-muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.75rem;color:var(--text-muted);margin-bottom:4px}
+.field-val{font-size:1rem;font-weight:500}
+.menu-name-val{font-size:1.2rem;color:var(--primary)}
+.scene-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.85rem}
+.scene-production{background:rgba(0,184,148,.15);color:var(--success)}
+.scene-preparation{background:rgba(253,203,110,.15);color:var(--warning)}
+.scene-conversation{background:rgba(116,185,255,.15);color:var(--info)}
+.scene-other{background:rgba(139,143,163,.15);color:var(--text-muted)}
+.conf-bar{display:flex;align-items:center;gap:10px}
+.conf-track{flex:1;height:8px;background:var(--bg-hover);border-radius:4px;overflow:hidden}
+.conf-fill{height:100%;border-radius:4px}
+.conf-high{background:var(--success)}
+.conf-med{background:var(--warning)}
+.conf-low{background:var(--danger)}
+.conf-text{font-size:.9rem;font-weight:600;min-width:40px}
+
+.review-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:12px;font-weight:500}
+.rs-approved{background:rgba(0,184,148,.15);color:var(--success)}
+.rs-edited{background:rgba(253,203,110,.15);color:var(--warning)}
+.rs-discarded{background:rgba(225,112,85,.15);color:var(--danger)}
+
+.review-actions{display:flex;gap:8px;flex-wrap:wrap}
+.review-actions .btn{flex:1;justify-content:center;padding:10px 16px}
+
+.loading-state,.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.empty-icon{font-size:3rem;margin-bottom:16px}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Project list */
+.project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:20px}
+.project-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;transition:all .2s}
+.project-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.project-card h3{margin-bottom:12px}
+.pstats{display:flex;gap:16px;margin-bottom:12px}
+.pstat-val{font-size:1.4rem;font-weight:700;color:var(--primary)}
+.pstat-label{font-size:.72rem;color:var(--text-muted)}
+.pprogress{height:4px;background:var(--bg-hover);border-radius:2px;overflow:hidden}
+.pprogress-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--success));border-radius:2px}
+
+.create-form{display:flex;gap:12px;padding:16px;background:var(--bg-card);border-radius:var(--radius);margin-bottom:20px;flex-wrap:wrap}
+.create-form input{flex:1;min-width:200px}
+
+/* Settings modal */
+.settings-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin:16px 0;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.settings-bar .field{margin-bottom:0;flex:1;min-width:200px}
+.settings-bar label{font-size:.8rem;color:var(--text-muted);margin-bottom:4px;display:block}
+
+.hidden{display:none}
+
+@media(max-width:1024px){.workspace{grid-template-columns:260px 1fr}.review-layout{grid-template-columns:1fr}}
+@media(max-width:768px){.workspace{grid-template-columns:1fr}.sidebar{max-height:250px}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Project List View -->
+  <div id="view-projects">
+    <div class="header">
+      <div>
+        <h1>🎬 Video Footage Analyzer</h1>
+        <p class="subtitle">วิเคราะห์และจัดหมวดหมู่วิดีโอร้านอาหารด้วย AI</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="toggleCreateForm()">+ สร้างโปรเจคใหม่</button>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="settings-bar">
+      <div class="field">
+        <label>Gemini API Key</label>
+        <input type="password" id="input-gemini-key" placeholder="AIza..." style="width:100%">
+      </div>
+      <div class="field">
+        <label>Google Drive Folder ID</label>
+        <input type="text" id="input-drive-folder" placeholder="เช่น 1aBcDeFgHiJk..." style="width:100%">
+      </div>
+      <button class="btn btn-secondary" onclick="saveSettings()">💾 บันทึกการตั้งค่า</button>
+      <div id="settings-status" style="font-size:.8rem;color:var(--success)"></div>
+    </div>
+
+    <div id="create-form" class="create-form hidden">
+      <input type="text" id="input-project-name" placeholder="ชื่อโปรเจค เช่น ร้านส้มตำแม่ปุ๋ย">
+      <input type="text" id="input-folder-id" placeholder="Google Drive Folder ID">
+      <button class="btn btn-success" onclick="createProject()">สร้างโปรเจค</button>
+    </div>
+
+    <div id="project-list" class="project-grid"></div>
+
+    <div id="projects-empty" class="empty-state hidden">
+      <div class="empty-icon">📁</div>
+      <p>ยังไม่มีโปรเจค</p>
+      <p style="color:var(--text-muted)">สร้างโปรเจคใหม่เพื่อเริ่มวิเคราะห์วิดีโอ</p>
+    </div>
+  </div>
+
+  <!-- Project Detail View -->
+  <div id="view-detail" class="hidden">
+    <div class="header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn btn-ghost" onclick="showProjects()">← กลับ</button>
+        <h1 id="detail-title"></h1>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="btn-sync" onclick="syncClips()">📥 Sync จาก Drive</button>
+        <button class="btn btn-primary" id="btn-analyze" onclick="analyzeAll()">🤖 วิเคราะห์ทั้งหมด</button>
+        <button class="btn btn-outline" onclick="exportJSON()">📊 Export JSON</button>
+        <button class="btn btn-outline" onclick="exportCSV()">📋 Export CSV</button>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div id="progress-section" class="progress-section hidden">
+      <div class="progress-header">
+        <h3 style="font-size:.9rem;font-weight:600">ความคืบหน้า</h3>
+        <span id="progress-text" style="font-size:.85rem;color:var(--text-muted)"></span>
+      </div>
+      <div class="progress-track" id="progress-track"></div>
+      <div class="legend" id="progress-legend"></div>
+    </div>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h3>คลิปทั้งหมด (<span id="clip-count">0</span>)</h3>
+          <select id="filter-select" onchange="applyFilter()">
+            <option value="all">ทั้งหมด</option>
+            <option value="pending">รอรีวิว</option>
+            <option value="approved">ยืนยันแล้ว</option>
+            <option value="edited">แก้ไขแล้ว</option>
+            <option value="discarded">ตัดทิ้ง</option>
+            <option value="unanalyzed">ยังไม่วิเคราะห์</option>
+          </select>
+        </div>
+        <div class="clip-items" id="clip-list"></div>
+      </aside>
+
+      <section class="content" id="clip-detail">
+        <div class="empty-state">
+          <div class="empty-icon">🎥</div>
+          <p>เลือกคลิปจากรายการด้านซ้าย</p>
+          <p style="color:var(--text-muted)">หรือกด "Sync จาก Drive" เพื่อดึงวิดีโอเข้ามา</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+const SCENE_LABELS = {production:'กระบวนการผลิต',preparation:'เตรียมเครื่อง',conversation:'พูดคุยสนุกสนาน',other:'อื่นๆ'};
+const SCENE_ICONS = {production:'🍳',preparation:'🥬',conversation:'💬',other:'📌'};
+const SCENE_CLASSES = {production:'scene-production',preparation:'scene-preparation',conversation:'scene-conversation',other:'scene-other'};
+
+let currentProject = null;
+let allClips = [];
+let filteredClips = [];
+let selectedIndex = -1;
+
+// API helper
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: {'Content-Type': 'application/json'},
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  return res.json();
+}
+
+// Settings
+function saveSettings() {
+  const geminiKey = document.getElementById('input-gemini-key').value;
+  const driveFolder = document.getElementById('input-drive-folder').value;
+  localStorage.setItem('gemini_key', geminiKey);
+  localStorage.setItem('drive_folder', driveFolder);
+  document.getElementById('settings-status').textContent = '✅ บันทึกแล้ว (ต้อง restart server เพื่อใช้งาน API key)';
+  setTimeout(() => document.getElementById('settings-status').textContent = '', 3000);
+}
+
+function loadSettings() {
+  document.getElementById('input-gemini-key').value = localStorage.getItem('gemini_key') || '';
+  document.getElementById('input-drive-folder').value = localStorage.getItem('drive_folder') || '';
+}
+
+// Projects
+async function loadProjects() {
+  const projects = await api('/projects');
+  const grid = document.getElementById('project-list');
+  const empty = document.getElementById('projects-empty');
+
+  if (!projects.length) {
+    grid.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  grid.innerHTML = projects.map(p => {
+    const pct = p.total_clips ? ((p.reviewed_clips||0)/p.total_clips*100).toFixed(0) : 0;
+    return `<div class="project-card" onclick="openProject('${p.id}','${p.name.replace(/'/g,"\\'")}')">
+      <h3>${p.name}</h3>
+      <div class="pstats">
+        <div><div class="pstat-val">${p.total_clips||0}</div><div class="pstat-label">คลิปทั้งหมด</div></div>
+        <div><div class="pstat-val">${p.analyzed_clips||0}</div><div class="pstat-label">วิเคราะห์แล้ว</div></div>
+        <div><div class="pstat-val">${p.reviewed_clips||0}</div><div class="pstat-label">รีวิวแล้ว</div></div>
+      </div>
+      <div class="pprogress"><div class="pprogress-bar" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCreateForm() {
+  document.getElementById('create-form').classList.toggle('hidden');
+}
+
+async function createProject() {
+  const name = document.getElementById('input-project-name').value;
+  const folderId = document.getElementById('input-folder-id').value || localStorage.getItem('drive_folder') || 'default';
+  if (!name) return alert('กรุณาใส่ชื่อโปรเจค');
+  await api('/projects', {method:'POST', body:{name, driveFolderId: folderId}});
+  document.getElementById('input-project-name').value = '';
+  document.getElementById('input-folder-id').value = '';
+  document.getElementById('create-form').classList.add('hidden');
+  loadProjects();
+}
+
+async function openProject(id, name) {
+  currentProject = {id, name};
+  document.getElementById('detail-title').textContent = name;
+  document.getElementById('view-projects').classList.add('hidden');
+  document.getElementById('view-detail').classList.remove('hidden');
+  selectedIndex = -1;
+  await loadClips();
+}
+
+function showProjects() {
+  currentProject = null;
+  document.getElementById('view-projects').classList.remove('hidden');
+  document.getElementById('view-detail').classList.add('hidden');
+  loadProjects();
+}
+
+// Clips
+async function loadClips() {
+  if (!currentProject) return;
+  const [clips, stats] = await Promise.all([
+    api(`/clips/project/${currentProject.id}`),
+    api(`/export/project/${currentProject.id}/stats`)
+  ]);
+  allClips = clips;
+  updateProgress(stats);
+  applyFilter();
+}
+
+function updateProgress(s) {
+  if (!s || !s.total) { document.getElementById('progress-section').classList.add('hidden'); return; }
+  document.getElementById('progress-section').classList.remove('hidden');
+  const reviewed = (s.approved||0) + (s.edited||0) + (s.discarded||0);
+  document.getElementById('progress-text').textContent = `${reviewed}/${s.total} รีวิวแล้ว`;
+  document.getElementById('progress-track').innerHTML = `
+    <div class="progress-seg seg-approved" style="width:${(s.approved||0)/s.total*100}%"></div>
+    <div class="progress-seg seg-edited" style="width:${(s.edited||0)/s.total*100}%"></div>
+    <div class="progress-seg seg-discarded" style="width:${(s.discarded||0)/s.total*100}%"></div>`;
+  document.getElementById('progress-legend').innerHTML = `
+    <span><span class="dot dot-approved"></span>ยืนยัน (${s.approved||0})</span>
+    <span><span class="dot dot-edited"></span>แก้ไข (${s.edited||0})</span>
+    <span><span class="dot dot-discarded"></span>ตัดทิ้ง (${s.discarded||0})</span>
+    <span><span class="dot dot-pending"></span>รอรีวิว (${s.pending_review||0})</span>`;
+}
+
+function applyFilter() {
+  const f = document.getElementById('filter-select').value;
+  if (f === 'all') filteredClips = allClips;
+  else if (f === 'pending') filteredClips = allClips.filter(c => !c.decision && c.analysis_status === 'completed');
+  else if (f === 'unanalyzed') filteredClips = allClips.filter(c => c.analysis_status !== 'completed');
+  else filteredClips = allClips.filter(c => c.decision === f);
+  document.getElementById('clip-count').textContent = filteredClips.length;
+  renderClipList();
+}
+
+function renderClipList() {
+  const el = document.getElementById('clip-list');
+  el.innerHTML = filteredClips.map((c, i) => {
+    const icon = c.scene_type ? SCENE_ICONS[c.scene_type] : '🎥';
+    let sdClass = 'sd-none';
+    if (c.decision === 'approved') sdClass = 'sd-approved';
+    else if (c.decision === 'edited') sdClass = 'sd-edited';
+    else if (c.decision === 'discarded') sdClass = 'sd-discarded';
+    else if (c.analysis_status === 'completed') sdClass = 'sd-pending';
+
+    return `<div class="clip-item ${i===selectedIndex?'active':''}" onclick="selectClip(${i})">
+      <div class="clip-icon">${icon}</div>
+      <div class="clip-info">
+        <div class="clip-name">${c.filename}</div>
+        <div class="clip-meta">
+          ${c.menu_name ? `<span class="menu-tag">${c.menu_name}</span>` : ''}
+          ${c.confidence_score ? `<span class="conf-tag">${(c.confidence_score*100).toFixed(0)}%</span>` : ''}
+        </div>
+      </div>
+      <div class="status-dot ${sdClass}"></div>
+    </div>`;
+  }).join('');
+}
+
+function selectClip(index) {
+  selectedIndex = index;
+  renderClipList();
+  renderClipDetail(filteredClips[index]);
+}
+
+function renderClipDetail(c) {
+  const el = document.getElementById('clip-detail');
+  if (!c) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">🎥</div><p>เลือกคลิปจากรายการ</p></div>'; return; }
+
+  const confPct = c.confidence_score ? (c.confidence_score * 100).toFixed(0) : null;
+  const confClass = confPct >= 80 ? 'conf-high' : confPct >= 50 ? 'conf-med' : 'conf-low';
+
+  let analysisHTML = '';
+  if (c.analysis_status === 'completed') {
+    analysisHTML = `
+      <div class="analysis-card">
+        <h4>ผลวิเคราะห์ AI</h4>
+        <div class="field"><label>ชื่อเมนู</label><div class="field-val menu-name-val" id="val-menu">${c.menu_name||'-'}</div></div>
+        <div class="field"><label>ประเภทฉาก</label><div class="field-val"><span class="scene-badge ${SCENE_CLASSES[c.scene_type]||'scene-other'}" id="val-scene">${SCENE_ICONS[c.scene_type]||''} ${SCENE_LABELS[c.scene_type]||c.scene_type||'-'}</span></div></div>
+        ${confPct ? `<div class="field"><label>ความมั่นใจ</label><div class="conf-bar"><div class="conf-track"><div class="conf-fill ${confClass}" style="width:${confPct}%"></div></div><span class="conf-text">${confPct}%</span></div></div>` : ''}
+      </div>
+      ${c.decision ? `<div class="review-status rs-${c.decision}">${c.decision==='approved'?'✅ ยืนยันแล้ว':c.decision==='edited'?'✏️ แก้ไขแล้ว':'🗑️ ตัดทิ้งแล้ว'}</div>` : ''}
+      <div id="edit-area" class="hidden" style="margin-bottom:12px">
+        <div class="field"><label>แก้ไขชื่อเมนู</label><input id="edit-menu" value="${c.final_menu_name||c.menu_name||''}" style="width:100%"></div>
+        <div class="field"><label>แก้ไขประเภทฉาก</label>
+          <select id="edit-scene" style="width:100%">
+            ${Object.entries(SCENE_LABELS).map(([k,v])=>`<option value="${k}" ${(c.final_scene_type||c.scene_type)===k?'selected':''}>${SCENE_ICONS[k]} ${v}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>หมายเหตุ</label><textarea id="edit-notes" style="width:100%" placeholder="เพิ่มหมายเหตุ...">${c.notes||''}</textarea></div>
+      </div>
+      <div class="review-actions" id="action-buttons">
+        <button class="btn btn-approve" onclick="reviewClip('approved')">✅ ยืนยัน</button>
+        <button class="btn btn-edit-action" onclick="showEditMode()">✏️ แก้ไข</button>
+        <button class="btn btn-discard" onclick="reviewClip('discarded')">🗑️ ตัดทิ้ง</button>
+      </div>
+      <div class="review-actions hidden" id="edit-buttons">
+        <button class="btn btn-approve" onclick="reviewClip('edited')">💾 บันทึกการแก้ไข</button>
+        <button class="btn btn-ghost" onclick="hideEditMode()">ยกเลิก</button>
+      </div>`;
+  } else if (c.analysis_status === 'analyzing') {
+    analysisHTML = '<div class="loading-state"><div class="spinner"></div><p>กำลังวิเคราะห์ด้วย Gemini AI...</p></div>';
+  } else if (c.analysis_status === 'failed') {
+    analysisHTML = `<div class="empty-state"><p>❌ วิเคราะห์ล้มเหลว</p><p style="color:var(--text-muted)">${c.error_message||''}</p><button class="btn btn-primary" onclick="analyzeClip('${c.id}')">🔄 ลองใหม่</button></div>`;
+  } else {
+    analysisHTML = `<div class="empty-state"><p>ยังไม่ได้วิเคราะห์</p><button class="btn btn-primary" onclick="analyzeClip('${c.id}')">🤖 วิเคราะห์คลิปนี้</button></div>`;
+  }
+
+  el.innerHTML = `
+    <div class="clip-nav">
+      <button class="btn btn-ghost" onclick="navClip(-1)" ${selectedIndex<=0?'disabled':''}>← ก่อนหน้า</button>
+      <span class="clip-counter">${selectedIndex+1} / ${filteredClips.length}</span>
+      <button class="btn btn-ghost" onclick="navClip(1)" ${selectedIndex>=filteredClips.length-1?'disabled':''}>ถัดไป →</button>
+    </div>
+    <div class="review-layout">
+      <div>
+        <div class="video-box">
+          <div class="icon">🎬</div>
+          <p>${c.filename}</p>
+          <p style="color:var(--text-muted);font-size:.85rem">${c.duration_seconds?c.duration_seconds+'s':''}${c.file_size?' · '+(c.file_size/1048576).toFixed(1)+' MB':''}</p>
+        </div>
+        <div class="video-title">${c.filename}</div>
+      </div>
+      <div>${analysisHTML}</div>
+    </div>`;
+}
+
+function showEditMode() {
+  document.getElementById('edit-area').classList.remove('hidden');
+  document.getElementById('action-buttons').classList.add('hidden');
+  document.getElementById('edit-buttons').classList.remove('hidden');
+}
+function hideEditMode() {
+  document.getElementById('edit-area').classList.add('hidden');
+  document.getElementById('action-buttons').classList.remove('hidden');
+  document.getElementById('edit-buttons').classList.add('hidden');
+}
+
+function navClip(dir) {
+  const newIdx = selectedIndex + dir;
+  if (newIdx >= 0 && newIdx < filteredClips.length) selectClip(newIdx);
+}
+
+// Actions
+async function syncClips() {
+  const btn = document.getElementById('btn-sync');
+  btn.disabled = true; btn.textContent = '🔄 กำลัง Sync...';
+  try {
+    const result = await api(`/projects/${currentProject.id}/sync`, {method:'POST'});
+    alert(`Sync สำเร็จ: เพิ่ม ${result.newlyAdded} คลิปใหม่ (ทั้งหมดใน Drive: ${result.totalInDrive})`);
+    await loadClips();
+  } catch(e) { alert('Sync ล้มเหลว: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = '📥 Sync จาก Drive'; }
+}
+
+async function analyzeAll() {
+  const btn = document.getElementById('btn-analyze');
+  btn.disabled = true; btn.textContent = '🧠 กำลังวิเคราะห์...';
+  try {
+    const result = await api(`/clips/project/${currentProject.id}/analyze-all`, {method:'POST'});
+    alert(`วิเคราะห์สำเร็จ ${result.results.length} คลิป`);
+    await loadClips();
+    if (selectedIndex >= 0) renderClipDetail(filteredClips[selectedIndex]);
+  } catch(e) { alert('วิเคราะห์ล้มเหลว: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = '🤖 วิเคราะห์ทั้งหมด'; }
+}
+
+async function analyzeClip(clipId) {
+  try {
+    await api(`/clips/${clipId}/analyze`, {method:'POST'});
+    await loadClips();
+    if (selectedIndex >= 0) renderClipDetail(filteredClips[selectedIndex]);
+  } catch(e) { alert('วิเคราะห์ล้มเหลว: ' + e.message); }
+}
+
+async function reviewClip(decision) {
+  const c = filteredClips[selectedIndex];
+  if (!c) return;
+  const body = { decision };
+  if (decision === 'edited') {
+    body.finalMenuName = document.getElementById('edit-menu').value;
+    body.finalSceneType = document.getElementById('edit-scene').value;
+    body.notes = document.getElementById('edit-notes').value;
+  }
+  await api(`/clips/${c.id}/review`, {method:'POST', body});
+  await loadClips();
+  renderClipDetail(filteredClips[selectedIndex]);
+}
+
+function exportJSON() {
+  window.open(`${API}/export/project/${currentProject.id}/json`, '_blank');
+}
+function exportCSV() {
+  window.open(`${API}/export/project/${currentProject.id}/csv`, '_blank');
+}
+
+// Init
+loadSettings();
+loadProjects();
+</script>
+</body>
+</html>

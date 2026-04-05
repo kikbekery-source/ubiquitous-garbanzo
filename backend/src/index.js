@@ -23,7 +23,8 @@ const db = initDatabase();
   console.log('Services initialized');
 })();
 
-// Serve static frontend in production
+// Serve static frontend
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, '../../frontend/build')));
 
 // API Routes
@@ -49,7 +50,10 @@ app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API route not found' });
   }
-  res.sendFile(path.join(__dirname, '../../frontend/build/index.html'));
+  const publicIndex = path.join(__dirname, 'public/index.html');
+  const buildIndex = path.join(__dirname, '../../frontend/build/index.html');
+  const fs = require('fs');
+  res.sendFile(fs.existsSync(buildIndex) ? buildIndex : publicIndex);
 });
 
 app.listen(PORT, () => {
