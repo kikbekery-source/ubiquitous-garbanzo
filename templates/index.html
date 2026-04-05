@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📬 Email Assistant - ผู้ช่วยจัดการอีเมลอัจฉริยะ</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>📬 <span>Email Assistant</span></h1>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+                    📊 <span>แดชบอร์ด</span>
+                </div>
+                <div class="nav-item" data-page="accounts" onclick="showPage('accounts')">
+                    📧 <span>บัญชีอีเมล</span>
+                </div>
+                <div class="nav-item" data-page="emails" onclick="showPage('emails')">
+                    📥 <span>อีเมลทั้งหมด</span>
+                </div>
+                <div class="nav-item" data-page="memory" onclick="showPage('memory')">
+                    🧠 <span>หน่วยความจำ AI</span>
+                </div>
+                <div class="nav-item" data-page="settings" onclick="showPage('settings')">
+                    ⚙️ <span>ตั้งค่า API</span>
+                </div>
+                <div class="nav-item" data-page="logs" onclick="showPage('logs')">
+                    📋 <span>ประวัติการทำงาน</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="toast-container" id="toastContainer"></div>
+
+            <!-- ═══ Dashboard ═══ -->
+            <div class="page active" id="page-dashboard">
+                <h2 style="margin-bottom:20px; font-size:1.4rem;">📊 แดชบอร์ด - สรุปภาพรวม</h2>
+
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="statAccounts">0</div>
+                        <div class="stat-label">บัญชีอีเมล</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statEmails">-</div>
+                        <div class="stat-label">อีเมลวันนี้</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statImportant">-</div>
+                        <div class="stat-label">สำคัญ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statSpam">-</div>
+                        <div class="stat-label">สแปม/ขยะ</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>🤖 สรุปจาก AI</h2>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="runAnalysis()">
+                                🔍 วิเคราะห์อีเมลวันนี้
+                            </button>
+                            <button class="btn btn-warning" onclick="runDailyJob()">
+                                🚀 รันงานประจำวัน
+                            </button>
+                        </div>
+                    </div>
+                    <div class="loading" id="analysisLoading">
+                        <div class="spinner"></div>
+                        <p>กำลังวิเคราะห์อีเมลด้วย Gemini AI...</p>
+                    </div>
+                    <div class="summary-box" id="summaryBox">
+                        กดปุ่ม "วิเคราะห์อีเมลวันนี้" เพื่อเริ่มต้น
+                    </div>
+                </div>
+
+                <div class="card" id="importantEmailsCard" style="display:none;">
+                    <div class="card-header">
+                        <h2>🔴 อีเมลสำคัญ</h2>
+                    </div>
+                    <div id="importantEmailsList"></div>
+                </div>
+            </div>
+
+            <!-- ═══ Accounts ═══ -->
+            <div class="page" id="page-accounts">
+                <h2 style="margin-bottom:20px; font-size:1.4rem;">📧 จัดการบัญชีอีเมล</h2>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>➕ เพิ่มบัญชีอีเมล</h2>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>ผู้ให้บริการอีเมล</label>
+                            <select class="form-input" id="addProvider">
+                                <option value="gmail">Gmail</option>
+                                <option value="hotmail">Hotmail</option>
+                                <option value="outlook">Outlook</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>อีเมล</label>
+                            <input type="email" class="form-input" id="addEmail" placeholder="your@email.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>รหัสผ่าน / App Password</label>
+                        <input type="password" class="form-input" id="addPassword"
+                               placeholder="สำหรับ Gmail ให้ใช้ App Password">
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--text2); margin-bottom:12px;">
+                        💡 สำหรับ Gmail: ต้องเปิด 2FA แล้วสร้าง App Password ที่
+                        myaccount.google.com → Security → App Passwords<br>
+                        💡 สำหรับ Hotmail/Outlook: อาจต้องเปิด IMAP ในตั้งค่าอีเมล
+                    </p>
+                    <button class="btn btn-success" onclick="addAccount()" id="btnAddAccount">
+                        🔐 เชื่อมต่อและเพิ่มบัญชี
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📋 บัญชีที่เชื่อมต่อแล้ว</h2>
+                        <button class="btn btn-outline btn-sm" onclick="loadAccounts()">🔄 รีเฟรช</button>
+                    </div>
+                    <div id="accountsList">
+                        <p style="color:var(--text2);">กำลังโหลด...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ Emails ═══ -->
+            <div class="page" id="page-emails">
+                <h2 style="margin-bottom:20px; font-size:1.4rem;">📥 อีเมลทั้งหมด</h2>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>ผลการวิเคราะห์</h2>
+                        <div class="btn-group">
+                            <select class="form-input" id="emailFilter" style="width:auto;"
+                                    onchange="filterEmails()">
+                                <option value="all">ทั้งหมด</option>
+                                <option value="important">สำคัญ</option>
+                                <option value="normal">ทั่วไป</option>
+                                <option value="spam">สแปม/ขยะ</option>
+                            </select>
+                            <button class="btn btn-danger btn-sm" onclick="deleteAllSpam()">
+                                🗑️ ลบสแปมทั้งหมด
+                            </button>
+                        </div>
+                    </div>
+                    <div class="loading" id="emailsLoading">
+                        <div class="spinner"></div>
+                        <p>กำลังโหลดอีเมล...</p>
+                    </div>
+                    <div id="emailsList">
+                        <p style="color:var(--text2);">กดวิเคราะห์ที่แดชบอร์ดเพื่อดูรายการอีเมล</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ Memory ═══ -->
+            <div class="page" id="page-memory">
+                <h2 style="margin-bottom:20px; font-size:1.4rem;">🧠 หน่วยความจำ AI</h2>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>👤 ข้อมูลเจ้าของ</h2>
+                        <button class="btn btn-outline btn-sm" onclick="loadMemory()">🔄 รีเฟรช</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>ชื่อ</label>
+                            <input type="text" class="form-input" id="ownerName" placeholder="ชื่อของคุณ">
+                        </div>
+                        <div class="form-group">
+                            <label>อาชีพ</label>
+                            <input type="text" class="form-input" id="ownerJob" placeholder="อาชีพ">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>บันทึกเพิ่มเติม</label>
+                        <input type="text" class="form-input" id="ownerNotes" placeholder="ข้อมูลที่ต้องการให้ AI จดจำ">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveOwnerInfo()">💾 บันทึกข้อมูล</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📊 ข้อมูลที่ AI จดจำ</h2>
+                        <button class="btn btn-danger btn-sm" onclick="resetMemory()">🗑️ รีเซ็ตหน่วยความจำ</button>
+                    </div>
+                    <div id="memoryDisplay">
+                        <p style="color:var(--text2);">กำลังโหลด...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ Settings ═══ -->
+            <div class="page" id="page-settings">
+                <h2 style="margin-bottom:20px; font-size:1.4rem;">⚙️ ตั้งค่า API Keys</h2>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>🤖 Gemini API Key</h2>
+                    </div>
+                    <div class="form-group">
+                        <label>API Key</label>
+                        <input type="password" class="form-input" id="geminiApiKey"
+                               placeholder="AIza...">
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--text2); margin-bottom:12px;">
+                        💡 สร้าง API Key ได้ที่ Google AI Studio (aistudio.google.com)
+                    </p>
+                    <button class="btn btn-primary" onclick="saveGeminiKey()">💾 บันทึก Gemini API Key</button>
+                    <span id="geminiStatus" style="margin-left:12px; font-size:0.85rem;"></span>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📱 Telegram Bot</h2>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Bot Token</label>
+                            <input type="password" class="form-input" id="telegramToken"
+                                   placeholder="123456:ABC-DEF...">
+                        </div>
+                        <div class="form-group">
+                            <label>Chat ID</label>
+                            <input type="text" class="form-input" id="telegramChatId"
+                                   placeholder="123456789">
+                        </div>
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--text2); margin-bottom:12px;">
+                        💡 สร้าง Bot ผ่าน @BotFather บน Telegram แล้วหา Chat ID ผ่าน @userinfobot
+                    </p>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="saveTelegramConfig()">💾 บันทึก</button>
+                        <button class="btn btn-success" onclick="testTelegram()">📤 ทดสอบส่งข้อความ</button>
+                    </div>
+                    <span id="telegramStatus" style="margin-left:12px; font-size:0.85rem;"></span>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>⏰ ตั้งเวลาสรุปรายวัน</h2>
+                    </div>
+                    <div class="form-group">
+                        <label>เวลาที่ต้องการให้สรุปอีเมล (24 ชม.)</label>
+                        <input type="time" class="form-input" id="schedulerTime" value="08:00"
+                               style="width:200px;">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSchedulerTime()">💾 บันทึกเวลา</button>
+                </div>
+            </div>
+
+            <!-- ═══ Logs ═══ -->
+            <div class="page" id="page-logs">
+                <h2 style="margin-bottom:20px; font-size:1.4rem;">📋 ประวัติการทำงาน</h2>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>บันทึกการทำงานอัตโนมัติ</h2>
+                        <button class="btn btn-outline btn-sm" onclick="loadLogs()">🔄 รีเฟรช</button>
+                    </div>
+                    <div id="logsList">
+                        <p style="color:var(--text2);">กำลังโหลด...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Data files (contain credentials and personal data)
+data/accounts.json
+data/config.json
+data/memory.json
+data/last_analysis.json
+data/scheduler_log.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
