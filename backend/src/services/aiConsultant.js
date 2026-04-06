@@ -1,13 +1,13 @@
 /**
- * AI Consultant Service - Personal Ad Agency powered by Gemini
- * Features: Analysis, Recommendations, Memory System, Conversation
- * 
- * Acts as an intelligent consultant that:
- * - Analyzes engagement data from Facebook & TikTok
- * - Recommends which posts to boost as ads
- * - Suggests budget allocation and optimization
- * - Maintains memory of past decisions and their outcomes
- * - Provides Thai-language consulting
+ * AI Consultant Service - Personal Ad Agency Agent
+ * Powered by Google Gemini with persistent memory system
+ *
+ * Features:
+ * - Analyzes engagement data and recommends ad strategies
+ * - Remembers past decisions and outcomes (memory system)
+ * - Provides budget recommendations based on KPIs
+ * - Generates ad copy and creative suggestions
+ * - Acts as a personal agency consultant in Thai
  */
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
@@ -18,56 +18,28 @@ class AIConsultant {
     this.model = null;
     this.mockMode = false;
     this.db = null;
-    this.systemPrompt = null;
+    this.chatSessions = new Map(); // sessionId -> chat
   }
 
   init(db) {
     this.db = db;
     const apiKey = process.env.GEMINI_API_KEY;
-
     if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-      console.warn('Gemini API key not configured for AI Consultant. Using mock mode.');
+      console.warn('Gemini API key not configured. AI Consultant using mock mode.');
       this.mockMode = true;
       return;
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    this.model = genAI.getGenerativeModel({ 
+    this.model = genAI.getGenerativeModel({
       model: 'gemini-2.0-flash',
       generationConfig: {
-        temperature: 0.7,
+        temperature: 0.4,
         topP: 0.9,
         maxOutputTokens: 4096,
       },
     });
-
-    this.systemPrompt = `คุณคือ "AdGenius" - ที่ปรึกษาด้านการตลาดดิจิทัลและการยิงแอดโฆษณาส่วนตัว
-คุณเป็นเอเจนซี่ AI ที่ฉลาดและมีประสบการณ์ มีความเชี่ยวชาญใน:
-
-1. การวิเคราะห์ Engagement บน Facebook และ TikTok
-2. การสร้างและจัดการแคมเปญโฆษณา Facebook Ads
-3. การปรับงบประมาณโฆษณาอัตโนมัติ
-4. การวิเคราะห์ KPIs: CTR, CPC, CPM, CPA, ROAS, Frequency
-5. การแนะนำ Target Audience
-6. การเลือก Content ที่เหมาะจะทำเป็นโฆษณา
-
-กฎสำคัญ:
-- ตอบเป็นภาษาไทยเสมอ
-- ให้คำแนะนำที่เป็นรูปธรรม มีตัวเลขชัดเจน
-- อ้างอิงข้อมูลจริงจาก metrics ที่ได้รับ
-- คิดเหมือนเอเจนซี่มืออาชีพ ไม่ใช่แค่ chatbot
-- เมื่อแนะนำการปรับงบ ต้องอธิบายเหตุผลชัดเจน
-- ตอบในรูปแบบ JSON เมื่อถูกขอ
-
-KPI Benchmarks (Thailand Market):
-- CTR ที่ดี: > 2% (Facebook), > 1% (TikTok)
-- CPC ที่ดี: < ฿5 (Facebook), < ฿3 (TikTok)
-- CPM ที่ดี: < ฿150 (Facebook), < ฿100 (TikTok)
-- Engagement Rate ที่ดี: > 3% (Facebook), > 5% (TikTok)
-- ROAS ที่ดี: > 3x
-- Frequency ที่เหมาะสม: 1.5-3.0 ครั้ง`;
-
-    console.log('AI Consultant (AdGenius) initialized');
+    console.log('AI Consultant initialized with Gemini');
   }
 
   // ─── Memory System ────────────────────────────────────────
@@ -84,7 +56,7 @@ KPI Benchmarks (Thailand Market):
     return id;
   }
 
-  getMemories({ category = null, minImportance = 0, limit = 20, search = null }) {
+  getMemories({ category = null, limit = 20, minImportance = 0, search = null } = {}) {
     if (!this.db) return [];
 
     let query = 'SELECT * FROM ai_memory WHERE importance >= ?';
@@ -96,11 +68,10 @@ KPI Benchmarks (Thailand Market):
     }
     if (search) {
       query += ' AND (title LIKE ? OR content LIKE ? OR tags LIKE ?)';
-      const term = `%${search}%`;
-      params.push(term, term, term);
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
 
-    query += ' ORDER BY importance DESC, created_at DESC LIMIT ?';
+    query += ' ORDER BY importance DESC, updated_at DESC LIMIT ?';
     params.push(limit);
 
     const memories = this.db.prepare(query).all(...params);
@@ -114,428 +85,446 @@ KPI Benchmarks (Thailand Market):
     return memories;
   }
 
-  // ─── Conversation Management ──────────────────────────────
-
-  saveConversation(sessionId, role, message, contextData = null) {
+  deleteMemory(id) {
     if (!this.db) return;
-    const id = uuidv4();
+    this.db.prepare('DELETE FROM ai_memory WHERE id = ?').run(id);
+  }
+
+  // ─── Conversation History ─────────────────────────────────
+
+  _saveConversation(sessionId, role, message, contextData = null) {
+    if (!this.db) return;
     this.db.prepare(`
       INSERT INTO ai_conversations (id, session_id, role, message, context_data)
       VALUES (?, ?, ?, ?, ?)
-    `).run(id, sessionId, role, message, contextData ? JSON.stringify(contextData) : null);
+    `).run(uuidv4(), sessionId, role, message, contextData ? JSON.stringify(contextData) : null);
   }
 
-  getConversationHistory(sessionId, limit = 20) {
+  _getConversationHistory(sessionId, limit = 20) {
     if (!this.db) return [];
     return this.db.prepare(
-      'SELECT * FROM ai_conversations WHERE session_id = ? ORDER BY created_at ASC LIMIT ?'
-    ).all(sessionId, limit);
+      'SELECT * FROM ai_conversations WHERE session_id = ? ORDER BY created_at DESC LIMIT ?'
+    ).all(sessionId, limit).reverse();
   }
 
-  // ─── Core AI Analysis ─────────────────────────────────────
+  // ─── Recommendations Log ──────────────────────────────────
 
-  async analyzeEngagement(engagementData, platform) {
-    const prompt = `วิเคราะห์ข้อมูล Engagement จาก ${platform} ต่อไปนี้:
-
-${JSON.stringify(engagementData, null, 2)}
-
-กรุณาวิเคราะห์และตอบเป็น JSON:
-{
-  "summary": "สรุปภาพรวมสั้นๆ",
-  "topPerformers": [
-    {
-      "postId": "id",
-      "reason": "เหตุผลที่โพสต์นี้ทำผลได้ดี",
-      "adPotential": "high/medium/low",
-      "suggestedAdType": "ประเภทโฆษณาที่แนะนำ"
-    }
-  ],
-  "insights": [
-    "insight 1",
-    "insight 2"
-  ],
-  "contentStrategy": {
-    "whatWorks": "สิ่งที่ทำแล้วได้ผล",
-    "improve": "สิ่งที่ควรปรับปรุง",
-    "nextSteps": ["ขั้นตอนถัดไป"]
-  },
-  "audienceInsights": "ข้อมูลเชิงลึกเกี่ยวกับกลุ่มเป้าหมาย"
-}`;
-
-    return this._askGemini(prompt, 'engagement_analysis');
-  }
-
-  async recommendAdCreation(topPosts, budget, objective) {
-    const memories = this.getMemories({ category: 'strategy', minImportance: 0.6, limit: 5 });
-    const pastInsights = memories.map(m => m.content).join('\n');
-
-    const prompt = `คุณเป็นที่ปรึกษาโฆษณา ช่วยแนะนำการสร้างแอดจากโพสต์ที่ทำผลได้ดี:
-
-โพสต์ที่แนะนำ:
-${JSON.stringify(topPosts, null, 2)}
-
-งบประมาณ: ฿${budget}/วัน
-วัตถุประสงค์: ${objective}
-
-${pastInsights ? `ข้อมูลจากประสบการณ์ที่ผ่านมา:\n${pastInsights}` : ''}
-
-ตอบเป็น JSON:
-{
-  "campaigns": [
-    {
-      "name": "ชื่อแคมเปญ",
-      "sourcePostId": "id ของโพสต์ต้นทาง",
-      "objective": "TRAFFIC/ENGAGEMENT/CONVERSIONS",
-      "dailyBudget": 0,
-      "targeting": {
-        "ageMin": 18,
-        "ageMax": 45,
-        "genders": ["all"],
-        "locations": { "countries": ["TH"] },
-        "interests": ["interest1", "interest2"]
-      },
-      "adCopy": {
-        "headline": "หัวข้อโฆษณา",
-        "body": "เนื้อหาโฆษณา",
-        "callToAction": "LEARN_MORE/SHOP_NOW/SIGN_UP"
-      },
-      "estimatedResults": {
-        "dailyReach": "จำนวนที่คาดว่าจะเข้าถึง",
-        "estimatedCTR": "CTR ที่คาดหวัง",
-        "estimatedCPC": "CPC ที่คาดหวัง"
-      },
-      "reasoning": "เหตุผลที่แนะนำแคมเปญนี้"
-    }
-  ],
-  "budgetAllocation": {
-    "strategy": "กลยุทธ์การจัดสรรงบ",
-    "breakdown": [{"campaign": "ชื่อ", "percentage": 0, "amount": 0}]
-  },
-  "timeline": "แผนระยะเวลา",
-  "expectedROAS": "ROAS ที่คาดหวัง"
-}`;
-
-    const result = await this._askGemini(prompt, 'ad_recommendation');
-
-    // Save insight to memory
-    if (result && !this.mockMode) {
-      this.saveMemory({
-        category: 'strategy',
-        title: `Ad recommendation - Budget ฿${budget}/day`,
-        content: JSON.stringify(result),
-        importance: 0.7,
-        tags: ['ad_creation', objective],
-      });
-    }
-
-    return result;
-  }
-
-  async analyzeCampaignPerformance(performanceData) {
-    const memories = this.getMemories({ category: 'performance', limit: 5 });
-    const historicalContext = memories.map(m => `${m.title}: ${m.content}`).join('\n');
-
-    const prompt = `วิเคราะห์ผลลัพธ์แคมเปญโฆษณา:
-
-ข้อมูลผลลัพธ์:
-${JSON.stringify(performanceData, null, 2)}
-
-${historicalContext ? `ข้อมูลเปรียบเทียบจากอดีต:\n${historicalContext}` : ''}
-
-KPI Benchmarks:
-- CTR ที่ดี > 2%, แย่ < 0.5%
-- CPC ที่ดี < ฿5, แย่ > ฿15
-- Frequency เหมาะสม 1.5-3.0, สูงเกิน > 4.0
-- ROAS ที่ดี > 3x
-
-ตอบเป็น JSON:
-{
-  "overallScore": 0-100,
-  "status": "excellent/good/average/poor/critical",
-  "summary": "สรุปผลลัพธ์",
-  "kpiAnalysis": {
-    "ctr": {"value": 0, "status": "good/bad", "comment": ""},
-    "cpc": {"value": 0, "status": "good/bad", "comment": ""},
-    "cpm": {"value": 0, "status": "good/bad", "comment": ""},
-    "frequency": {"value": 0, "status": "good/bad", "comment": ""},
-    "roas": {"value": 0, "status": "good/bad", "comment": ""}
-  },
-  "budgetRecommendation": {
-    "action": "increase/decrease/maintain/pause",
-    "percentage": 0,
-    "newBudget": 0,
-    "reason": "เหตุผล"
-  },
-  "optimizationTips": ["tip1", "tip2"],
-  "urgentActions": ["สิ่งที่ต้องทำทันที"],
-  "confidence": 0.0-1.0
-}`;
-
-    const result = await this._askGemini(prompt, 'campaign_analysis');
-
-    // Store performance insight
-    if (result && !this.mockMode) {
-      this.saveMemory({
-        category: 'performance',
-        title: `Campaign analysis - Score: ${result.overallScore}/100`,
-        content: JSON.stringify(result),
-        importance: result.overallScore < 40 ? 0.9 : 0.5,
-        tags: ['campaign_performance', result.status],
-      });
-    }
-
-    return result;
-  }
-
-  async suggestBudgetAdjustment(campaigns) {
-    const prompt = `จากข้อมูลแคมเปญทั้งหมด ช่วยแนะนำการปรับงบประมาณ:
-
-${JSON.stringify(campaigns, null, 2)}
-
-หลักการ:
-- แคมเปญที่ CTR สูง + CPC ต่ำ → เพิ่มงบ (max 30%/วัน)
-- แคมเปญที่ Frequency > 4 → ลดงบหรือเปลี่ยน audience
-- แคมเปญที่ CPA สูงกว่า target → ลดงบ 20-50%
-- แคมเปญที่ ROAS < 1 หลังจาก 3 วัน → หยุดทันที
-- งบรวมต้องไม่เกินงบที่กำหนด
-
-ตอบเป็น JSON:
-{
-  "adjustments": [
-    {
-      "campaignId": "id",
-      "campaignName": "ชื่อ",
-      "currentBudget": 0,
-      "recommendedBudget": 0,
-      "action": "increase/decrease/pause/maintain",
-      "changePercent": 0,
-      "reason": "เหตุผล",
-      "priority": "high/medium/low",
-      "confidence": 0.0-1.0
-    }
-  ],
-  "totalCurrentSpend": 0,
-  "totalRecommendedSpend": 0,
-  "overallStrategy": "กลยุทธ์ภาพรวม"
-}`;
-
-    return this._askGemini(prompt, 'budget_recommendation');
-  }
-
-  // ─── Chat / Consultant Mode ───────────────────────────────
-
-  async chat(sessionId, userMessage) {
-    // Load conversation history
-    const history = this.getConversationHistory(sessionId, 10);
-    
-    // Load relevant memories
-    const memories = this.getMemories({ search: userMessage, limit: 5 });
-    const memoryContext = memories.length > 0
-      ? `\n\nข้อมูลจากหน่วยความจำ:\n${memories.map(m => `- [${m.category}] ${m.title}: ${m.content}`).join('\n')}`
-      : '';
-
-    // Save user message
-    this.saveConversation(sessionId, 'user', userMessage);
-
-    const conversationContext = history.map(h => `${h.role}: ${h.message}`).join('\n');
-
-    const prompt = `${this.systemPrompt || 'คุณเป็นที่ปรึกษาด้านการตลาดดิจิทัล'}
-${memoryContext}
-
-ประวัติการสนทนา:
-${conversationContext}
-
-user: ${userMessage}
-
-ตอบเป็นภาษาไทย อย่างเป็นมืออาชีพ:`;
-
-    const response = await this._askGemini(prompt, 'chat', false);
-    
-    // Save assistant response
-    const responseText = typeof response === 'string' ? response : JSON.stringify(response);
-    this.saveConversation(sessionId, 'assistant', responseText);
-
-    // Auto-save important insights from conversation
-    if (userMessage.includes('กลยุทธ์') || userMessage.includes('strategy') || 
-        userMessage.includes('แผน') || userMessage.includes('เป้าหมาย')) {
-      this.saveMemory({
-        category: 'conversation',
-        title: `Conversation insight - ${new Date().toLocaleDateString('th-TH')}`,
-        content: `Q: ${userMessage}\nA: ${responseText.substring(0, 500)}`,
-        importance: 0.4,
-        tags: ['conversation'],
-      });
-    }
-
-    return { response: responseText, memories: memories.length };
-  }
-
-  // ─── Recommendation Logging ───────────────────────────────
-
-  saveRecommendation({ campaignId, type, recommendation, reasoning, confidence = 0.5 }) {
+  saveRecommendation({ campaignId = null, type, recommendation, reasoning, confidence = 0.5 }) {
     if (!this.db) return null;
-
     const id = uuidv4();
     this.db.prepare(`
       INSERT INTO ai_recommendations (id, campaign_id, type, recommendation, reasoning, confidence)
       VALUES (?, ?, ?, ?, ?, ?)
     `).run(id, campaignId, type, recommendation, reasoning, confidence);
-
     return id;
   }
 
-  getRecommendations({ campaignId = null, status = null, limit = 20 }) {
+  getRecommendations({ campaignId = null, status = null, limit = 20 } = {}) {
     if (!this.db) return [];
-
     let query = 'SELECT * FROM ai_recommendations WHERE 1=1';
     const params = [];
-
     if (campaignId) { query += ' AND campaign_id = ?'; params.push(campaignId); }
     if (status) { query += ' AND status = ?'; params.push(status); }
-
     query += ' ORDER BY created_at DESC LIMIT ?';
     params.push(limit);
-
     return this.db.prepare(query).all(...params);
   }
 
   updateRecommendationStatus(id, status, resultSummary = null) {
     if (!this.db) return;
-
-    const updates = ['status = ?'];
-    const params = [status];
-
-    if (status === 'accepted' || status === 'auto_applied') {
-      updates.push('applied_at = CURRENT_TIMESTAMP');
-    }
-    if (resultSummary) {
-      updates.push('result_summary = ?');
-      params.push(resultSummary);
-    }
-
-    params.push(id);
-    this.db.prepare(`UPDATE ai_recommendations SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+    this.db.prepare(`
+      UPDATE ai_recommendations SET status = ?, applied_at = CURRENT_TIMESTAMP, result_summary = ?
+      WHERE id = ?
+    `).run(status, resultSummary, id);
   }
 
-  // ─── Internal Gemini Communication ────────────────────────
+  // ─── Core AI Analysis Functions ───────────────────────────
 
-  async _askGemini(prompt, context = 'general', parseJson = true) {
-    if (this.mockMode) return this._mockResponse(context);
+  async _buildContext() {
+    const memories = this.getMemories({ limit: 10, minImportance: 0.3 });
+    const recentRecs = this.getRecommendations({ limit: 5 });
+
+    let context = '';
+    if (memories.length > 0) {
+      context += '\n=== ความทรงจำที่สำคัญ ===\n';
+      for (const m of memories) {
+        context += `[${m.category}] ${m.title}: ${m.content}\n`;
+      }
+    }
+    if (recentRecs.length > 0) {
+      context += '\n=== คำแนะนำล่าสุด ===\n';
+      for (const r of recentRecs) {
+        context += `[${r.type}/${r.status}] ${r.recommendation}\n`;
+      }
+    }
+    return context;
+  }
+
+  _getSystemPrompt() {
+    return `คุณคือ "AdGenie" - ที่ปรึกษาด้านการตลาดดิจิทัลส่วนตัว (Personal Ad Agency AI)
+คุณเป็นเอเจนซี่โฆษณาที่ฉลาดและมีประสบการณ์ ทำหน้าที่:
+
+1. **วิเคราะห์ Engagement** - วิเคราะห์ข้อมูล Facebook/TikTok เพื่อหาโพสต์ที่มีศักยภาพสำหรับทำโฆษณา
+2. **แนะนำกลยุทธ์โฆษณา** - แนะนำ targeting, budget, creative strategy
+3. **จัดการงบประมาณ** - แนะนำเพิ่ม/ลดงบตาม KPI (ROAS, CPA, CTR, Frequency)
+4. **สร้าง Ad Copy** - เขียนข้อความโฆษณาที่ดึงดูด
+
+=== KPI Benchmarks ที่ใช้ตัดสินใจ ===
+- ROAS > 3x = ดี, ควรเพิ่มงบ | ROAS < 2x = แย่, ลดงบหรือหยุด
+- CPA ต้องไม่เกิน 30-40% ของ Customer Lifetime Value
+- CTR Facebook > 2% = ดี | CTR TikTok > 3% = ดี | ต่ำกว่า 0.5% = ต้องเปลี่ยน creative
+- Frequency > 3.0 = เริ่มเบื่อแอด | > 5.0 = ต้องเปลี่ยน audience
+- ห้ามเพิ่มงบเกิน 20%/วัน บน Meta (จะหลุด learning phase)
+- ต้องมี 20-30 conversions ขึ้นไปก่อนตัดสินใจ optimize
+- ใช้ข้อมูล 3-7 วันในการตัดสินใจ (ไม่ดูแค่วันเดียว)
+
+=== กฎการตอบ ===
+- ตอบเป็นภาษาไทยเสมอ
+- ให้คำแนะนำที่ actionable ทำได้จริง
+- เมื่อแนะนำเพิ่ม/ลดงบ ให้ระบุตัวเลขชัดเจน
+- ให้เหตุผลประกอบทุกคำแนะนำ
+- ตอบในรูปแบบ JSON เมื่อถูกขอ
+- จดจำบริบทจากความทรงจำที่ได้รับมา`;
+  }
+
+  async chat(sessionId, userMessage, contextData = null) {
+    if (this.mockMode) return this._mockChat(sessionId, userMessage);
+
+    // Save user message
+    this._saveConversation(sessionId, 'user', userMessage, contextData);
+
+    // Build context from memory
+    const memoryContext = await this._buildContext();
+
+    // Get or create chat session
+    if (!this.chatSessions.has(sessionId)) {
+      const history = this._getConversationHistory(sessionId, 10);
+      const chatHistory = history
+        .filter(h => h.role !== 'system')
+        .map(h => ({
+          role: h.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: h.message }],
+        }));
+
+      const chat = this.model.startChat({
+        history: chatHistory,
+        systemInstruction: this._getSystemPrompt() + memoryContext,
+      });
+      this.chatSessions.set(sessionId, chat);
+    }
+
+    const chat = this.chatSessions.get(sessionId);
+
+    try {
+      const prompt = contextData
+        ? `${userMessage}\n\n=== ข้อมูลประกอบ ===\n${JSON.stringify(contextData, null, 2)}`
+        : userMessage;
+
+      const result = await chat.sendMessage(prompt);
+      const response = result.response.text();
+
+      // Save assistant response
+      this._saveConversation(sessionId, 'assistant', response);
+
+      // Auto-extract insights to memory
+      await this._autoExtractInsights(response, sessionId);
+
+      return { role: 'assistant', message: response, sessionId };
+    } catch (error) {
+      return { role: 'assistant', message: `เกิดข้อผิดพลาด: ${error.message}`, sessionId, error: true };
+    }
+  }
+
+  async analyzeEngagementForAds(engagements) {
+    if (this.mockMode) return this._mockEngagementAnalysis(engagements);
+
+    const memoryContext = await this._buildContext();
+
+    const prompt = `${this._getSystemPrompt()}
+${memoryContext}
+
+=== วิเคราะห์ Engagement Data เพื่อเลือกโพสต์ทำโฆษณา ===
+
+ข้อมูล Engagement:
+${JSON.stringify(engagements, null, 2)}
+
+กรุณาวิเคราะห์และตอบเป็น JSON:
+{
+  "analysis_summary": "สรุปภาพรวม",
+  "top_posts_for_ads": [
+    {
+      "post_id": "",
+      "score": 0-100,
+      "reason": "เหตุผลที่เหมาะทำแอด",
+      "suggested_objective": "AWARENESS|TRAFFIC|ENGAGEMENT|LEADS|SALES",
+      "suggested_audience": "กลุ่มเป้าหมายที่แนะนำ",
+      "suggested_budget": { "daily": 0, "duration_days": 0 },
+      "ad_copy_suggestion": "ข้อความโฆษณาที่แนะนำ"
+    }
+  ],
+  "content_insights": {
+    "best_content_type": "",
+    "best_posting_time": "",
+    "audience_behavior": ""
+  },
+  "overall_strategy": "กลยุทธ์ภาพรวมที่แนะนำ",
+  "confidence": 0.0-1.0
+}`;
 
     try {
       const result = await this.model.generateContent(prompt);
       const text = result.response.text();
+      const parsed = JSON.parse(text.replace(/```json?\n?/g, '').replace(/```/g, '').trim());
 
-      if (!parseJson) return text;
+      // Save as memory
+      this.saveMemory({
+        category: 'insight',
+        title: `การวิเคราะห์ Engagement ${new Date().toLocaleDateString('th-TH')}`,
+        content: parsed.analysis_summary,
+        importance: 0.7,
+        tags: ['engagement', 'analysis'],
+      });
 
-      // Extract JSON from response
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+      // Save recommendations
+      for (const post of (parsed.top_posts_for_ads || [])) {
+        this.saveRecommendation({
+          type: 'creative_suggestion',
+          recommendation: `โพสต์ ${post.post_id} ควรทำแอด: ${post.reason}`,
+          reasoning: post.ad_copy_suggestion,
+          confidence: parsed.confidence || 0.7,
+        });
       }
-      return text;
+
+      return parsed;
     } catch (error) {
-      console.error(`AI Consultant error (${context}):`, error.message);
-      return this._mockResponse(context);
+      throw new Error(`AI analysis failed: ${error.message}`);
     }
   }
 
-  _mockResponse(context) {
-    const mocks = {
-      engagement_analysis: {
-        summary: 'ภาพรวม Engagement อยู่ในเกณฑ์ดี โพสต์ประเภทวิดีโอทำผลได้ดีที่สุด',
-        topPerformers: [
-          { postId: 'mock_post_2', reason: 'วิดีโอสอนทำอาหารได้ engagement สูงสุด', adPotential: 'high', suggestedAdType: 'Video Ad - Traffic' },
-          { postId: 'mock_post_1', reason: 'โปรโมชั่นได้ clicks สูง', adPotential: 'high', suggestedAdType: 'Image Ad - Conversions' },
-        ],
-        insights: [
-          'วิดีโอมี engagement rate สูงกว่าโพสต์ภาพ 3.2 เท่า',
-          'โพสต์ช่วง 18:00-21:00 ได้ reach สูงสุด',
-          'Content ประเภทสอนทำอาหารมี share rate สูงที่สุด',
-          'กลุ่มเป้าหมายหลักเป็นผู้หญิง อายุ 25-34 ปี',
-        ],
-        contentStrategy: {
-          whatWorks: 'วิดีโอสอนทำอาหาร + โปรโมชั่น ทำผลได้ดีที่สุด',
-          improve: 'ควรเพิ่ม CTA ในโพสต์ และใช้ hashtag ที่ตรงกลุ่มมากขึ้น',
-          nextSteps: ['สร้างวิดีโอสอนทำอาหารเพิ่ม', 'ทำ A/B Test โปรโมชั่น', 'เพิ่ม UGC content จากลูกค้า'],
-        },
-        audienceInsights: 'กลุ่มเป้าหมายหลักสนใจอาหารไทย ทำอาหาร และร้านอาหาร อายุ 25-45 ปี ส่วนใหญ่อยู่ในกรุงเทพฯ',
-      },
-      ad_recommendation: {
-        campaigns: [
-          {
-            name: 'แคมเปญ - วิดีโอสอนทำผัดไทย',
-            sourcePostId: 'mock_post_2',
-            objective: 'TRAFFIC',
-            dailyBudget: 500,
-            targeting: {
-              ageMin: 25, ageMax: 45, genders: ['all'],
-              locations: { countries: ['TH'] },
-              interests: ['อาหารไทย', 'ทำอาหาร', 'ร้านอาหาร'],
-            },
-            adCopy: {
-              headline: 'ผัดไทยสูตรเด็ด ทำเองได้ง่ายมาก!',
-              body: 'ดูวิธีทำผัดไทยสูตรลับจากเชฟมืออาชีพ อร่อยเหมือนร้านดัง ทำเองที่บ้านได้เลย',
-              callToAction: 'LEARN_MORE',
-            },
-            estimatedResults: { dailyReach: '5,000-15,000', estimatedCTR: '3-5%', estimatedCPC: '฿2-4' },
-            reasoning: 'โพสต์ต้นทางมี engagement rate สูง 7.2% และยอด share สูง แสดงว่า content มีคุณภาพ',
-          },
-        ],
-        budgetAllocation: {
-          strategy: 'เริ่มด้วยงบ 70% ที่แคมเปญหลัก แล้วกระจาย 30% สำหรับทดสอบ',
-          breakdown: [{ campaign: 'วิดีโอสอนทำผัดไทย', percentage: 70, amount: 350 }],
-        },
-        timeline: 'ทดสอบ 3-5 วันแรก แล้ว optimize ตาม performance',
-        expectedROAS: '2.5-4x',
-      },
-      campaign_analysis: {
-        overallScore: 72,
-        status: 'good',
-        summary: 'แคมเปญทำผลได้ดีในภาพรวม CTR สูงกว่าค่าเฉลี่ย แต่ CPC ยังสูงอยู่เล็กน้อย',
-        kpiAnalysis: {
-          ctr: { value: 4.09, status: 'good', comment: 'สูงกว่า benchmark (2%) มาก' },
-          cpc: { value: 2.45, status: 'good', comment: 'อยู่ในเกณฑ์ดี ต่ำกว่า ฿5' },
-          cpm: { value: 100.22, status: 'good', comment: 'ต่ำกว่า benchmark ฿150' },
-          frequency: { value: 1.41, status: 'good', comment: 'เหมาะสม ยังไม่เกิน threshold' },
-          roas: { value: 3.2, status: 'good', comment: 'สูงกว่า 3x ถือว่าดี' },
-        },
-        budgetRecommendation: {
-          action: 'increase',
-          percentage: 20,
-          newBudget: 600,
-          reason: 'CTR สูง + CPC ต่ำ + ROAS ดี = ควรเพิ่มงบเพื่อ scale',
-        },
-        optimizationTips: [
-          'ลอง Lookalike Audience จากคนที่ engage แล้ว',
-          'เพิ่ม placement บน Instagram Stories',
-          'ทดสอบ ad copy ใหม่ 2-3 แบบ',
-        ],
-        urgentActions: [],
-        confidence: 0.85,
-      },
-      budget_recommendation: {
-        adjustments: [
-          {
-            campaignId: 'mock_campaign_1',
-            campaignName: 'แคมเปญวิดีโอสอนทำอาหาร',
-            currentBudget: 500,
-            recommendedBudget: 650,
-            action: 'increase',
-            changePercent: 30,
-            reason: 'CTR 4.09% สูงมาก, CPC ต่ำ, ROAS > 3x - ควร scale up',
-            priority: 'high',
-            confidence: 0.88,
-          },
-        ],
-        totalCurrentSpend: 500,
-        totalRecommendedSpend: 650,
-        overallStrategy: 'เพิ่มงบแคมเปญที่ทำผลดี ลดงบแคมเปญที่ไม่คุ้ม',
-      },
-      chat: 'สวัสดีครับ! ผม AdGenius ที่ปรึกษาด้านโฆษณาดิจิทัลส่วนตัวของคุณ 🎯\n\nผมพร้อมช่วยคุณวิเคราะห์ข้อมูล จัดการแคมเปญ และเพิ่มประสิทธิภาพโฆษณาของคุณครับ\n\nคุณต้องการให้ช่วยเรื่องอะไรครับ?',
+  async analyzeCampaignPerformance(campaignData) {
+    if (this.mockMode) return this._mockCampaignAnalysis(campaignData);
+
+    const memoryContext = await this._buildContext();
+
+    const prompt = `${this._getSystemPrompt()}
+${memoryContext}
+
+=== วิเคราะห์ผลลัพธ์แคมเปญโฆษณา ===
+
+ข้อมูลแคมเปญ:
+${JSON.stringify(campaignData, null, 2)}
+
+กรุณาวิเคราะห์และตอบเป็น JSON:
+{
+  "performance_summary": "สรุปผลลัพธ์",
+  "health_score": 0-100,
+  "kpi_analysis": {
+    "roas": { "value": 0, "status": "good|warning|bad", "comment": "" },
+    "cpa": { "value": 0, "status": "good|warning|bad", "comment": "" },
+    "ctr": { "value": 0, "status": "good|warning|bad", "comment": "" },
+    "frequency": { "value": 0, "status": "good|warning|bad", "comment": "" }
+  },
+  "budget_recommendations": [
+    {
+      "campaign_id": "",
+      "action": "INCREASE|DECREASE|HOLD|PAUSE",
+      "current_budget": 0,
+      "suggested_budget": 0,
+      "reason": ""
+    }
+  ],
+  "action_items": [
+    { "priority": "high|medium|low", "action": "", "reason": "" }
+  ],
+  "creative_feedback": "ข้อเสนอแนะด้าน creative",
+  "confidence": 0.0-1.0
+}`;
+
+    try {
+      const result = await this.model.generateContent(prompt);
+      const text = result.response.text();
+      const parsed = JSON.parse(text.replace(/```json?\n?/g, '').replace(/```/g, '').trim());
+
+      // Save insights
+      this.saveMemory({
+        category: 'performance',
+        title: `วิเคราะห์แคมเปญ ${new Date().toLocaleDateString('th-TH')}`,
+        content: parsed.performance_summary,
+        importance: 0.8,
+        tags: ['campaign', 'performance'],
+      });
+
+      // Save budget recommendations
+      for (const rec of (parsed.budget_recommendations || [])) {
+        this.saveRecommendation({
+          campaignId: rec.campaign_id,
+          type: 'budget_adjustment',
+          recommendation: `${rec.action}: ${rec.current_budget} → ${rec.suggested_budget}`,
+          reasoning: rec.reason,
+          confidence: parsed.confidence || 0.7,
+        });
+      }
+
+      return parsed;
+    } catch (error) {
+      throw new Error(`Campaign analysis failed: ${error.message}`);
+    }
+  }
+
+  async generateAdCopy({ product, targetAudience, tone = 'engaging', platform = 'facebook', objective = 'TRAFFIC' }) {
+    if (this.mockMode) return this._mockAdCopy(product, platform);
+
+    const prompt = `สร้างข้อความโฆษณาสำหรับ:
+- สินค้า/บริการ: ${product}
+- กลุ่มเป้าหมาย: ${targetAudience}
+- โทน: ${tone}
+- แพลตฟอร์ม: ${platform}
+- วัตถุประสงค์: ${objective}
+
+ตอบเป็น JSON:
+{
+  "variants": [
+    {
+      "headline": "หัวข้อ (ไม่เกิน 40 ตัวอักษร)",
+      "body": "เนื้อหาโฆษณา",
+      "cta": "LEARN_MORE|SHOP_NOW|SIGN_UP|CONTACT_US|BOOK_NOW",
+      "hooks": ["จุดดึงดูด 1", "จุดดึงดูด 2"],
+      "target_emotion": "ความรู้สึกที่ต้องการกระตุ้น"
+    }
+  ],
+  "tips": "คำแนะนำเพิ่มเติม"
+}`;
+
+    try {
+      const result = await this.model.generateContent(prompt);
+      const text = result.response.text();
+      return JSON.parse(text.replace(/```json?\n?/g, '').replace(/```/g, '').trim());
+    } catch (error) {
+      throw new Error(`Ad copy generation failed: ${error.message}`);
+    }
+  }
+
+  async _autoExtractInsights(responseText, sessionId) {
+    // Simple keyword-based insight extraction
+    const insightKeywords = ['แนะนำ', 'ควร', 'เพิ่มงบ', 'ลดงบ', 'หยุด', 'กลยุทธ์', 'เป้าหมาย'];
+    const hasInsight = insightKeywords.some(kw => responseText.includes(kw));
+
+    if (hasInsight && responseText.length > 100) {
+      this.saveMemory({
+        category: 'conversation',
+        title: `บทสนทนา ${new Date().toLocaleTimeString('th-TH')}`,
+        content: responseText.substring(0, 500),
+        importance: 0.3,
+        tags: ['auto-extracted', sessionId],
+      });
+    }
+  }
+
+  // ─── Mock Responses ───────────────────────────────────────
+
+  _mockChat(sessionId, message) {
+    const responses = {
+      default: `สวัสดีค่ะ! ฉันคือ AdGenie ที่ปรึกษาโฆษณาส่วนตัวของคุณ 🎯
+
+จากข้อมูลที่มี ฉันมีคำแนะนำดังนี้:
+
+1. **โพสต์ที่ทำผลได้ดี** ควรนำมาบูสต์เป็นโฆษณา
+2. **งบประมาณ** แนะนำเริ่มที่ 300-500 บาท/วัน
+3. **กลุ่มเป้าหมาย** ควรเริ่มจาก Lookalike Audience ของลูกค้าเดิม
+
+ต้องการให้วิเคราะห์อะไรเพิ่มเติมไหมคะ?`,
     };
 
-    return mocks[context] || mocks.chat;
+    if (this.db) {
+      this._saveConversation(sessionId, 'user', message);
+      this._saveConversation(sessionId, 'assistant', responses.default);
+    }
+
+    return { role: 'assistant', message: responses.default, sessionId, mock: true };
+  }
+
+  _mockEngagementAnalysis(engagements) {
+    return {
+      analysis_summary: 'โพสต์วิดีโอมี engagement สูงที่สุด โดยเฉพาะคอนเทนต์ที่เป็นสูตรอาหาร มี share rate สูงกว่าค่าเฉลี่ย 3 เท่า',
+      top_posts_for_ads: [
+        {
+          post_id: 'mock_post_2',
+          score: 92,
+          reason: 'Engagement rate สูง 7.1%, share rate ดีเยี่ยม เหมาะทำ video ad',
+          suggested_objective: 'ENGAGEMENT',
+          suggested_audience: 'คนรักอาหาร อายุ 25-45 ในกรุงเทพและปริมณฑล',
+          suggested_budget: { daily: 500, duration_days: 7 },
+          ad_copy_suggestion: 'ผัดไทยสูตรเด็ด ดูจบทำเองได้! 🍜 กดสั่งเลย ส่งถึงบ้าน',
+        },
+        {
+          post_id: 'mock_post_1',
+          score: 78,
+          reason: 'โปรโมชั่นมียอด like สูง เหมาะทำ conversion ad',
+          suggested_objective: 'SALES',
+          suggested_audience: 'คนที่เคย engage กับเพจ + Lookalike',
+          suggested_budget: { daily: 300, duration_days: 5 },
+          ad_copy_suggestion: 'ลด 50% ทุกเมนู! วันนี้เท่านั้น 🔥 สั่งเลย!',
+        },
+      ],
+      content_insights: {
+        best_content_type: 'วิดีโอสอนทำอาหาร',
+        best_posting_time: '11:00-13:00 และ 18:00-20:00',
+        audience_behavior: 'ชอบ share คอนเทนต์สูตรอาหาร, comment ถามสูตรเพิ่ม',
+      },
+      overall_strategy: 'เน้นสร้าง video content สูตรอาหาร แล้วบูสต์โพสต์ที่ได้ engagement สูง ใช้ Lookalike Audience จากคนที่เคย engage',
+      confidence: 0.82,
+    };
+  }
+
+  _mockCampaignAnalysis(campaignData) {
+    return {
+      performance_summary: 'แคมเปญมีผลลัพธ์ปานกลาง ROAS อยู่ที่ 2.8x ควรปรับ targeting เพื่อเพิ่มประสิทธิภาพ',
+      health_score: 68,
+      kpi_analysis: {
+        roas: { value: 2.8, status: 'warning', comment: 'ใกล้เป้า 3x แต่ยังไม่ถึง ควรปรับ audience' },
+        cpa: { value: 45, status: 'good', comment: 'CPA ต่ำกว่าเป้าหมายที่ 60 บาท' },
+        ctr: { value: 2.1, status: 'good', comment: 'CTR ดีกว่าค่าเฉลี่ย' },
+        frequency: { value: 2.3, status: 'good', comment: 'ยังไม่ถึงจุดที่ผู้ชมเบื่อ' },
+      },
+      budget_recommendations: [
+        {
+          campaign_id: 'mock_campaign_1',
+          action: 'INCREASE',
+          current_budget: 500,
+          suggested_budget: 600,
+          reason: 'CTR ดี CPA ต่ำ ควรเพิ่มงบ 20% เพื่อขยาย reach',
+        },
+      ],
+      action_items: [
+        { priority: 'high', action: 'ทดสอบ Lookalike Audience ใหม่', reason: 'ROAS ยังไม่ถึง 3x อาจเพราะ audience ยังไม่ตรง' },
+        { priority: 'medium', action: 'เพิ่ม creative variant ใหม่ 2-3 ชิ้น', reason: 'ป้องกัน ad fatigue ก่อนถึง frequency 3.0' },
+        { priority: 'low', action: 'ทดสอบ bid strategy เป็น Cost Cap', reason: 'อาจช่วยควบคุม CPA ให้ดีขึ้นอีก' },
+      ],
+      creative_feedback: 'Creative ปัจจุบันใช้ได้ดี CTR สูง แต่ควรเตรียม creative ใหม่ไว้สลับเมื่อ frequency เพิ่มขึ้น',
+      confidence: 0.75,
+    };
+  }
+
+  _mockAdCopy(product, platform) {
+    return {
+      variants: [
+        {
+          headline: `${product} สุดพิเศษ!`,
+          body: `ค้นพบ ${product} ที่คุณจะหลงรัก ✨ คุณภาพเกินราคา สั่งวันนี้จัดส่งฟรี!`,
+          cta: 'SHOP_NOW',
+          hooks: ['ราคาพิเศษวันนี้เท่านั้น', 'จัดส่งฟรีทั่วประเทศ'],
+          target_emotion: 'ความตื่นเต้นและความคุ้มค่า',
+        },
+        {
+          headline: `ลอง ${product} แล้วจะติดใจ`,
+          body: `ลูกค้ากว่า 10,000 คนเลือกเรา 💯 ${product} ที่ได้รับการรีวิวดีเยี่ยม กดสั่งเลย!`,
+          cta: 'LEARN_MORE',
+          hooks: ['Social proof: ลูกค้า 10,000+ คน', 'รีวิว 5 ดาว'],
+          target_emotion: 'ความมั่นใจและความไว้วางใจ',
+        },
+      ],
+      tips: 'แนะนำใช้รูปภาพ/วิดีโอที่แสดงสินค้าจริง ควรทดสอบ A/B test ทั้ง 2 variants',
+    };
   }
 }
 

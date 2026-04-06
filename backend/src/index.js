@@ -31,9 +31,6 @@ initAdSchema(db);
   aiConsultant.init(db);
   autoOptimizer.init(db, facebookAds, aiConsultant);
 
-  // Create default optimization rules
-  autoOptimizer.createDefaultRules();
-
   console.log('All services initialized');
 })();
 
@@ -49,6 +46,7 @@ app.use('/api/export', require('./routes/export')(db));
 // API Routes - Ad Analyzer
 app.use('/api/engagement', require('./routes/engagement')(db));
 app.use('/api/campaigns', require('./routes/campaigns')(db));
+app.use('/api/ai', require('./routes/aiChat')(db));
 app.use('/api/optimizer', require('./routes/optimizer')(db));
 
 // Health check
@@ -63,7 +61,7 @@ app.get('/api/health', (req, res) => {
       facebookAds: facebookAds.mockMode ? 'mock' : 'connected',
       tiktokAnalytics: tiktokAnalytics.mockMode ? 'mock' : 'connected',
       aiConsultant: aiConsultant.mockMode ? 'mock' : 'connected',
-      autoOptimizer: autoOptimizer.isRunning ? 'running' : 'standby',
+      autoOptimizer: autoOptimizer.running ? 'running' : 'standby',
     },
   });
 });
