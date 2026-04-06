@@ -1,7 +1,7 @@
 {
-  "name": "video-footage-analyzer",
-  "version": "1.0.0",
-  "description": "Web app for analyzing and categorizing restaurant video footage with Gemini AI",
+  "name": "content-ad-manager",
+  "version": "2.0.0",
+  "description": "Video Footage Analyzer + Social Media Ad Automation with AI Consultant",
   "scripts": {
     "install:all": "cd backend && npm install && cd ../frontend && npm install",
     "dev:backend": "cd backend && npm run dev",

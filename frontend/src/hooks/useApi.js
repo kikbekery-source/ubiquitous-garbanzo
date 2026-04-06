@@ -28,7 +28,8 @@ export function useApi() {
 
   const get = useCallback((path) => request(path), [request]);
   const post = useCallback((path, body) => request(path, { method: 'POST', body }), [request]);
+  const put = useCallback((path, body) => request(path, { method: 'PUT', body }), [request]);
   const del = useCallback((path) => request(path, { method: 'DELETE' }), [request]);
 
-  return { get, post, del, loading, error };
+  return { get, post, put, del, loading, error };
 }

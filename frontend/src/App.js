@@ -4,10 +4,12 @@ import ProjectList from './components/ProjectList';
 import ClipList from './components/ClipList';
 import ClipReview from './components/ClipReview';
 import ProgressBar from './components/ProgressBar';
+import AdDashboard from './components/AdDashboard';
 import './App.css';
 
 export default function App() {
   const api = useApi();
+  const [page, setPage] = useState('home'); // home, video, ads
   const [projects, setProjects] = useState([]);
   const [currentProject, setCurrentProject] = useState(null);
   const [clips, setClips] = useState([]);
@@ -53,6 +55,7 @@ export default function App() {
   const handleSelectProject = async (project) => {
     setCurrentProject(project);
     setSelectedClip(null);
+    setPage('video');
     const clipsData = await loadClips(project.id);
     if (clipsData.length > 0) {
       setSelectedClip(clipsData[0]);
@@ -123,46 +126,70 @@ export default function App() {
     }
   };
 
-  // Project list view
-  if (!currentProject) {
+  // ─── Ad Dashboard ────────────────────────────────────────
+  if (page === 'ads') {
+    return <AdDashboard onBack={() => setPage('home')} />;
+  }
+
+  // ─── Home / Project Selection ────────────────────────────
+  if (page === 'home' && !currentProject) {
     return (
       <div className="app">
         <header className="app-header">
-          <h1>🎬 Video Footage Analyzer</h1>
-          <p className="subtitle">วิเคราะห์และจัดหมวดหมู่วิดีโอร้านอาหารด้วย AI</p>
+          <h1>Content & Ad Manager</h1>
+          <p className="subtitle">Video Analyzer + Social Media Ad Automation</p>
         </header>
-        <main className="app-main">
-          <ProjectList
-            projects={projects}
-            onSelect={handleSelectProject}
-            onCreateProject={handleCreateProject}
-            onRefresh={loadProjects}
-          />
-        </main>
+
+        <div className="home-cards">
+          <div className="home-card" onClick={() => setPage('ads')}>
+            <div className="home-card-icon">📊</div>
+            <h2>Ad Analyzer Dashboard</h2>
+            <p>วิเคราะห์ Engagement, สร้างแอด, ควบคุมงบอัตโนมัติ</p>
+            <ul className="home-card-features">
+              <li>Facebook & TikTok Analytics</li>
+              <li>AI Auto Ad Creation</li>
+              <li>Budget Optimization</li>
+              <li>AI Consultant (AdGenius)</li>
+            </ul>
+            <button className="btn btn-primary">Open Dashboard</button>
+          </div>
+
+          <div className="home-card">
+            <div className="home-card-icon">🎬</div>
+            <h2>Video Footage Analyzer</h2>
+            <p>วิเคราะห์และจัดหมวดหมู่วิดีโอร้านอาหารด้วย AI</p>
+            <ProjectList
+              projects={projects}
+              onSelect={handleSelectProject}
+              onCreateProject={handleCreateProject}
+              onRefresh={loadProjects}
+            />
+          </div>
+        </div>
       </div>
     );
   }
 
-  // Project detail view
+  // ─── Video Project Detail ────────────────────────────────
   return (
     <div className="app">
       <header className="app-header">
         <div className="header-left">
-          <button className="btn btn-ghost" onClick={() => { setCurrentProject(null); setClips([]); setSelectedClip(null); }}>
+          <button className="btn btn-ghost" onClick={() => { setCurrentProject(null); setClips([]); setSelectedClip(null); setPage('home'); }}>
             ← กลับ
           </button>
-          <h1>{currentProject.name}</h1>
+          <h1>{currentProject?.name}</h1>
         </div>
         <div className="header-actions">
           <button className="btn btn-secondary" onClick={handleSync} disabled={syncing}>
-            {syncing ? '🔄 กำลัง Sync...' : '📥 Sync จาก Drive'}
+            {syncing ? 'Syncing...' : 'Sync จาก Drive'}
           </button>
           <button className="btn btn-primary" onClick={handleAnalyzeAll} disabled={analyzing}>
-            {analyzing ? '🧠 กำลังวิเคราะห์...' : '🤖 วิเคราะห์ทั้งหมด'}
+            {analyzing ? 'Analyzing...' : 'วิเคราะห์ทั้งหมด'}
           </button>
           <div className="export-group">
-            <button className="btn btn-outline" onClick={() => handleExport('json')}>📊 Export JSON</button>
-            <button className="btn btn-outline" onClick={() => handleExport('csv')}>📋 Export CSV</button>
+            <button className="btn btn-outline" onClick={() => handleExport('json')}>Export JSON</button>
+            <button className="btn btn-outline" onClick={() => handleExport('csv')}>Export CSV</button>
           </div>
         </div>
       </header>
