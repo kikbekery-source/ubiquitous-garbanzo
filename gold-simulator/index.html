@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold MT5 Simulator - EA Tester</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>⚡ Gold MT5 Simulator</h1>
+            <span class="subtitle">EA Testing Platform - XAUUSD</span>
+        </header>
+
+        <div class="main-layout">
+            <div class="left-panel">
+                <div class="panel scenario-panel">
+                    <h3>📊 Scenario</h3>
+                    <div class="form-group">
+                        <label>Price Scenario:</label>
+                        <select id="scenario">
+                            <option value="swing">Swing Up/Down (ปกติ)</option>
+                            <option value="bull">Bull Run (ขึ้นต่อเนื่อง)</option>
+                            <option value="bear">Bear Run (ลงต่อเนื่อง)</option>
+                            <option value="spike_up">Spike Up +1,000 USD</option>
+                            <option value="spike_down">Spike Down -1,000 USD</option>
+                            <option value="crash_1000">Flash Crash -1,000 แล้วกลับ</option>
+                            <option value="pump_1000">Flash Pump +1,000 แล้วกลับ</option>
+                            <option value="choppy">Sideways (Choppy)</option>
+                            <option value="custom_spike_up">Custom: ขึ้น 100,000 จุด</option>
+                            <option value="custom_spike_down">Custom: ลง 100,000 จุด</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Starting Price:</label>
+                        <input type="number" id="startPrice" value="2350.00" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Simulation Speed:</label>
+                        <select id="speed">
+                            <option value="2000">Slow (2s/candle)</option>
+                            <option value="1000">Normal (1s/candle)</option>
+                            <option value="500" selected>Fast (0.5s/candle)</option>
+                            <option value="200">Very Fast (0.2s/candle)</option>
+                            <option value="50">Ultra Fast (50ms/candle)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Timeframe:</label>
+                        <select id="timeframe">
+                            <option value="M1">M1</option>
+                            <option value="M5" selected>M5</option>
+                            <option value="M15">M15</option>
+                            <option value="H1">H1</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="panel ea-panel">
+                    <h3>🤖 EA Settings</h3>
+                    <div class="form-group">
+                        <label>EA Strategy:</label>
+                        <select id="eaStrategy">
+                            <option value="grid_martingale">Grid + Martingale (ไม้แก้)</option>
+                            <option value="grid_fixed">Grid Fixed Lot</option>
+                            <option value="trend_follow">Trend Following</option>
+                            <option value="mean_revert">Mean Reversion</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Starting Balance ($):</label>
+                        <input type="number" id="balance" value="100000" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label>Initial Lot Size:</label>
+                        <input type="number" id="lotSize" value="0.01" step="0.01" min="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Grid Distance (points):</label>
+                        <input type="number" id="gridDistance" value="500" step="50">
+                    </div>
+                    <div class="form-group">
+                        <label>Martingale Multiplier:</label>
+                        <input type="number" id="martingaleMultiplier" value="2.0" step="0.1" min="1.0">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Recovery Levels:</label>
+                        <input type="number" id="maxLevels" value="8" step="1" min="1" max="20">
+                    </div>
+                    <div class="form-group">
+                        <label>Take Profit ($):</label>
+                        <input type="number" id="takeProfit" value="100" step="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Stop Loss ($) (0=off):</label>
+                        <input type="number" id="stopLoss" value="0" step="100">
+                    </div>
+                </div>
+
+                <div class="panel controls">
+                    <button id="btnStart" class="btn btn-start">▶ START</button>
+                    <button id="btnPause" class="btn btn-pause" disabled>⏸ PAUSE</button>
+                    <button id="btnReset" class="btn btn-reset">🔄 RESET</button>
+                </div>
+            </div>
+
+            <div class="center-panel">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <span id="chartSymbol">XAUUSD</span>
+                        <span id="chartTimeframe">M5</span>
+                        <span id="chartPrice" class="price-display">2350.00</span>
+                        <span id="chartChange" class="change-neutral">0.00 (0.00%)</span>
+                        <span id="chartCandle" class="candle-count">Candle: 0</span>
+                    </div>
+                    <canvas id="chartCanvas"></canvas>
+                    <canvas id="volumeCanvas"></canvas>
+                </div>
+
+                <div class="equity-container">
+                    <div class="chart-header">
+                        <span>📈 Equity Curve</span>
+                        <span id="equityValue">$100,000.00</span>
+                    </div>
+                    <canvas id="equityCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="panel account-panel">
+                    <h3>💰 Account</h3>
+                    <div class="account-row">
+                        <span>Balance:</span>
+                        <span id="accBalance">$100,000.00</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Equity:</span>
+                        <span id="accEquity">$100,000.00</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Floating P/L:</span>
+                        <span id="accFloating">$0.00</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Margin Used:</span>
+                        <span id="accMargin">$0.00</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Margin Level:</span>
+                        <span id="accMarginLevel">∞</span>
+                    </div>
+                    <div class="account-row highlight">
+                        <span>Total Lots:</span>
+                        <span id="accTotalLots">0.00</span>
+                    </div>
+                    <div class="account-row highlight">
+                        <span>Open Positions:</span>
+                        <span id="accOpenPos">0</span>
+                    </div>
+                    <div class="account-row highlight">
+                        <span>Recovery Level:</span>
+                        <span id="accRecoveryLevel">0</span>
+                    </div>
+                </div>
+
+                <div class="panel positions-panel">
+                    <h3>📋 Open Positions</h3>
+                    <div id="positionsList" class="positions-list"></div>
+                </div>
+
+                <div class="panel trades-panel">
+                    <h3>📜 Trade History</h3>
+                    <div id="tradeHistory" class="trade-history"></div>
+                </div>
+
+                <div class="panel stats-panel">
+                    <h3>📊 Statistics</h3>
+                    <div class="account-row">
+                        <span>Total Trades:</span>
+                        <span id="statTotalTrades">0</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Win Trades:</span>
+                        <span id="statWinTrades">0</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Loss Trades:</span>
+                        <span id="statLossTrades">0</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Max Drawdown:</span>
+                        <span id="statMaxDD">$0.00</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Max Recovery Depth:</span>
+                        <span id="statMaxRecovery">0</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Profit Factor:</span>
+                        <span id="statPF">0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertOverlay" class="alert-overlay hidden">
+            <div id="alertBox" class="alert-box">
+                <h2 id="alertTitle"></h2>
+                <p id="alertMessage"></p>
+                <button onclick="closeAlert()" class="btn btn-start">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/price-engine.js"></script>
+    <script src="js/ea-engine.js"></script>
+    <script src="js/chart-manager.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
