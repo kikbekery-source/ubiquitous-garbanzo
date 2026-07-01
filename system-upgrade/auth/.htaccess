@@ -1,0 +1,7 @@
+# ล็อกอินหน้า /system/ ทั้งโฟลเดอร์ (Basic Auth)
+# ⚠️ ก่อนใช้: แก้ AuthUserFile ให้เป็น path จริงบนเซิร์ฟเวอร์
+#    วิธีหา path จริง: อัป whereami.php ขึ้น /system/ แล้วเปิด https://coach-kik.com/system/whereami.php
+AuthType Basic
+AuthName "Coach Kik - Backend System"
+AuthUserFile /REPLACE/WITH/REAL/PATH/system/.htpasswd
+Require valid-user

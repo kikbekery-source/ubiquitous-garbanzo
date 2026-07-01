@@ -7,3 +7,4 @@ backend/credentials/
 frontend/build/
 .DS_Store
 *.log
+__pycache__/

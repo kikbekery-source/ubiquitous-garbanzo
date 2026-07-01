@@ -1,0 +1,42 @@
+{
+  "rooms": [
+    {
+      "id": "video-analyzer",
+      "name": "เครื่องคัดแยกฟุตเทจวิดีโอ",
+      "hero": "กาโมร่า",
+      "heroEmoji": "🗡️",
+      "heroImg": "/system/img/heroes/gamora.png",
+      "color": "#1b8a4e",
+      "status": "in-progress",
+      "stage": "เฟส 2/4 — เครื่องมือเสร็จ+ทดสอบผ่าน รอรันในเครื่องโค้ช",
+      "goal": "คัดแยกคลิปเป็นหมวดหมู่ พร้อมรหัสนำหน้าและสารบัญ · คลิปใหม่ลงทะเบียนตั้งแต่ตอนสร้าง",
+      "context": "โค้ชเคาะโหมด 2 (ภาพนิ่ง) สำหรับของเก่า + ลงทะเบียนตอนสร้างสำหรับของใหม่ · footage_tool.py เสร็จแล้ว",
+      "blockers": "-",
+      "needs": "รันในเครื่อง Mac ตาม video-sorter/LOCAL-SETUP.md",
+      "report": "/system/reports/video-analyzer.html",
+      "message": "เครื่องมือคัดแยก+สารบัญพร้อมแล้ว · เปิด Claude ในเครื่อง Mac ตาม LOCAL-SETUP.md ได้เลย",
+      "muted": false,
+      "approved": false,
+      "updated": "2026-07-01 22:00"
+    },
+    {
+      "id": "system-upgrade",
+      "name": "อัปเกรดระบบหลังบ้าน (login + แจ้งเตือน + คอมเมนต์)",
+      "hero": "จาร์วิส",
+      "heroEmoji": "🤖",
+      "heroImg": "/system/img/heroes/jarvis.png",
+      "color": "#2563c9",
+      "status": "in-progress",
+      "stage": "เฟส 1/3 — ไฟล์พร้อมแล้ว รออัปขึ้นเซิร์ฟเวอร์",
+      "goal": "ใส่ login /system/ · ระบบห้องความคืบหน้า · แจ้งเตือนป๊อปอัพ · คอมเมนต์ปักหมุด",
+      "context": "ไฟล์ทั้งหมดอยู่ใน system-upgrade/ ของรีโพ ubiquitous-garbanzo",
+      "blockers": "-",
+      "needs": "FTP access สำหรับอัปไฟล์ขึ้น /system/",
+      "report": "/system/reports/system-upgrade.html",
+      "message": "ชุดติดตั้งพร้อมแล้ว ทำตาม README.md ได้เลย",
+      "muted": false,
+      "approved": false,
+      "updated": "2026-07-01 22:00"
+    }
+  ]
+}
