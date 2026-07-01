@@ -14,28 +14,38 @@
 
 ## วิธีติดตั้ง (ทีละขั้น ~15 นาที)
 
-1. **อัปโฟลเดอร์ขึ้นเซิร์ฟเวอร์** ให้โครงสร้างเป็น:
+> ⚠️ **ลำดับสำคัญมาก: อัป `.htaccess` เป็นขั้นตอนท้ายๆ เสมอ** — ถ้าอัปทั้งที่ path ยังเป็น
+> placeholder อยู่ Apache จะตอบ 500 ทั้งโฟลเดอร์ /system/ รวมถึง whereami.php ที่ต้องใช้หา path
+> = ล็อกตัวเองออกจนกว่าจะลบ .htaccess ผ่าน FTP
+
+1. **หา path จริงก่อน**: อัปเฉพาะ `auth/whereami.php` ขึ้น `/system/` → เปิด
+   `https://coach-kik.com/system/whereami.php` → จดบรรทัด `AuthUserFile ...` ที่มันบอก
+2. **แก้ `.htaccess` ในเครื่อง**: แทนบรรทัด `AuthUserFile` ด้วย path จริงจากข้อ 1
+3. **อัปไฟล์ระบบทั้งหมด (ยังไม่รวม .htaccess/.htpasswd)** ให้โครงสร้างเป็น:
    ```
-   /system/.htaccess          ← จาก auth/.htaccess
-   /system/.htpasswd          ← จาก auth/.htpasswd
    /system/api/rooms-api.php
    /system/api/comments-api.php
    /system/widgets/ck-notify.js
    /system/widgets/ck-comment.js
    /system/data/rooms.json    ← ถ้ามี data/ อยู่แล้ว แค่เพิ่มไฟล์นี้
    /system/standards/APPROVAL-STANDARD.md
-   /system/reports/           ← สร้างโฟลเดอร์เปล่ารอไฟล์รายงาน
+   /system/reports/video-analyzer.html   ← จาก reports/
+   /system/reports/system-upgrade.html   ← จาก reports/
    /system/img/heroes/        ← ใส่รูปฮีโร่ (gamora.png, jarvis.png, ...)
    ```
-2. **แก้ path ใน .htaccess**: อัป `auth/whereami.php` ขึ้น /system/ → เปิด `https://coach-kik.com/system/whereami.php` → เอา path ที่โชว์ไปใส่บรรทัด `AuthUserFile` → **ลบ whereami.php ทิ้ง**
-3. **ทดสอบ login**: เปิด `/system/` ใหม่ (โหมดไม่ระบุตัวตน) ต้องเด้งถาม user/รหัส → `kikkok` / `2222`
+   หมายเหตุ: โฟลเดอร์ `/system/data/` ต้องเขียนได้โดยเว็บเซิร์ฟเวอร์ (chmod 775 หรือ 777 ตามโฮสต์)
 4. **เสียบ widget เข้าหน้า dashboard**: เพิ่ม 2 บรรทัดนี้ใน `/system/index.html` ก่อน `</body>`:
    ```html
    <script src="/system/widgets/ck-notify.js" defer></script>
    <script src="/system/widgets/ck-comment.js" defer></script>
    ```
-5. **ทดสอบครบวงจร**: รีเฟรช /system/ → ต้องเห็นป๊อปอัพแจ้งเตือน 2 ห้อง (กาโมร่า+จาร์วิส) มุมขวาล่าง และปุ่ม 💬 คอมเมนต์ มุมซ้ายล่าง
-6. **ให้ agent ทุกตัวอ่าน** `standards/APPROVAL-STANDARD.md` และเพิ่มลิงก์เข้า `SYSTEM-RULES.md`
+5. **เปิดล็อก**: อัป `.htpasswd` แล้วตามด้วย `.htaccess` (ที่แก้ path แล้ว) ขึ้น `/system/`
+   → **ลบ whereami.php ทิ้ง**
+6. **ทดสอบ login**: เปิด `/system/` ในหน้าต่างไม่ระบุตัวตน ต้องเด้งถามรหัส → `kikkok` / `2222`
+   (ถ้าเจอ 500 = path ใน .htaccess ผิด ให้ลบ .htaccess ออกก่อนแล้วทำข้อ 1-2 ใหม่)
+7. **ทดสอบครบวงจร**: รีเฟรช /system/ → ต้องเห็นป๊อปอัพแจ้งเตือน 2 ห้อง (กาโมร่า+จาร์วิส)
+   มุมขวาล่าง กด 📄 เปิดรายงานได้ และปุ่ม 💬 คอมเมนต์ มุมซ้ายล่าง ปักหมุด/ลากหมุดได้ทั้งเมาส์และนิ้ว
+8. **ให้ agent ทุกตัวอ่าน** `standards/APPROVAL-STANDARD.md` และเพิ่มลิงก์เข้า `SYSTEM-RULES.md`
 
 ## หมายเหตุความปลอดภัย
 

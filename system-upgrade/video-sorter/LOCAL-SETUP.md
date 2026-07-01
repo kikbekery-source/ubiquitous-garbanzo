@@ -14,9 +14,10 @@
 ## ขั้นตอน (ทำครั้งเดียว ~3 นาที)
 
 1. เปิด **Terminal** บน Mac (หรือแอป Claude Code)
-2. ดึงรีโพนี้ลงเครื่อง (ถ้ามีแล้วข้ามไป `git pull`):
+2. ดึงรีโพนี้ลงเครื่อง — รีโพเป็น private ต้อง login GitHub ก่อน (ถ้ามีรีโพแล้วข้ามไป `git pull`):
    ```bash
-   git clone https://github.com/kikbekery-source/ubiquitous-garbanzo.git
+   gh auth login          # ครั้งแรกครั้งเดียว (ถ้ายังไม่มี gh: brew install gh)
+   gh repo clone kikbekery-source/ubiquitous-garbanzo
    cd ubiquitous-garbanzo
    git checkout claude/backend-system-review-2e2wlb
    ```

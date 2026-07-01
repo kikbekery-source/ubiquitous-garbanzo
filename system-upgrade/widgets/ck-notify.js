@@ -38,13 +38,16 @@
   function openReport(room) {
     var old = document.getElementById('cknmodal');
     if (old) old.remove();
+    // รับเฉพาะ URL แบบ http(s) หรือ path ภายใน — กัน javascript: จากข้อมูลห้องที่ agent เขียนได้
+    var reportUrl = String(room.report || '');
+    if (!/^(https?:\/\/|\/)/i.test(reportUrl)) reportUrl = 'about:blank';
     var m = document.createElement('div');
     m.id = 'cknmodal';
     m.innerHTML = '<div class="win"><div class="hd">' +
       (room.heroImg ? '<img class="hero" style="width:30px;height:30px;border-radius:50%" src="' + esc(room.heroImg) + '">' : '<span>' + esc(room.heroEmoji || '🦸') + '</span>') +
       '<span>' + esc(room.hero || '') + ' — รายงาน: ' + esc(room.name) + '</span>' +
       '<button aria-label="ปิด">✕</button></div>' +
-      '<iframe src="' + esc(room.report || 'about:blank') + '"></iframe></div>';
+      '<iframe src="' + esc(reportUrl) + '"></iframe></div>';
     m.querySelector('button').onclick = function () { m.remove(); };
     m.addEventListener('click', function (e) { if (e.target === m) m.remove(); });
     document.body.appendChild(m);

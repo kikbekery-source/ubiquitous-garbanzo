@@ -22,6 +22,7 @@
     "confidence": 0.92, "note": "เห็นขั้นตอนผัดชัด"}, ...]
 """
 import argparse
+import fcntl
 import json
 import os
 import re
@@ -39,6 +40,13 @@ CATS = {
 CAT_THAI = {'PROD': 'ผลิต/ปรุง', 'PREP': 'เตรียมของ', 'TALK': 'พูดคุย', 'OTH': 'อื่นๆ'}
 REGISTRY = '_registry.json'
 LOW_CONFIDENCE = 0.7
+
+
+def acquire_lock(lib):
+    """lock ทั้งคลัง — กัน register จากโรงงานผลิตชนกับ apply ที่รันอยู่ (เลขซ้ำ/ทะเบียนทับกัน)"""
+    fp = open(os.path.join(lib, '.registry.lock'), 'w')
+    fcntl.flock(fp, fcntl.LOCK_EX)
+    return fp  # ปล่อยอัตโนมัติตอนโปรเซสจบ
 
 
 def load_registry(lib):
@@ -66,10 +74,30 @@ def next_number(reg, cat):
     return max(nums, default=0) + 1
 
 
+def code_sort_key(code):
+    m = re.search(r'(\d+)$', code)
+    return (code.split('-')[0], int(m.group(1)) if m else 0)
+
+
 def clean_title(title):
     """ตัดอักขระที่ใช้ในชื่อไฟล์ไม่ได้ เก็บไทย/อังกฤษ/ตัวเลขไว้"""
-    t = re.sub(r'[\\/:*?"<>|\s]+', '_', title.strip())
+    t = re.sub(r'[\\/:*?"<>|\s]+', '_', str(title).strip())
     return t.strip('_')[:60] or 'ไม่มีชื่อ'
+
+
+def md_cell(text):
+    """กันข้อความทำตาราง Markdown พัง (| และขึ้นบรรทัดใหม่)"""
+    return str(text or '').replace('|', '∣').replace('\n', ' ').replace('\r', ' ')
+
+
+def parse_confidence(value):
+    if value is None:
+        return None
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        raise ValueError('confidence ต้องเป็นตัวเลข 0-1 (ได้ %r)' % (value,))
+    return min(1.0, max(0.0, v))
 
 
 def video_duration(path):
@@ -86,9 +114,10 @@ def video_duration(path):
 def fmt_duration(sec):
     if sec is None:
         return '—'
-    if sec < 60:
-        return '%d วิ' % round(sec)
-    return '%d:%02d นาที' % (sec // 60, round(sec % 60))
+    total = int(round(sec))
+    if total < 60:
+        return '%d วิ' % total
+    return '%d:%02d นาที' % (total // 60, total % 60)
 
 
 def unique_path(path):
@@ -106,29 +135,32 @@ def register_one(lib, reg, file, cat, title, confidence=None, note='', source='f
         raise ValueError('หมวด "%s" ไม่มีในระบบ (ใช้ %s)' % (cat, '/'.join(CATS)))
     if not os.path.isfile(file):
         raise FileNotFoundError('ไม่พบไฟล์: %s' % file)
+    src = os.path.abspath(file)
+    if src == lib or src.startswith(lib + os.sep):
+        raise ValueError('ไฟล์อยู่ในคลังอยู่แล้ว ห้ามลงทะเบียนซ้ำ: %s' % file)
+    confidence = parse_confidence(confidence)
 
     code = '%s-%03d' % (cat, next_number(reg, cat))
     cat_dir = os.path.join(lib, CATS[cat])
     os.makedirs(cat_dir, exist_ok=True)
 
-    ext = os.path.splitext(file)[1].lower()
+    ext = os.path.splitext(src)[1].lower()
     dest = unique_path(os.path.join(cat_dir, '%s_%s%s' % (code, clean_title(title), ext)))
 
-    dur = video_duration(file)
-    shutil.move(file, dest)
-
+    dur = video_duration(src)
     entry = {
         'code': code,
         'cat': cat,
-        'title': title.strip(),
+        'title': str(title).strip(),
         'file': os.path.relpath(dest, lib),
-        'original': os.path.basename(file),
+        'original': os.path.basename(src),
         'duration': dur,
         'confidence': confidence,
-        'note': note,
+        'note': str(note or ''),
         'source': source,
         'added': datetime.now().strftime('%Y-%m-%d %H:%M'),
     }
+    shutil.move(src, dest)
     reg['clips'].append(entry)
     return entry
 
@@ -139,11 +171,11 @@ def generate_index(lib, reg):
              % (datetime.now().strftime('%d/%m/%Y %H:%M'), len(reg['clips'])), '']
 
     flagged = [c for c in reg['clips']
-               if c.get('confidence') is not None and c['confidence'] < LOW_CONFIDENCE]
+               if isinstance(c.get('confidence'), (int, float)) and c['confidence'] < LOW_CONFIDENCE]
     if flagged:
         lines += ['## ⚠️ คลิปที่ AI ไม่มั่นใจ — โค้ชควรเปิดดูเองก่อนใช้ (%d คลิป)' % len(flagged), '']
         lines += ['- **%s** %s (มั่นใจ %d%%) — `%s`'
-                  % (c['code'], c['title'], round(c['confidence'] * 100), c['file'])
+                  % (c['code'], md_cell(c['title']), round(c['confidence'] * 100), c['file'])
                   for c in flagged]
         lines.append('')
 
@@ -155,15 +187,19 @@ def generate_index(lib, reg):
             continue
         lines += ['| รหัส | เรื่อง | ยาว | มั่นใจ | ที่มา | หมายเหตุ |',
                   '|---|---|---|---|---|---|']
-        for c in sorted(clips, key=lambda c: c['code']):
-            conf = ('%d%%' % round(c['confidence'] * 100)) if c.get('confidence') is not None else '—'
-            if c.get('confidence') is not None and c['confidence'] < LOW_CONFIDENCE:
-                conf = '⚠️ ' + conf
+        for c in sorted(clips, key=lambda c: code_sort_key(c['code'])):
+            conf_val = c.get('confidence')
+            if isinstance(conf_val, (int, float)):
+                conf = '%d%%' % round(conf_val * 100)
+                if conf_val < LOW_CONFIDENCE:
+                    conf = '⚠️ ' + conf
+            else:
+                conf = '—'
             src = {'factory': '🏭 โรงงาน', 'ai-sort': '🤖 AI คัดแยก', 'manual': '✍️ มือ'}.get(
                 c.get('source'), c.get('source') or '—')
             lines.append('| %s | %s | %s | %s | %s | %s |' % (
-                c['code'], c['title'], fmt_duration(c.get('duration')),
-                conf, src, c.get('note') or ''))
+                c['code'], md_cell(c['title']), fmt_duration(c.get('duration')),
+                conf, src, md_cell(c.get('note'))))
         lines.append('')
 
     with open(os.path.join(lib, 'INDEX.md'), 'w', encoding='utf-8') as f:
@@ -171,11 +207,13 @@ def generate_index(lib, reg):
 
 
 def cmd_register(args):
+    lock = acquire_lock(args.library)
     reg = load_registry(args.library)
     entry = register_one(args.library, reg, args.file, args.cat, args.title,
                          note=args.note, source=args.source)
     save_registry(args.library, reg)
     generate_index(args.library, reg)
+    del lock
     print('✅ ลงทะเบียนแล้ว: %s → %s' % (entry['code'], entry['file']))
 
 
@@ -185,24 +223,35 @@ def cmd_apply(args):
     if not isinstance(plan, list):
         sys.exit('plan.json ต้องเป็น list ของรายการคลิป')
 
+    lock = acquire_lock(args.library)
     reg = load_registry(args.library)
     done, failed = 0, []
-    for item in plan:
-        try:
-            entry = register_one(
-                args.library, reg,
-                item['file'], item.get('cat', 'OTH'), item.get('title', ''),
-                confidence=item.get('confidence'), note=item.get('note', ''),
-                source='ai-sort')
-            flag = ' ⚠️' if (entry['confidence'] is not None
-                             and entry['confidence'] < LOW_CONFIDENCE) else ''
-            print('✅ %s → %s%s' % (entry['code'], entry['file'], flag))
-            done += 1
-        except Exception as e:
-            failed.append((item.get('file', '?'), str(e)))
-            print('❌ %s: %s' % (item.get('file', '?'), e))
-    save_registry(args.library, reg)
-    generate_index(args.library, reg)
+    try:
+        for idx, item in enumerate(plan):
+            if not isinstance(item, dict):
+                failed.append(('รายการที่ %d' % (idx + 1), 'ไม่ใช่ object'))
+                print('❌ รายการที่ %d: ไม่ใช่ object (%r)' % (idx + 1, item))
+                continue
+            fname = item.get('file', '?')
+            try:
+                entry = register_one(
+                    args.library, reg,
+                    item.get('file', ''), item.get('cat', 'OTH'), item.get('title', ''),
+                    confidence=item.get('confidence'), note=item.get('note', ''),
+                    source='ai-sort')
+                # บันทึกทะเบียนทันทีหลังย้ายไฟล์แต่ละตัว — โดน Ctrl-C กลางคันทะเบียนก็ไม่หาย
+                save_registry(args.library, reg)
+                flag = ' ⚠️' if (entry['confidence'] is not None
+                                 and entry['confidence'] < LOW_CONFIDENCE) else ''
+                print('✅ %s → %s%s' % (entry['code'], entry['file'], flag))
+                done += 1
+            except Exception as e:
+                failed.append((fname, str(e)))
+                print('❌ %s: %s' % (fname, e))
+    finally:
+        save_registry(args.library, reg)
+        generate_index(args.library, reg)
+        del lock
     print('\nสรุป: สำเร็จ %d · พลาด %d · สารบัญอัปเดตแล้วที่ %s'
           % (done, len(failed), os.path.join(args.library, 'INDEX.md')))
     if failed:
@@ -210,8 +259,10 @@ def cmd_apply(args):
 
 
 def cmd_index(args):
+    lock = acquire_lock(args.library)
     reg = load_registry(args.library)
     generate_index(args.library, reg)
+    del lock
     print('✅ สร้างสารบัญใหม่แล้ว (%d คลิป): %s'
           % (len(reg['clips']), os.path.join(args.library, 'INDEX.md')))
 
