@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gus XO — เกม XO</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #f1f5f9;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  h1 { margin-bottom: 8px; font-size: 2rem; }
+  .status {
+    font-size: 1.25rem;
+    margin: 16px 0;
+    min-height: 1.5em;
+    font-weight: 600;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 8px;
+    background: #334155;
+    padding: 8px;
+    border-radius: 12px;
+  }
+  .cell {
+    background: #1e293b;
+    border-radius: 8px;
+    font-size: 3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s;
+    user-select: none;
+  }
+  .cell:hover:not(.filled) { background: #273449; }
+  .cell:active:not(.filled) { transform: scale(0.95); }
+  .cell.x { color: #38bdf8; }
+  .cell.o { color: #fb7185; }
+  .cell.win { background: #15803d; }
+  .controls { margin-top: 20px; display: flex; gap: 12px; }
+  button {
+    font-size: 1rem;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #38bdf8;
+    color: #0f172a;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button:hover { background: #7dd3fc; }
+  .score {
+    margin-top: 16px;
+    display: flex;
+    gap: 24px;
+    font-size: 1.1rem;
+  }
+  .score span { font-weight: 700; }
+</style>
+</head>
+<body>
+  <h1>Gus XO 🎮</h1>
+  <p style="opacity:.7">เล่น 2 คน สลับกันแตะช่อง</p>
+  <div class="status" id="status">ตาผู้เล่น X</div>
+  <div class="board" id="board"></div>
+  <div class="score">
+    <div>X ชนะ: <span id="scoreX">0</span></div>
+    <div>เสมอ: <span id="scoreD">0</span></div>
+    <div>O ชนะ: <span id="scoreO">0</span></div>
+  </div>
+  <div class="controls">
+    <button id="reset">เริ่มเกมใหม่</button>
+  </div>
+
+<script>
+  const boardEl  = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const scoreEl  = { X: document.getElementById('scoreX'),
+                     O: document.getElementById('scoreO'),
+                     D: document.getElementById('scoreD') };
+
+  const WINS = [
+    [0,1,2],[3,4,5],[6,7,8], // แนวนอน
+    [0,3,6],[1,4,7],[2,5,8], // แนวตั้ง
+    [0,4,8],[2,4,6]          // แนวทแยง
+  ];
+
+  let cells, current, over, score = { X:0, O:0, D:0 };
+
+  function newGame() {
+    cells = Array(9).fill('');
+    current = 'X';
+    over = false;
+    boardEl.innerHTML = '';
+    cells.forEach((_, i) => {
+      const c = document.createElement('div');
+      c.className = 'cell';
+      c.dataset.i = i;
+      c.addEventListener('click', () => play(i));
+      boardEl.appendChild(c);
+    });
+    statusEl.textContent = 'ตาผู้เล่น X';
+  }
+
+  function play(i) {
+    if (over || cells[i]) return;
+    cells[i] = current;
+    const cell = boardEl.children[i];
+    cell.textContent = current;
+    cell.classList.add('filled', current.toLowerCase());
+
+    const line = winningLine();
+    if (line) {
+      over = true;
+      line.forEach(idx => boardEl.children[idx].classList.add('win'));
+      statusEl.textContent = '🎉 ผู้เล่น ' + current + ' ชนะ!';
+      score[current]++;
+      scoreEl[current].textContent = score[current];
+    } else if (cells.every(Boolean)) {
+      over = true;
+      statusEl.textContent = 'เสมอ! 🤝';
+      score.D++;
+      scoreEl.D.textContent = score.D;
+    } else {
+      current = current === 'X' ? 'O' : 'X';
+      statusEl.textContent = 'ตาผู้เล่น ' + current;
+    }
+  }
+
+  function winningLine() {
+    return WINS.find(([a,b,c]) =>
+      cells[a] && cells[a] === cells[b] && cells[a] === cells[c]);
+  }
+
+  document.getElementById('reset').addEventListener('click', newGame);
+  newGame();
+</script>
+</body>
+</html>

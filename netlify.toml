@@ -1,0 +1,12 @@
+# Netlify deploy config for the standalone XO game.
+# No build step needed — xo.html is served as a static file.
+
+[build]
+  publish = "."
+  command = ""
+
+# Show the game when visiting the site root.
+[[redirects]]
+  from = "/"
+  to = "/xo.html"
+  status = 200
