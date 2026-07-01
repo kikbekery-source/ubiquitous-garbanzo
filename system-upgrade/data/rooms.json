@@ -1,0 +1,42 @@
+{
+  "rooms": [
+    {
+      "id": "video-analyzer",
+      "name": "เครื่องคัดแยกฟุตเทจวิดีโอ",
+      "hero": "กาโมร่า",
+      "heroEmoji": "🗡️",
+      "heroImg": "/system/img/heroes/gamora.png",
+      "color": "#1b8a4e",
+      "status": "in-progress",
+      "stage": "เฟส 1/4 — ตรวจโค้ด + วางแผน",
+      "goal": "คัดแยกคลิปดิบเป็นหมวดหมู่อัตโนมัติ พร้อมรหัสนำหน้าและสารบัญ",
+      "context": "ตรวจโค้ดพบว่า AI ยังไม่ได้ดูวิดีโอจริง (เดาจากชื่อไฟล์) · รอโค้ชเลือกโหมดวิเคราะห์",
+      "blockers": "รอโค้ชเลือกโหมด (ดู video-sorter/MODES.md)",
+      "needs": "-",
+      "report": "/system/reports/video-analyzer.html",
+      "message": "รายงานตรวจระบบเสร็จแล้ว · เปิดดูได้ใน PR #2",
+      "muted": false,
+      "approved": false,
+      "updated": "2026-07-01 22:00"
+    },
+    {
+      "id": "system-upgrade",
+      "name": "อัปเกรดระบบหลังบ้าน (login + แจ้งเตือน + คอมเมนต์)",
+      "hero": "จาร์วิส",
+      "heroEmoji": "🤖",
+      "heroImg": "/system/img/heroes/jarvis.png",
+      "color": "#2563c9",
+      "status": "in-progress",
+      "stage": "เฟส 1/3 — ไฟล์พร้อมแล้ว รออัปขึ้นเซิร์ฟเวอร์",
+      "goal": "ใส่ login /system/ · ระบบห้องความคืบหน้า · แจ้งเตือนป๊อปอัพ · คอมเมนต์ปักหมุด",
+      "context": "ไฟล์ทั้งหมดอยู่ใน system-upgrade/ ของรีโพ ubiquitous-garbanzo",
+      "blockers": "-",
+      "needs": "FTP access สำหรับอัปไฟล์ขึ้น /system/",
+      "report": "/system/reports/system-upgrade.html",
+      "message": "ชุดติดตั้งพร้อมแล้ว ทำตาม README.md ได้เลย",
+      "muted": false,
+      "approved": false,
+      "updated": "2026-07-01 22:00"
+    }
+  ]
+}
