@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ตรวจระบบหลังบ้าน — จุดที่ยังไม่ได้พูดถึง</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1117;--card:#1a1d27;--card2:#13151d;--border:#2a2e3d;
+  --text:#e4e6f0;--muted:#8b8fa3;--primary:#6c5ce7;
+  --red:#e74c6b;--orange:#e8935a;--yellow:#f2c94c;--green:#27c093;--blue:#5aa8f0;
+  --red-bg:rgba(231,76,107,.13);--orange-bg:rgba(232,147,90,.13);--yellow-bg:rgba(242,201,76,.13);
+  --green-bg:rgba(39,192,147,.13);--blue-bg:rgba(90,168,240,.13);--purple-bg:rgba(108,92,231,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans Thai',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:0 0 80px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 22px}
+
+/* Hero */
+.hero{text-align:center;padding:56px 22px 40px;background:radial-gradient(ellipse at top,rgba(108,92,231,.18),transparent 70%)}
+.hero .kicker{display:inline-block;font-size:.8rem;letter-spacing:.14em;color:var(--primary);background:var(--purple-bg);padding:5px 14px;border-radius:20px;font-weight:600;margin-bottom:18px}
+.hero h1{font-size:2.05rem;font-weight:800;line-height:1.3;margin-bottom:12px}
+.hero p{color:var(--muted);font-size:1.02rem;max-width:640px;margin:0 auto}
+.hero .date{margin-top:16px;font-size:.82rem;color:var(--muted)}
+
+/* Section */
+.sec{margin-top:46px}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.sec-num{width:38px;height:38px;flex-shrink:0;border-radius:11px;background:var(--purple-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.05rem}
+.sec-head h2{font-size:1.4rem;font-weight:700}
+.sec-head .sub{font-size:.85rem;color:var(--muted);font-weight:400}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin-bottom:16px}
+.card.tinted-red{border-color:rgba(231,76,107,.35);background:linear-gradient(var(--red-bg),transparent 120%),var(--card)}
+
+/* Access diagram */
+.access{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;text-align:center}
+@media(max-width:640px){.access{grid-template-columns:1fr}}
+.access .node{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:22px 16px}
+.access .node .ico{font-size:2.2rem;margin-bottom:8px}
+.access .node h4{font-size:1rem;margin-bottom:4px}
+.access .node p{font-size:.8rem;color:var(--muted)}
+.access .node.can{border-color:rgba(39,192,147,.4)}
+.access .node.cant{border-color:rgba(231,76,107,.4)}
+.access .bar{font-size:1.6rem;color:var(--red)}
+.badge-can{display:inline-block;margin-top:10px;font-size:.72rem;font-weight:600;color:var(--green);background:var(--green-bg);padding:3px 10px;border-radius:12px}
+.badge-cant{display:inline-block;margin-top:10px;font-size:.72rem;font-weight:600;color:var(--red);background:var(--red-bg);padding:3px 10px;border-radius:12px}
+
+/* Flow diagram */
+.flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.flow .step{flex:1;min-width:120px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;position:relative}
+.flow .step .ico{font-size:1.5rem;margin-bottom:6px}
+.flow .step h5{font-size:.85rem;margin-bottom:2px}
+.flow .step p{font-size:.72rem;color:var(--muted)}
+.flow .arrow{display:flex;align-items:center;color:var(--muted);font-size:1.2rem}
+.flow .step.warn{border-color:rgba(232,147,90,.5)}
+.flow .step .flag{position:absolute;top:-9px;right:-6px;font-size:.65rem;background:var(--orange);color:#1a1d27;font-weight:700;padding:2px 7px;border-radius:10px}
+
+/* Finding */
+.finding{border-left:4px solid var(--border);padding:16px 20px;margin-bottom:14px;background:var(--card);border-radius:0 12px 12px 0}
+.finding.crit{border-left-color:var(--red)}
+.finding.high{border-left-color:var(--orange)}
+.finding.med{border-left-color:var(--yellow)}
+.finding.low{border-left-color:var(--blue)}
+.finding .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.finding .sev{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:11px;letter-spacing:.03em}
+.sev.crit{color:var(--red);background:var(--red-bg)}
+.sev.high{color:var(--orange);background:var(--orange-bg)}
+.sev.med{color:#d9b43c;background:var(--yellow-bg)}
+.sev.low{color:var(--blue);background:var(--blue-bg)}
+.finding .tag{font-size:.68rem;color:var(--muted);background:var(--card2);padding:3px 9px;border-radius:9px;border:1px solid var(--border)}
+.finding h4{font-size:1.02rem;font-weight:600}
+.finding .plain{font-size:.92rem;color:var(--text);margin:6px 0}
+.finding .why{font-size:.83rem;color:var(--muted)}
+.finding code{background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:.8rem;color:var(--yellow);font-family:ui-monospace,monospace}
+.finding .loc{font-size:.75rem;color:var(--muted);font-family:ui-monospace,monospace;margin-top:6px;display:block}
+
+/* strengths */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.str{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px 18px;border-top:3px solid var(--green)}
+.str h4{font-size:.95rem;margin-bottom:5px;display:flex;gap:7px;align-items:center}
+.str p{font-size:.83rem;color:var(--muted)}
+
+/* related projects */
+.rel{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.rel{grid-template-columns:1fr}}
+.rel .box{background:var(--card2);border:1px solid var(--border);border-radius:13px;padding:18px}
+.rel .box h4{font-size:1rem;margin-bottom:8px}
+.rel .box .stack{font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:11px;display:inline-block;margin-bottom:10px}
+.rel .php{color:var(--blue);background:var(--blue-bg)}
+.rel .node{color:var(--green);background:var(--green-bg)}
+.rel .box ul{list-style:none;font-size:.82rem;color:var(--muted)}
+.rel .box li{padding:3px 0 3px 18px;position:relative}
+.rel .box li::before{content:'•';position:absolute;left:4px;color:var(--muted)}
+.disconnect{text-align:center;font-size:1.5rem;color:var(--red);margin:14px 0}
+
+/* questions */
+.q{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:11px;display:flex;gap:12px}
+.q .qm{color:var(--yellow);font-size:1.3rem;font-weight:800;flex-shrink:0}
+.q p{font-size:.9rem}
+.q .qs{font-size:.8rem;color:var(--muted);margin-top:3px}
+
+/* plan */
+.phase{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:18px 20px;margin-bottom:13px}
+.phase .ph{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.phase .ph .n{font-size:.72rem;font-weight:700;color:var(--primary);background:var(--purple-bg);padding:3px 11px;border-radius:11px}
+.phase .ph h4{font-size:1rem}
+.phase ol{margin-left:20px;font-size:.87rem;color:var(--muted)}
+.phase li{margin:4px 0}
+
+.note{font-size:.8rem;color:var(--muted);text-align:center;margin-top:40px;padding-top:22px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="kicker">รายงานการตรวจระบบ · รอบที่ 2</div>
+  <h1>ตรวจระบบหลังบ้านแบบละเอียด<br>เจาะจุดที่ยัง "ไม่เคยพูดถึง"</h1>
+  <p>รอบแรกผมพูดถึงฝั่งเซิร์ฟเวอร์ (API) ไปแล้ว รอบนี้เจาะฝั่งหน้าจอผู้ใช้ (Frontend) และหน้า HTML สำรอง ที่ยังไม่เคยตรวจ พร้อมอธิบายเป็นภาพและภาษาง่ายๆ</p>
+  <div class="date">อัปเดต: 1 กรกฎาคม 2026</div>
+</div>
+
+<div class="wrap">
+
+<!-- SECTION 0: Access -->
+<div class="sec">
+  <div class="sec-head">
+    <div class="sec-num">0</div>
+    <div><h2>เรื่องสำคัญก่อนอื่น: ผมเข้าถึงเครื่องคุณ "ไม่ได้"</h2>
+    <span class="sub">ขอชี้แจงตรงๆ เพราะมันเปลี่ยนขอบเขตที่ผมตรวจได้</span></div>
+  </div>
+  <div class="card tinted-red">
+    <div class="access">
+      <div class="node cant">
+        <div class="ico">💻</div>
+        <h4>เครื่อง Mac ของคุณ</h4>
+        <p>ไฟล์, รหัสผ่าน, memory, โฟลเดอร์โปรเจกต์อสังหา</p>
+        <span class="badge-cant">ผมเข้าไม่ถึง</span>
+      </div>
+      <div class="bar">✕</div>
+      <div class="node can">
+        <div class="ico">☁️</div>
+        <h4>กล่องเซิร์ฟเวอร์ที่ผมอยู่</h4>
+        <p>เห็นเฉพาะ repo ‘ubiquitous-garbanzo’ ที่โคลนมา + เว็บสาธารณะ</p>
+        <span class="badge-can">ผมเข้าถึงแค่นี้</span>
+      </div>
+    </div>
+    <p style="font-size:.88rem;color:var(--muted);margin-top:18px">
+      ผมทำงานอยู่ใน "กล่องคลาวด์" ที่แยกออกจากเครื่องคุณโดยสิ้นเชิง จึง<strong style="color:var(--text)">อ่านไฟล์/memory/รหัสผ่านในเครื่อง Mac ของคุณไม่ได้เลย</strong> แม้คุณจะอนุญาต — มันเป็นกำแพงทางเทคนิค ไม่ใช่การตั้งค่าที่เปิดได้
+      และตามหลักความปลอดภัย การตรวจโค้ดก็<strong style="color:var(--text)">ไม่จำเป็นต้องใช้รหัสผ่านของคุณ</strong>อยู่แล้ว จึงไม่ต้องส่งให้ผมครับ
+    </p>
+    <p style="font-size:.88rem;color:var(--muted);margin-top:12px">
+      👉 <strong style="color:var(--text)">โค้ดโปรเจกต์อสังหา (fastup-academy) ไม่ได้อยู่ใน repo นี้</strong> — repo นี้มีแต่ระบบวิเคราะห์วิดีโอ ถ้าอยากให้ผมตรวจโค้ดอสังหาจริงๆ ต้อง push โค้ดนั้นขึ้น GitHub repo ที่ผมเข้าถึงได้ หรือเพิ่ม repo นั้นเข้ามาในเซสชัน แล้วผมจะตรวจให้ละเอียดแบบเดียวกันนี้
+    </p>
+  </div>
+</div>
+
+<!-- SECTION 1: system map -->
+<div class="sec">
+  <div class="sec-head">
+    <div class="sec-num">1</div>
+    <div><h2>ระบบนี้ทำงานยังไง (แบบเห็นภาพ)</h2>
+    <span class="sub">เข้าใจภาพรวมก่อน จะได้เห็นว่าจุดอ่อนอยู่ตรงไหน</span></div>
+  </div>
+  <div class="card">
+    <div class="flow">
+      <div class="step"><div class="ico">📁</div><h5>Google Drive</h5><p>เก็บไฟล์วิดีโอ</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ico">🔄</div><h5>Sync</h5><p>ดึงรายชื่อคลิป</p></div>
+      <div class="arrow">→</div>
+      <div class="step warn"><div class="ico">🤖</div><h5>Gemini AI</h5><p>เดาเมนู/ประเภท</p><span class="flag">เห็นแค่ชื่อไฟล์</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ico">💾</div><h5>ฐานข้อมูล</h5><p>SQLite</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ico">👀</div><h5>หน้าจอรีวิว</h5><p>คนยืนยัน/แก้/ตัด</p></div>
+    </div>
+    <p style="font-size:.82rem;color:var(--muted);margin-top:16px;text-align:center">
+      หมายเหตุ: มีหน้าจอผู้ใช้ <strong style="color:var(--text)">2 ชุดที่ทำงานซ้อนกัน</strong> — ชุด React (<code style="color:var(--green)">frontend/</code>) และหน้า HTML ชุดเดียวจบ (<code style="color:var(--blue)">backend/src/public/index.html</code>) — จุดนี้เองที่ซ่อนปัญหาใหม่ไว้
+    </p>
+  </div>
+</div>
+
+<!-- SECTION 2: new findings -->
+<div class="sec">
+  <div class="sec-head">
+    <div class="sec-num">2</div>
+    <div><h2>จุดใหม่ที่เพิ่งเจอ (ยังไม่เคยพูด)</h2>
+    <span class="sub">เรียงจากอันตรายมากไปน้อย · ทุกจุดยืนยันจากโค้ดจริงแล้ว</span></div>
+  </div>
+
+  <div class="finding crit">
+    <div class="top"><span class="sev crit">อันตรายสูงสุด</span><span class="tag">ความปลอดภัย · หน้า HTML สำรอง</span></div>
+    <h4>1. ช่องโหว่ XSS — ชื่อไฟล์วิดีโอฝังสคริปต์เข้ามาสั่งงานหน้าเว็บได้</h4>
+    <p class="plain">หน้า HTML สำรองเอา "ชื่อไฟล์" และ "ผลลัพธ์จาก AI" มาแสดงบนหน้าจอแบบดิบๆ โดยไม่กรอง ถ้ามีคนตั้งชื่อไฟล์วิดีโอใน Drive เป็นโค้ด (เช่น <code>&lt;img onerror=...&gt;</code>) โค้ดนั้นจะ "ทำงานจริง" ในเบราว์เซอร์ของคนที่เปิดดู</p>
+    <p class="why">เปรียบเทียบ: เหมือนป้ายชื่อสินค้าที่ถ้าเขียนคาถาลงไป แล้วเครื่องคิดเงินทำตามคาถานั้นจริงๆ — ขโมยข้อมูล/สวมสิทธิ์ผู้ใช้ได้ · น่าสนใจคือหน้าจอ React อีกชุดปลอดภัยกว่าเพราะกรองให้อัตโนมัติ</p>
+    <span class="loc">backend/src/public/index.html — renderClipList() / renderClipDetail() / loadProjects() (ใช้ innerHTML กับข้อมูลดิบ)</span>
+  </div>
+
+  <div class="finding high">
+    <div class="top"><span class="sev high">ควรรีบแก้</span><span class="tag">ทำให้สับสน · หน้า HTML สำรอง</span></div>
+    <h4>2. ช่องกรอก "Gemini API Key" หลอกตา — กรอกไปก็ไม่มีผล</h4>
+    <p class="plain">หน้าจอมีช่องให้กรอก API Key และปุ่ม "บันทึกการตั้งค่า" แต่จริงๆ แล้วค่าที่กรอกถูกเก็บไว้ในเบราว์เซอร์เฉยๆ <strong>ไม่เคยถูกส่งไปให้เซิร์ฟเวอร์ใช้เลย</strong> (เซิร์ฟเวอร์อ่านคีย์จากไฟล์ตั้งค่าของตัวเองเท่านั้น)</p>
+    <p class="why">ผู้ใช้จะงงว่า "กรอกคีย์แล้วทำไมยังขึ้น mock mode" — ข้อความยังบอกเองว่า "ต้อง restart server" ซึ่งสวนทางกับการมีช่องกรอก ควรเอาออกหรือทำให้มันทำงานจริง</p>
+    <span class="loc">backend/src/public/index.html:259 saveSettings() — เก็บ localStorage แต่ไม่มีใครอ่านไปใช้</span>
+  </div>
+
+  <div class="finding med">
+    <div class="top"><span class="sev med">ควรแก้</span><span class="tag">บั๊ก · หน้าจอ React</span></div>
+    <h4>3. วิเคราะห์คลิปเดี่ยวเสร็จแล้ว หน้าจอโชว์ข้อมูลเก่า</h4>
+    <p class="plain">พอกด"วิเคราะห์คลิปนี้" ทีละอัน โค้ดไปหยิบข้อมูลจากชุดเก่า (ก่อนอัปเดต) มาแสดง ทำให้ผลวิเคราะห์ที่เพิ่งได้ไม่เด้งขึ้นทันที ต้องกดคลิปใหม่ถึงจะเห็น</p>
+    <p class="why">สาเหตุคือลำดับการอัปเดตข้อมูลในโค้ด React หยิบ "ตัวแปรเก่า" มาใช้ · ไม่อันตราย แต่ทำให้รู้สึกว่าระบบค้าง/ไม่ตอบสนอง</p>
+    <span class="loc">frontend/src/App.js:90-95 handleAnalyzeClip — clips.find() อ่านจาก state เก่า</span>
+  </div>
+
+  <div class="finding med">
+    <div class="top"><span class="sev med">ควรแก้</span><span class="tag">ประสบการณ์ใช้งาน · หน้าจอ React</span></div>
+    <h4>4. เวลาพัง ผู้ใช้ไม่เห็นอะไรเลย (error ถูกกลืนเงียบ)</h4>
+    <p class="plain">ถ้าเน็ตหลุดหรือเซิร์ฟเวอร์มีปัญหา หน้าจอจะเงียบสนิท ไม่มีข้อความเตือน ไม่มีไอคอนหมุน — ผู้ใช้จะนึกว่ากดปุ่มไปแล้วไม่มีอะไรเกิดขึ้น</p>
+    <p class="why">โค้ดมีระบบเก็บสถานะ "กำลังโหลด/มี error" เตรียมไว้แล้ว แต่หน้าจอหลักไม่เอามาแสดง และหลายจุดใช้ <code>catch(e){/* ignore */}</code> คือจับ error มาแล้วทิ้งเฉยๆ</p>
+    <span class="loc">frontend/src/App.js:26,38 · hooks/useApi.js (loading/error ไม่ถูกใช้)</span>
+  </div>
+
+  <div class="finding low">
+    <div class="top"><span class="sev low">น่าปรับ</span><span class="tag">คุณภาพ · หน้าจอ React</span></div>
+    <h4>5. ข้อความ error แปลกๆ เมื่อเซิร์ฟเวอร์ตอบไม่ใช่รูปแบบปกติ</h4>
+    <p class="plain">เวลาเซิร์ฟเวอร์ error (เช่นบั๊ก export CSV ชื่อไทยที่เจอรอบก่อน) หน้าจอจะพยายามอ่านคำตอบผิดวิธี ทำให้ขึ้น error งงๆ แทนที่จะบอกสาเหตุจริง</p>
+    <span class="loc">frontend/src/hooks/useApi.js:18 — เรียก res.json() ก่อนเช็คว่าคำตอบสำเร็จหรือไม่</span>
+  </div>
+
+  <div class="finding low">
+    <div class="top"><span class="sev low">น่าปรับ</span><span class="tag">คุณภาพ · หน้า HTML สำรอง</span></div>
+    <h4>6. สร้างโปรเจกต์โดยไม่ใส่โฟลเดอร์ ได้โปรเจกต์เสียตั้งแต่แรก</h4>
+    <p class="plain">ถ้าไม่กรอก Google Drive Folder ID โค้ดจะแอบใส่คำว่า <code>"default"</code> ให้แทน ทำให้สร้างโปรเจกต์ที่ Sync ไม่ได้ตั้งแต่ต้น โดยไม่มีคำเตือน</p>
+    <span class="loc">backend/src/public/index.html:306 — folderId || 'default'</span>
+  </div>
+</div>
+
+<!-- SECTION 3: strengths not mentioned -->
+<div class="sec">
+  <div class="sec-head">
+    <div class="sec-num">3</div>
+    <div><h2>จุดแข็งที่ยังไม่ได้ชม (ฝั่งหน้าจอ)</h2>
+    <span class="sub">ของดีที่ควรรักษาไว้</span></div>
+  </div>
+  <div class="grid2">
+    <div class="str"><h4>🎨 ดีไซน์สวย เป็นระเบียบ</h4><p>ธีมมืด จัดวางดี ใช้สีสื่อสถานะ (เขียว=ยืนยัน เหลือง=แก้ แดง=ตัด) แถบความคืบหน้าเข้าใจง่าย</p></div>
+    <div class="str"><h4>🇹🇭 ภาษาไทยครบทั้งจอ</h4><p>ปุ่มและป้ายเป็นไทยทั้งหมด เหมาะกับผู้ใช้จริง ไม่ต้องเดาศัพท์อังกฤษ</p></div>
+    <div class="str"><h4>🛡️ หน้าจอ React กัน XSS ให้เอง</h4><p>ชุด React ปลอดภัยกว่าหน้า HTML สำรองโดยอัตโนมัติ (เพราะ JSX กรองข้อความให้)</p></div>
+    <div class="str"><h4>⚡ โครงสร้างคอมโพเนนต์ชัด</h4><p>แยกส่วน ProjectList / ClipList / ClipReview / ProgressBar เป็นสัดส่วน อ่านง่าย ขยายต่อได้</p></div>
+    <div class="str"><h4>📱 รองรับจอมือถือ</h4><p>มี responsive (จอเล็กปรับเลย์เอาต์อัตโนมัติ) คิดถึงการใช้บนมือถือแล้ว</p></div>
+    <div class="str"><h4>🔀 มีตัวกรองคลิปครบ</h4><p>กรองตามสถานะ (รอรีวิว/ยืนยัน/แก้/ตัด/ยังไม่วิเคราะห์) ใช้งานจริงสะดวก</p></div>
+  </div>
+</div>
+
+<!-- SECTION 4: related projects -->
+<div class="sec">
+  <div class="sec-head">
+    <div class="sec-num">4</div>
+    <div><h2>โปรเจกต์ที่เกี่ยวข้อง แต่ "ไม่เชื่อมกัน"</h2>
+    <span class="sub">จากที่คุณถามถึงโปรเจกต์อสังหา — นี่คือสิ่งที่ผมเห็นจากภายนอก</span></div>
+  </div>
+  <div class="card">
+    <div class="rel">
+      <div class="box">
+        <h4>🏠 fastup-academy.com (อสังหา)</h4>
+        <span class="stack php">เทคโนโลยี: PHP</span>
+        <ul>
+          <li>หน้า login/register/submit เป็นไฟล์ <code>.php</code></li>
+          <li>แพลตฟอร์มขายฝาก-จำนอง จัดการ "เงินจริง" (ผลตอบแทน 13-15%)</li>
+          <li>เก็บข้อมูลส่วนตัว + เอกสารทรัพย์สิน → ต้องดูแล PDPA/ความปลอดภัยเข้มมาก</li>
+          <li>โค้ด <strong style="color:var(--text)">ไม่มีในเซสชันนี้</strong> — ตรวจได้แค่หน้าเว็บภายนอก</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h4>🎬 repo นี้ (Video Analyzer)</h4>
+        <span class="stack node">เทคโนโลยี: Node.js + React</span>
+        <ul>
+          <li>คนละภาษา คนละสถาปัตยกรรมกับเว็บอสังหาโดยสิ้นเชิง</li>
+          <li>จึง <strong style="color:var(--text)">ไม่ใช่</strong> "หลังบ้านของ fastup-academy" — เป็นเครื่องมือภายในแยกต่างหาก</li>
+          <li>เป็นเครื่องมือช่วยจัดหมวดวิดีโอคอนเทนต์ (น่าจะของฝั่ง Academy)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="disconnect">⚡ ไม่มีสายเชื่อม ⚡</div>
+    <p style="font-size:.86rem;color:var(--muted)">
+      <strong style="color:var(--text)">ข้อสังเกตที่คุณควรรู้:</strong> หน้าเว็บอสังหาใช้อีเมลติดต่อ <code>contact@propfund.co.th</code> และ LINE <code>@propfund</code> — คนละชื่อกับโดเมน <code>fastup-academy.com</code>
+      แปลว่าน่าจะมี "หลายแบรนด์/หลายโดเมน" ที่เป็นโปรเจกต์เดียวกันแต่ยังไม่เชื่อมโยงให้ชัด (fastup ↔ propfund) จุดนี้ควรทำเอกสารกลางว่าระบบไหนคุยกับระบบไหน ใช้ฐานข้อมูล/บัญชีผู้ใช้ร่วมกันหรือไม่
+    </p>
+  </div>
+</div>
+
+<!-- SECTION 5: open questions -->
+<div class="sec">
+  <div class="sec-head">
+    <div class="sec-num">5</div>
+    <div><h2>จุดที่ผม "สงสัย/ไม่ชัดเจน" — อยากให้คุณช่วยตอบ</h2>
+    <span class="sub">คอมเมนต์ทุกจุดที่ยังคลุมเครือในการใช้งานจริง</span></div>
+  </div>
+  <div class="q"><div class="qm">?</div><div><p>จะใช้หน้าจอชุดไหนกันแน่ — React หรือ HTML สำรอง?</p><p class="qs">ตอนนี้มี 2 ชุดทำงานซ้อนกัน ถ้าไม่เลือกให้ชัด จะแก้จุดหนึ่งแต่ลืมอีกจุด และชุด HTML มีช่องโหว่ XSS ที่ชุด React ไม่มี</p></div></div>
+  <div class="q"><div class="qm">?</div><div><p>ระบบนี้จะให้ใครใช้ และเปิดออกอินเทอร์เน็ตไหม?</p><p class="qs">ถ้าใช้เฉพาะในทีมเล็กๆ ความเสี่ยงต่างจากการเปิดสาธารณะมาก — ตอนนี้ยังไม่มีระบบล็อกอินเลย</p></div></div>
+  <div class="q"><div class="qm">?</div><div><p>Gemini ควร "ดูวิดีโอจริง" ไหม หรือแค่เดาจากชื่อไฟล์พอ?</p><p class="qs">รอบก่อนผมชี้ว่า AI เห็นแค่ชื่อไฟล์ ถ้าต้องการผลแม่นยำจริง ต้องส่งวิดีโอเข้าไปให้ AI ดู ซึ่งเปลี่ยนวิธีทำงานพอสมควร</p></div></div>
+  <div class="q"><div class="qm">?</div><div><p>วิดีโอที่วิเคราะห์ เกี่ยวกับ "ร้านอาหาร" หรือ "อสังหา" กันแน่?</p><p class="qs">โค้ดทั้งหมดพูดถึงเมนูอาหาร/การทำครัว แต่คุณเรียกมันว่าโปรเจกต์อสังหา — ถ้าจะใช้กับคอนเทนต์อสังหา ต้องเปลี่ยนหมวดหมู่ AI ใหม่ทั้งชุด</p></div></div>
+  <div class="q"><div class="qm">?</div><div><p>fastup-academy กับ propfund เป็นระบบเดียวกันไหม?</p><p class="qs">ใช้บัญชีผู้ใช้/ฐานข้อมูลร่วมกันหรือแยก? มีผลต่อความปลอดภัยและการดูแลรักษามาก</p></div></div>
+</div>
+
+<!-- SECTION 6: plan -->
+<div class="sec">
+  <div class="sec-head">
+    <div class="sec-num">6</div>
+    <div><h2>ลำดับการแก้ที่ผมแนะนำ</h2>
+    <span class="sub">เฉพาะจุดใหม่รอบนี้ (รวมกับแผนรอบก่อนในไฟล์ BACKEND_REVIEW.md)</span></div>
+  </div>
+  <div class="phase">
+    <div class="ph"><span class="n">ด่วน</span><h4>อุดช่องโหว่ + เลือกหน้าจอเดียว</h4></div>
+    <ol>
+      <li>ตัดสินใจใช้หน้าจอชุดเดียว (แนะนำ React เพราะปลอดภัยกว่า) แล้วเลิกใช้อีกชุด</li>
+      <li>ถ้ายังต้องใช้หน้า HTML สำรอง → กรองข้อความทุกจุดก่อนแสดง (แก้ XSS ข้อ 1)</li>
+      <li>เอาช่อง "Gemini API Key" ที่ไม่ทำงานออก หรือทำให้ทำงานจริง (ข้อ 2)</li>
+    </ol>
+  </div>
+  <div class="phase">
+    <div class="ph"><span class="n">ถัดไป</span><h4>ทำให้ใช้งานลื่น ไม่งง</h4></div>
+    <ol>
+      <li>แสดง error/สถานะโหลดให้ผู้ใช้เห็น เลิกกลืน error เงียบ (ข้อ 4, 5)</li>
+      <li>แก้ให้ผลวิเคราะห์เด้งทันทีหลังกดวิเคราะห์คลิปเดี่ยว (ข้อ 3)</li>
+      <li>เตือนเมื่อไม่ใส่ Folder ID แทนการใส่ 'default' เงียบๆ (ข้อ 6)</li>
+    </ol>
+  </div>
+  <div class="phase">
+    <div class="ph"><span class="n">วางแผน</span><h4>เชื่อมภาพรวมโปรเจกต์</h4></div>
+    <ol>
+      <li>ทำเอกสารกลาง: fastup / propfund / video-analyzer เกี่ยวข้องกันยังไง</li>
+      <li>ถ้าต้องการให้ผมตรวจโค้ดอสังหาจริง → push โค้ด PHP ขึ้น repo ที่ผมเข้าถึงได้</li>
+      <li>ยืนยันว่าคอนเทนต์ที่วิเคราะห์คือร้านอาหารหรืออสังหา แล้วปรับหมวด AI ให้ตรง</li>
+    </ol>
+  </div>
+</div>
+
+<div class="note">
+  รายงานนี้ตรวจจากซอร์สโค้ดจริงใน repo <code>ubiquitous-garbanzo</code> และหน้าเว็บสาธารณะ fastup-academy.com เท่านั้น<br>
+  ทุกจุดในหมวด "จุดใหม่" ผมยืนยันตำแหน่งบรรทัดจากไฟล์จริงแล้ว · จุดที่เป็นการคาดเดาจากภายนอก ระบุไว้ชัดว่า "ตรวจได้แค่หน้าเว็บ"
+</div>
+
+</div>
+</body>
+</html>
