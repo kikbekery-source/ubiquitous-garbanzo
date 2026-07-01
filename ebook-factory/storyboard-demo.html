@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📋 Storyboard — เล่ม 1: Claude คือใคร?</title>
+<style>
+  :root{
+    --ink:#2d2a26; --paper:#faf6f0; --card:#ffffff;
+    --brand:#e8845c; --brand-dark:#c96a45; --cream:#f5e9dc;
+    --know:#3d8bfd; --warn:#e05d44; --compare:#7c5cbf; --try:#2ba36b;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:'Sarabun','Noto Sans Thai',system-ui,sans-serif; background:var(--paper); color:var(--ink); line-height:1.7;}
+  .wrap{max-width:960px; margin:0 auto; padding:24px 16px 80px;}
+
+  /* ===== header ===== */
+  .topbar{display:flex; align-items:center; gap:12px; padding:10px 16px; background:var(--ink); color:#fff; border-radius:var(--radius); margin-bottom:20px; flex-wrap:wrap;}
+  .topbar .tag{background:var(--brand); padding:2px 12px; border-radius:99px; font-size:13px; font-weight:700;}
+  .topbar .status{margin-left:auto; font-size:13px; opacity:.85;}
+
+  .hero{background:linear-gradient(135deg, var(--cream), #fff); border:2px solid var(--brand); border-radius:var(--radius); padding:28px; display:flex; gap:24px; align-items:center; flex-wrap:wrap;}
+  .hero h1{font-size:26px; color:var(--brand-dark);}
+  .hero p{margin-top:6px; font-size:15px;}
+  .hero .meta{display:flex; gap:16px; margin-top:12px; font-size:13px; flex-wrap:wrap;}
+  .hero .meta span{background:#fff; border:1px solid #e5d9c9; padding:3px 12px; border-radius:99px;}
+
+  h2.section{margin:34px 0 14px; font-size:19px; display:flex; align-items:center; gap:10px;}
+  h2.section::after{content:""; flex:1; height:2px; background:linear-gradient(90deg, var(--brand), transparent);}
+
+  /* ===== palette ===== */
+  .swatches{display:flex; gap:10px; flex-wrap:wrap;}
+  .swatch{width:110px; background:var(--card); border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.08); font-size:12px;}
+  .swatch .c{height:54px;}
+  .swatch .l{padding:6px 8px;}
+
+  /* ===== mascot ===== */
+  .mascot-row{display:flex; gap:16px; flex-wrap:wrap;}
+  .mascot-card{background:var(--card); border-radius:var(--radius); padding:16px; text-align:center; width:170px; box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .mascot-card b{display:block; margin-top:8px; font-size:14px;}
+  .mascot-card small{color:#8a8478; font-size:12px;}
+
+  /* ===== chapters ===== */
+  .chapter{background:var(--card); border-radius:var(--radius); padding:20px 22px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,.08); border-left:6px solid var(--brand);}
+  .chapter .num{display:inline-block; background:var(--brand); color:#fff; font-weight:700; border-radius:8px; padding:1px 10px; font-size:13px; margin-right:8px;}
+  .chapter h3{display:inline; font-size:17px;}
+  .chapter .tell{margin-top:10px; font-size:14.5px;}
+  .chapter .chips{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; font-size:12px;}
+  .chip{border-radius:99px; padding:2px 12px; font-weight:600;}
+  .chip.know{background:#e7f0ff; color:var(--know);}
+  .chip.warn{background:#fdeae7; color:var(--warn);}
+  .chip.compare{background:#f0eafa; color:var(--compare);}
+  .chip.try{background:#e4f6ec; color:var(--try);}
+  .chip.qr{background:#fff3d6; color:#a3742a;}
+  .chip.pages{background:#eee; color:#666;}
+
+  /* ===== callout samples ===== */
+  .callout{border-radius:12px; padding:14px 18px 14px 54px; margin-bottom:12px; position:relative; font-size:14.5px; background:var(--card); box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .callout::before{position:absolute; left:14px; top:12px; font-size:22px;}
+  .callout b{display:block; margin-bottom:2px;}
+  .callout.know{border:2px solid var(--know);} .callout.know::before{content:"💡";}
+  .callout.warn{border:2px solid var(--warn);} .callout.warn::before{content:"⚠️";}
+  .callout.compare{border:2px solid var(--compare);} .callout.compare::before{content:"⚖️";}
+  .callout.try{border:2px solid var(--try);} .callout.try::before{content:"🎯";}
+
+  /* ===== resources ===== */
+  table.res{width:100%; border-collapse:collapse; background:var(--card); border-radius:var(--radius); overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.08); font-size:14px;}
+  table.res th{background:var(--cream); text-align:left; padding:10px 14px; font-size:13px;}
+  table.res td{padding:10px 14px; border-top:1px solid #f0e8dc;}
+
+  /* ===== approve bar ===== */
+  .approve{position:fixed; bottom:0; left:0; right:0; background:#fffdf9; border-top:2px solid var(--brand); padding:12px 16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; box-shadow:0 -4px 16px rgba(0,0,0,.06);}
+  .btn{border:none; border-radius:10px; padding:10px 22px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;}
+  .btn.ok{background:var(--try); color:#fff;}
+  .btn.edit{background:#fff; color:var(--ink); border:2px solid #ccc;}
+  .btn.re{background:var(--warn); color:#fff;}
+  .note{font-size:12px; color:#998; text-align:center; width:100%;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <span class="tag">STORYBOARD</span>
+    <b>เล่ม 1 / ซีรีส์ "AI ข้างตัว"</b>
+    <span class="status">สถานะ: ⏳ รอคุณตรวจ &amp; อนุมัติ</span>
+  </div>
+
+  <!-- ============ ปกและคอนเซ็ปต์ ============ -->
+  <div class="hero">
+    <svg width="150" height="150" viewBox="0 0 200 200" aria-label="มาสคอต น้องแสง">
+      <!-- น้องแสง : มาสคอตต้นฉบับของซีรีส์ -->
+      <g>
+        <circle cx="100" cy="100" r="14" fill="#f5c99b" opacity="0"/>
+        <!-- แฉกรัศมี -->
+        <g fill="#e8845c">
+          <ellipse cx="100" cy="38" rx="13" ry="30"/>
+          <ellipse cx="100" cy="162" rx="13" ry="30"/>
+          <ellipse cx="38" cy="100" rx="30" ry="13"/>
+          <ellipse cx="162" cy="100" rx="30" ry="13"/>
+          <ellipse cx="57" cy="57" rx="26" ry="12" transform="rotate(45 57 57)"/>
+          <ellipse cx="143" cy="143" rx="26" ry="12" transform="rotate(45 143 143)"/>
+          <ellipse cx="143" cy="57" rx="26" ry="12" transform="rotate(-45 143 57)"/>
+          <ellipse cx="57" cy="143" rx="26" ry="12" transform="rotate(-45 57 143)"/>
+        </g>
+        <!-- หน้า -->
+        <circle cx="100" cy="100" r="52" fill="#f2a271"/>
+        <circle cx="100" cy="100" r="52" fill="none" stroke="#c96a45" stroke-width="3"/>
+        <circle cx="83" cy="94" r="7" fill="#2d2a26"/>
+        <circle cx="117" cy="94" r="7" fill="#2d2a26"/>
+        <circle cx="85.5" cy="91.5" r="2.4" fill="#fff"/>
+        <circle cx="119.5" cy="91.5" r="2.4" fill="#fff"/>
+        <path d="M84 114 Q100 130 116 114" stroke="#2d2a26" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <circle cx="70" cy="108" r="6" fill="#e8845c" opacity=".55"/>
+        <circle cx="130" cy="108" r="6" fill="#e8845c" opacity=".55"/>
+      </g>
+    </svg>
+    <div>
+      <h1>เล่ม 1 — "Claude คือใคร? ทำไมใครๆ ก็พูดถึง"</h1>
+      <p>เล่มเปิดซีรีส์: อธิบายว่า AI ตัวนี้มีดียังไง แล้ว <b>Claude / Claude Cowork / Claude Code</b>
+      สามตัวนี้ต่างกันตรงไหน ใครควรใช้ตัวไหน — เล่าผ่าน "น้องแสง" มาสคอตประจำซีรีส์</p>
+      <div class="meta">
+        <span>📖 ~64 หน้า</span><span>🎨 ภาพสีทั้งเล่ม</span><span>📐 A5</span>
+        <span>🔗 QR/ลิงก์ 6 จุด</span><span>👤 ผู้อ่าน: คนทั่วไป ไม่ต้องมีพื้นฐาน</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ โทนสี ============ -->
+  <h2 class="section">🎨 โทนสีของเล่ม</h2>
+  <div class="swatches">
+    <div class="swatch"><div class="c" style="background:#e8845c"></div><div class="l"><b>ส้มอบอุ่น</b><br>สีหลัก/มาสคอต</div></div>
+    <div class="swatch"><div class="c" style="background:#f5e9dc"></div><div class="l"><b>ครีม</b><br>พื้นหลังหน้า</div></div>
+    <div class="swatch"><div class="c" style="background:#2d2a26"></div><div class="l"><b>น้ำตาลเข้ม</b><br>ตัวหนังสือ</div></div>
+    <div class="swatch"><div class="c" style="background:#3d8bfd"></div><div class="l"><b>ฟ้า</b><br>กล่อง "น่ารู้"</div></div>
+    <div class="swatch"><div class="c" style="background:#2ba36b"></div><div class="l"><b>เขียว</b><br>กล่อง "ลองทำ"</div></div>
+  </div>
+
+  <!-- ============ มาสคอต ============ -->
+  <h2 class="section">🐣 ตัวการ์ตูนที่ใช้ในเล่มนี้</h2>
+  <div class="mascot-row">
+    <div class="mascot-card">
+      <svg width="90" height="90" viewBox="0 0 200 200">
+        <g fill="#e8845c"><ellipse cx="100" cy="38" rx="13" ry="30"/><ellipse cx="100" cy="162" rx="13" ry="30"/><ellipse cx="38" cy="100" rx="30" ry="13"/><ellipse cx="162" cy="100" rx="30" ry="13"/><ellipse cx="57" cy="57" rx="26" ry="12" transform="rotate(45 57 57)"/><ellipse cx="143" cy="143" rx="26" ry="12" transform="rotate(45 143 143)"/><ellipse cx="143" cy="57" rx="26" ry="12" transform="rotate(-45 143 57)"/><ellipse cx="57" cy="143" rx="26" ry="12" transform="rotate(-45 57 143)"/></g>
+        <circle cx="100" cy="100" r="52" fill="#f2a271" stroke="#c96a45" stroke-width="3"/>
+        <circle cx="83" cy="94" r="7" fill="#2d2a26"/><circle cx="117" cy="94" r="7" fill="#2d2a26"/>
+        <path d="M84 114 Q100 130 116 114" stroke="#2d2a26" stroke-width="4" fill="none" stroke-linecap="round"/>
+      </svg>
+      <b>น้องแสง</b><small>ตัวหลัก — ผู้เล่าเรื่อง<br>(ต้นฉบับของเรา 100%)</small>
+    </div>
+    <div class="mascot-card">
+      <svg width="90" height="90" viewBox="0 0 200 200">
+        <g fill="#7c5cbf"><ellipse cx="100" cy="38" rx="13" ry="30"/><ellipse cx="100" cy="162" rx="13" ry="30"/><ellipse cx="38" cy="100" rx="30" ry="13"/><ellipse cx="162" cy="100" rx="30" ry="13"/></g>
+        <circle cx="100" cy="100" r="52" fill="#a48ad4" stroke="#7c5cbf" stroke-width="3"/>
+        <circle cx="83" cy="94" r="7" fill="#2d2a26"/><circle cx="117" cy="94" r="7" fill="#2d2a26"/>
+        <path d="M84 114 Q100 130 116 114" stroke="#2d2a26" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <rect x="72" y="140" width="56" height="34" rx="5" fill="#2d2a26"/>
+        <rect x="76" y="144" width="48" height="22" rx="3" fill="#9be8c0"/>
+      </svg>
+      <b>โค้ดดี้</b><small>ตัวแทนเล่ม Claude Code<br>ถือแล็ปท็อปตลอดเวลา</small>
+    </div>
+    <div class="mascot-card">
+      <svg width="90" height="90" viewBox="0 0 200 200">
+        <g fill="#3d8bfd"><ellipse cx="100" cy="38" rx="13" ry="30"/><ellipse cx="100" cy="162" rx="13" ry="30"/><ellipse cx="38" cy="100" rx="30" ry="13"/><ellipse cx="162" cy="100" rx="30" ry="13"/></g>
+        <circle cx="100" cy="100" r="52" fill="#7cb2f7" stroke="#3d8bfd" stroke-width="3"/>
+        <circle cx="83" cy="94" r="7" fill="#2d2a26"/><circle cx="117" cy="94" r="7" fill="#2d2a26"/>
+        <path d="M84 114 Q100 130 116 114" stroke="#2d2a26" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M48 92 Q48 52 100 50 Q152 52 152 92" stroke="#2d2a26" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <rect x="40" y="86" width="16" height="26" rx="7" fill="#2d2a26"/>
+        <rect x="144" y="86" width="16" height="26" rx="7" fill="#2d2a26"/>
+      </svg>
+      <b>เวิร์คกี้</b><small>ตัวแทนเล่ม Cowork<br>ใส่หูฟัง พร้อมทำงานทีม</small>
+    </div>
+  </div>
+
+  <!-- ============ โครงบท ============ -->
+  <h2 class="section">📚 โครงเรื่องบทต่อบท (วิธีเล่า + จุดวางกล่อง/QR)</h2>
+
+  <div class="chapter">
+    <span class="num">บทที่ 1</span><h3>"เพื่อนใหม่ที่คุยรู้เรื่อง" — AI คืออะไรแบบไม่ต้องปวดหัว</h3>
+    <p class="tell"><b>วิธีเล่า:</b> เปิดด้วยสถานการณ์ใกล้ตัว (ถามสูตรอาหาร, ให้ช่วยเขียนแคปชัน) น้องแสงโผล่มาตอบ
+    เปรียบ AI = "ผู้ช่วยที่อ่านหนังสือมาทั้งห้องสมุด" ไม่ใช้ศัพท์เทคนิคเลยทั้งบท</p>
+    <div class="chips"><span class="chip pages">8 หน้า</span><span class="chip know">💡 น่ารู้ ×2</span><span class="chip compare">⚖️ เทียบ: AI vs เสิร์ชกูเกิล</span></div>
+  </div>
+
+  <div class="chapter">
+    <span class="num">บทที่ 2</span><h3>Claude มีดียังไง — ทำไมถึงเป็น AI ที่ "คุยแล้วเชื่อใจได้"</h3>
+    <p class="tell"><b>วิธีเล่า:</b> จุดแข็ง 5 ข้อ เล่าทีละข้อผ่านตัวอย่างจริง (เขียนยาวไม่หลุด, ซื่อสัตย์เวลาไม่รู้,
+    เข้าใจไฟล์/เอกสาร, ภาษาไทยลื่น, ปลอดภัย) แต่ละข้อมีภาพน้องแสงทำท่าประกอบ</p>
+    <div class="chips"><span class="chip pages">10 หน้า</span><span class="chip know">💡 ×2</span><span class="chip warn">⚠️ AI ก็ผิดได้ ตรวจก่อนใช้</span><span class="chip qr">📱 QR: วิดีโอเดโม 5 นาที</span></div>
+  </div>
+
+  <div class="chapter">
+    <span class="num">บทที่ 3</span><h3>แฝดสามหน้าเหมือนแต่นิสัยต่าง — Claude / Cowork / Code</h3>
+    <p class="tell"><b>วิธีเล่า:</b> หัวใจของเล่ม! ให้มาสคอต 3 ตัว (น้องแสง, เวิร์คกี้, โค้ดดี้) แนะนำตัวเอง
+    ตบท้ายด้วย <b>ตารางเทียบหน้าคู่</b>: เหมาะกับใคร / ทำอะไรเก่ง / ราคา / เริ่มยังไง
+    และผังตัดสินใจ "คุณควรเริ่มจากตัวไหน?" แบบตอบ 3 คำถามก็รู้คำตอบ</p>
+    <div class="chips"><span class="chip pages">12 หน้า</span><span class="chip compare">⚖️ ตารางใหญ่หน้าคู่</span><span class="chip try">🎯 ผังเลือกตัวที่ใช่</span><span class="chip qr">📱 QR: แบบทดสอบออนไลน์</span></div>
+  </div>
+
+  <div class="chapter">
+    <span class="num">บทที่ 4</span><h3>ลองของจริง 15 นาที — สมัครและคุยครั้งแรก</h3>
+    <p class="tell"><b>วิธีเล่า:</b> step-by-step มีภาพหน้าจอ(วาดใหม่เป็นภาพประกอบ)ทุกขั้น สมัครฟรี → พิมพ์ประโยคแรก →
+    เทคนิคถามให้ได้คำตอบดี 5 ข้อ จบบทผู้อ่านต้องได้ "คุยกับ Claude สำเร็จแล้ว 1 ครั้ง"</p>
+    <div class="chips"><span class="chip pages">10 หน้า</span><span class="chip try">🎯 ×3</span><span class="chip warn">⚠️ ฟรี vs จ่าย ต่างยังไง</span><span class="chip qr">📱 QR: ชีตรวมประโยคตั้งต้น (ของแจก)</span></div>
+  </div>
+
+  <div class="chapter">
+    <span class="num">บทที่ 5</span><h3>แล้วไงต่อ? — ป้ายบอกทางไปเล่ม 2 และเล่ม 3</h3>
+    <p class="tell"><b>วิธีเล่า:</b> สรุปสั้น + "ถ้าคุณเป็นสายทำงานเอกสาร → ไปเล่ม 2 กับเวิร์คกี้ /
+    ถ้าอยากสร้างเว็บ เกม แอป → ไปเล่ม 3 กับโค้ดดี้" (ขายต่อเล่มถัดไปในตัว)</p>
+    <div class="chips"><span class="chip pages">6 หน้า</span><span class="chip qr">📱 QR: ตัวอย่างอ่านฟรีเล่ม 2–3</span></div>
+  </div>
+
+  <!-- ============ กล่องข้อความ ============ -->
+  <h2 class="section">🧩 ตัวอย่างกล่องข้อความ 4 แบบ (ใช้เหมือนกันทุกเล่มในซีรีส์)</h2>
+  <div class="callout know"><b>💡 น่ารู้</b>ชื่อ "Claude" ตั้งตามนักคณิตศาสตร์ Claude Shannon บิดาแห่งทฤษฎีข้อมูล</div>
+  <div class="callout warn"><b>⚠️ สำคัญมาก</b>AI ตอบผิดได้เสมอ — ข้อมูลตัวเลข วันที่ หรือข้อกฎหมาย ให้ตรวจกับแหล่งจริงก่อนใช้ทุกครั้ง</div>
+  <div class="callout compare"><b>⚖️ เปรียบเทียบ</b>Claude = คุยในเว็บ/แอป • Cowork = ผู้ช่วยจัดการงานในเครื่อง • Code = ช่างสร้างซอฟต์แวร์ส่วนตัว</div>
+  <div class="callout try"><b>🎯 ลองทำเลย</b>เปิด claude.ai แล้วพิมพ์: "ช่วยวางแผนมื้ออาหาร 7 วัน งบ 1,500 บาท" — ดูว่าได้อะไรกลับมา</div>
+
+  <!-- ============ ทรัพยากร ============ -->
+  <h2 class="section">🔗 ของแถมที่ต้องผลิตประกอบเล่มนี้ (จะกลายเป็น QR ในเล่มพิมพ์ / ปุ่มกดในอีบุ๊ก)</h2>
+  <table class="res">
+    <tr><th>รหัส</th><th>ของ</th><th>อยู่บทที่</th><th>ต้องเตรียม</th></tr>
+    <tr><td>r/c1-demo</td><td>วิดีโอเดโม Claude 5 นาที</td><td>2</td><td>อัดวิดีโอ</td></tr>
+    <tr><td>r/c1-quiz</td><td>แบบทดสอบ "คุณเหมาะกับตัวไหน"</td><td>3</td><td>หน้าเว็บ 1 หน้า</td></tr>
+    <tr><td>r/c1-prompts</td><td>ชีตรวมประโยคตั้งต้น 50 แบบ (ของแจก)</td><td>4</td><td>ไฟล์ PDF แจกฟรี</td></tr>
+    <tr><td>r/c1-next</td><td>อ่านฟรีบทแรกของเล่ม 2–3</td><td>5</td><td>ตั้งค่าใน web reader</td></tr>
+  </table>
+
+</div>
+
+<!-- ============ แถบอนุมัติ ============ -->
+<div class="approve">
+  <button class="btn ok" onclick="alert('ในระบบจริง: สถานะเปลี่ยนเป็น อนุมัติ ✅ แล้วโรงงานเริ่มเขียนเนื้อหาเต็มเล่ม')">✅ อนุมัติ — เริ่มผลิต</button>
+  <button class="btn edit" onclick="alert('ในระบบจริง: คุณพิมพ์คอมเมนต์จุดที่อยากแก้ แล้วระบบปรับ storyboard มาให้ดูใหม่')">✏️ ขอแก้บางจุด</button>
+  <button class="btn re" onclick="alert('ในระบบจริง: ระบบร่างโครงใหม่อีกแบบมาให้เลือก')">🔄 ร่างใหม่</button>
+  <p class="note">หน้านี้คือ mockup — ปุ่มยังไม่ต่อกับระบบจริง ไว้ให้เห็นภาพขั้นตอน "ตรวจ → อนุมัติ → ผลิต"</p>
+</div>
+</body>
+</html>

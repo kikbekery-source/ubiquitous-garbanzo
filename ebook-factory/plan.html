@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏭 แผนงานโรงงานสร้างอีบุ๊ก</title>
+<style>
+  :root{
+    --ink:#2d2a26; --paper:#faf6f0; --card:#fff;
+    --brand:#e8845c; --brand-dark:#c96a45; --cream:#f5e9dc;
+    --know:#3d8bfd; --warn:#e05d44; --compare:#7c5cbf; --try:#2ba36b;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:'Sarabun','Noto Sans Thai',system-ui,sans-serif; background:var(--paper); color:var(--ink); line-height:1.75;}
+  .wrap{max-width:900px; margin:0 auto; padding:24px 16px 60px;}
+
+  .hero{background:linear-gradient(135deg,#2d2a26,#4a3c33); color:#fff; border-radius:var(--radius); padding:32px 28px; margin-bottom:28px;}
+  .hero h1{font-size:26px;}
+  .hero h1 span{color:var(--brand);}
+  .hero p{margin-top:8px; opacity:.9; font-size:15px;}
+
+  h2.sec{margin:38px 0 16px; font-size:20px; display:flex; align-items:center; gap:10px; color:var(--brand-dark);}
+  h2.sec::after{content:""; flex:1; height:2px; background:linear-gradient(90deg,var(--brand),transparent);}
+
+  .card{background:var(--card); border-radius:var(--radius); padding:20px 24px; box-shadow:0 1px 5px rgba(0,0,0,.07); margin-bottom:14px;}
+
+  table{width:100%; border-collapse:collapse; background:var(--card); border-radius:var(--radius); overflow:hidden; box-shadow:0 1px 5px rgba(0,0,0,.07); font-size:14.5px;}
+  th{background:var(--cream); text-align:left; padding:11px 14px; font-size:13.5px;}
+  td{padding:11px 14px; border-top:1px solid #f0e8dc; vertical-align:top;}
+  td b.no{color:var(--brand-dark);}
+
+  /* pipeline */
+  .pipe{display:flex; flex-direction:column; gap:0; align-items:stretch;}
+  .step{background:var(--card); border:2px solid var(--brand); border-radius:var(--radius); padding:16px 20px; box-shadow:0 1px 5px rgba(0,0,0,.07);}
+  .step h3{font-size:16px; color:var(--brand-dark);}
+  .step p{font-size:14px; margin-top:4px;}
+  .arrow{text-align:center; font-size:22px; color:var(--brand); padding:4px 0;}
+  .arrow small{display:block; font-size:12px; color:#998;}
+  .outputs{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .out{border-radius:12px; padding:16px; color:#fff;}
+  .out h4{font-size:15px;}
+  .out ul{margin:8px 0 0 18px; font-size:13.5px;}
+  .out.web{background:linear-gradient(135deg,#3d8bfd,#2a6fd6);}
+  .out.print{background:linear-gradient(135deg,#7c5cbf,#5f429c);}
+  @media(max-width:640px){.outputs{grid-template-columns:1fr;}}
+
+  .callout{border-radius:12px; padding:14px 18px 14px 54px; margin-bottom:12px; position:relative; font-size:14.5px; background:var(--card); box-shadow:0 1px 5px rgba(0,0,0,.07);}
+  .callout::before{position:absolute; left:14px; top:12px; font-size:22px;}
+  .callout b{display:block;}
+  .callout.warn{border:2px solid var(--warn);} .callout.warn::before{content:"⚠️";}
+  .callout.know{border:2px solid var(--know);} .callout.know::before{content:"💡";}
+  .callout.try{border:2px solid var(--try);} .callout.try::before{content:"🎯";}
+
+  .phases{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px;}
+  .phase{background:var(--card); border-radius:var(--radius); padding:16px 18px; box-shadow:0 1px 5px rgba(0,0,0,.07); border-top:5px solid var(--brand);}
+  .phase .n{display:inline-block; background:var(--brand); color:#fff; border-radius:8px; padding:1px 10px; font-weight:700; font-size:13px; margin-bottom:6px;}
+  .phase h3{font-size:15px;}
+  .phase ul{margin:8px 0 0 18px; font-size:13px;}
+  .phase .win{margin-top:10px; font-size:12.5px; background:#e4f6ec; color:var(--try); border-radius:8px; padding:4px 10px; font-weight:600; display:inline-block;}
+
+  .tree{background:#2d2a26; color:#f5e9dc; border-radius:var(--radius); padding:18px 22px; font-family:ui-monospace,monospace; font-size:13px; line-height:1.9; overflow-x:auto;}
+  .tree .c{color:#e8845c;}
+
+  ul.clean{margin-left:20px; font-size:14.5px;}
+  ul.clean li{margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <h1>🏭 โรงงานสร้างอีบุ๊ก <span>(Ebook Factory)</span></h1>
+    <p>โยนหัวข้อเข้าไป → ได้ storyboard มาตรวจ → อนุมัติ → ได้สินค้าพร้อมขาย 2 เวอร์ชัน<br>
+    (อีบุ๊กอ่านบนเว็บ + ไฟล์ส่งโรงพิมพ์) — ทำซ้ำได้ทุกเล่ม ตลอดซีรีส์</p>
+  </div>
+
+  <!-- ========== 3 เล่มแรก ========== -->
+  <h2 class="sec">📚 ซีรีส์แรก: 3 เล่ม</h2>
+  <table>
+    <tr><th style="width:52px">เล่ม</th><th style="width:34%">ชื่อ (ร่าง)</th><th>แกนเรื่อง</th></tr>
+    <tr><td><b class="no">1</b></td><td><b>"Claude คือใคร?"</b></td><td>AI ตัวนี้มีดียังไง / Claude vs Cowork vs Code ต่างกันยังไง ใครควรใช้ตัวไหน</td></tr>
+    <tr><td><b class="no">2</b></td><td><b>"Claude Cowork ฉบับจับมือทำ"</b></td><td>สมัคร → ติดตั้ง → ใช้งานจริง step-by-step มีภาพประกอบทุกขั้น + จุดเด่นที่ควรเอาไปใช้</td></tr>
+    <tr><td><b class="no">3</b></td><td><b>"เขียนโค้ดง่ายเหมือนดีดนิ้ว ด้วย Claude Code"</b></td><td>โค้ดคืออะไร ทำไมคนกลัว → Claude Code แก้ยังไง → ติดตั้ง/ใช้ละเอียด, วิธีประหยัด, จัดการไฟล์, ใช้บนมือถือ, เอาขึ้นเว็บ + <b>20 เทคนิค</b> (เกม/หนัง/ระบบ)</td></tr>
+  </table>
+
+  <div class="card" style="margin-top:14px">
+    <b>มาตรฐานทุกเล่มในซีรีส์:</b>
+    <ul class="clean" style="margin-top:6px">
+      <li>ภาพสีทั้งเล่ม + มาสคอตประจำซีรีส์ (น้องแสง / เวิร์คกี้ / โค้ดดี้)</li>
+      <li>กล่องข้อความ 4 แบบ: 💡 น่ารู้ / ⚠️ สำคัญมาก / ⚖️ เปรียบเทียบ / 🎯 ลองทำเลย</li>
+      <li>ของแถมซ่อนในเนื้อหา — เล่มพิมพ์เป็น <b>QR Code</b>, อีบุ๊กเป็น <b>ปุ่มกด</b> → พาไปดูผลงานตัวอย่าง วิดีโอสอน โปรแกรมแจก สกิลดาวน์โหลด</li>
+    </ul>
+  </div>
+
+  <!-- ========== pipeline ========== -->
+  <h2 class="sec">⚙️ สายพานการผลิต</h2>
+  <div class="pipe">
+    <div class="step"><h3>📥 คุณโยน "หัวข้อ" เข้ามา</h3><p>แค่บอกหัวข้อ + กลุ่มผู้อ่าน โรงงานรู้มาตรฐานซีรีส์อยู่แล้ว</p></div>
+    <div class="arrow">▼</div>
+    <div class="step"><h3>① Storyboard (หน้า HTML)</h3><p>ระบบร่าง: โครงเรื่อง วิธีเล่าบทต่อบท ตัวการ์ตูนที่ใช้ โทนสี จุดวางกล่องข้อความ จุดวาง QR และรายการของแจกที่ต้องเตรียม</p></div>
+    <div class="arrow">▼ <small>คุณเปิดดู → คอมเมนต์/สั่งแก้ → อนุมัติ</small></div>
+    <div class="step"><h3>② เขียนเนื้อหาเต็มเล่ม</h3><p>เนื้อหาทุกบท + ภาพประกอบ SVG + กล่องข้อความ เก็บเป็นต้นฉบับกลาง (Markdown + JSON) ชุดเดียว</p></div>
+    <div class="arrow">▼ <small>ตรวจอีกรอบเหมือนอ่านหนังสือจริง → อนุมัติ</small></div>
+    <div class="step" style="border-color:#2ba36b">
+      <h3>③ โรงงานผลิต 2 เวอร์ชัน (จากต้นฉบับเดียวกัน)</h3>
+      <div class="outputs" style="margin-top:10px">
+        <div class="out web"><h4>🌐 WEB EBOOK</h4><ul><li>พลิกหน้ามีแอนิเมชัน</li><li>สารบัญกดข้ามบทได้</li><li>บางเล่มอ่านฟรี / บางเล่มล็อกอิน</li><li>ดาวน์โหลดได้เฉพาะที่คุณปลดล็อก</li></ul></div>
+        <div class="out print"><h4>🖨️ PRINT PDF</h4><ul><li>ขอบตัดตก (bleed) + เลขหน้า + ฟอนต์ฝัง</li><li>ทุกลิงก์กลายเป็น QR อัตโนมัติ</li><li>ตรวจได้ทันทีจากเบราว์เซอร์</li><li>โยนให้โรงพิมพ์ได้เลย</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <div class="callout know" style="margin-top:14px"><b>💡 หลักการสำคัญ</b>เนื้อหาเก็บเป็น "ต้นฉบับกลาง" ชุดเดียว แล้ว render ออก 2 ทาง — แก้ที่เดียว ได้ผลทั้งเว็บและเล่มพิมพ์เสมอ</div>
+
+  <!-- ========== QR system ========== -->
+  <h2 class="sec">🔗 ระบบลิงก์ + QR (หัวใจของ "ของแถมซ่อนในเล่ม")</h2>
+  <div class="card">
+    ในต้นฉบับ ผู้เขียนแค่ระบุ <code>{{resource: game-demo-01}}</code> — โรงงานจัดการที่เหลือ:
+    <ul class="clean" style="margin-top:8px">
+      <li>ทุกชิ้นมี <b>short link ผ่านโดเมนของคุณ</b> เช่น <code>yourdomain.com/r/g01</code> — เว็บเป็นปุ่มกด, เล่มพิมพ์เป็น QR</li>
+      <li><b>แก้ปลายทางทีหลังได้</b> โดยไม่ต้องพิมพ์หนังสือใหม่ (สำคัญมากสำหรับเล่มกระดาษ!)</li>
+      <li>นับสถิติได้ ว่าของแจกไหนคนสแกน/กดเยอะจริง</li>
+    </ul>
+  </div>
+
+  <!-- ========== เว็บขาย ========== -->
+  <h2 class="sec">🛒 เว็บไซต์ขาย + ระบบสมาชิก</h2>
+  <div class="card">
+    <ul class="clean">
+      <li><b>หน้าแรก:</b> ชั้นหนังสือ — บางเล่ม/บางบทเปิดอ่านฟรีเป็นตัวอย่าง</li>
+      <li><b>สมาชิก:</b> ล็อกอินด้วยอีเมล → สิทธิ์รายเล่ม ซื้อเล่มไหนอ่านเล่มนั้น</li>
+      <li><b>ปลดล็อกดาวน์โหลด:</b> ไฟล์ PDF/ของแจก ปล่อยเฉพาะบัญชีที่คุณอนุญาต</li>
+    </ul>
+  </div>
+  <div class="callout warn"><b>⚠️ พูดตรงๆ เรื่องกันดาวน์โหลด</b>เว็บกัน 100% ไม่ได้ (แคปจอได้เสมอ) แต่กัน "ความสะดวก" ได้ผลจริง: ไม่มีไฟล์ให้โหลดตรง เนื้อหาส่งทีละหน้าเฉพาะคนมีสิทธิ์ ปิดคลิกขวา และใส่ลายน้ำอีเมลผู้อ่านจางๆ กันแชร์ต่อ</div>
+
+  <!-- ========== tech ========== -->
+  <h2 class="sec">🧰 เทคโนโลยีที่เลือก</h2>
+  <table>
+    <tr><th>ส่วน</th><th>เครื่องมือ</th><th>เหตุผล</th></tr>
+    <tr><td>ต้นฉบับหนังสือ</td><td>Markdown + JSON</td><td>คนอ่านง่าย เครื่องอ่านง่าย สั่งแก้ผ่าน Claude Code ได้ตรงๆ</td></tr>
+    <tr><td>ภาพการ์ตูน</td><td>SVG ต้นฉบับ (วาดเป็นโค้ด)</td><td>คมทุกขนาด ใช้ได้ทั้งจอและพิมพ์ 300dpi แก้สี/ท่าทางได้ด้วยคำสั่ง</td></tr>
+    <tr><td>หน้า Storyboard</td><td>HTML ไฟล์เดียว</td><td>เปิดตรวจได้ทันที ไม่ต้องติดตั้งอะไร</td></tr>
+    <tr><td>Web reader</td><td>HTML/CSS/JS</td><td>เบา เร็ว ควบคุมการล็อกเนื้อหาเองได้</td></tr>
+    <tr><td>ไฟล์พิมพ์</td><td>Paged.js + Chromium</td><td>HTML → PDF พร้อมพิมพ์ ตรงกับที่เห็นในเบราว์เซอร์ 100%</td></tr>
+    <tr><td>QR Code</td><td>ไลบรารี qrcode (SVG)</td><td>ฝังในหน้าพิมพ์คมชัด</td></tr>
+    <tr><td>เว็บ + สมาชิก</td><td>Node.js + Express + SQLite</td><td>ดูแลง่าย โฮสต์ถูก (~$5/เดือน)</td></tr>
+  </table>
+
+  <!-- ========== structure ========== -->
+  <h2 class="sec">📁 โครงสร้างโฟลเดอร์ที่จะสร้าง</h2>
+  <div class="tree">ebook-factory/
+├── factory/            <span class="c">← เครื่องจักรของโรงงาน</span>
+│   ├── storyboard/     <span class="c">← สร้างหน้า storyboard จากหัวข้อ</span>
+│   ├── render-web/     <span class="c">← ผลิตเวอร์ชันอ่านบนเว็บ</span>
+│   ├── render-print/   <span class="c">← ผลิต PDF ส่งโรงพิมพ์</span>
+│   ├── links/          <span class="c">← short link + สร้าง QR</span>
+│   └── templates/      <span class="c">← เลย์เอาต์, กล่องข้อความ, ธีมสี</span>
+├── assets/mascots/     <span class="c">← ตัวการ์ตูน SVG ท่าทางต่างๆ</span>
+├── books/              <span class="c">← ต้นฉบับทีละเล่ม (01, 02, 03…)</span>
+└── site/               <span class="c">← เว็บขาย + reader + ล็อกอิน</span></div>
+
+  <!-- ========== logo warning ========== -->
+  <h2 class="sec">⚠️ เรื่องต้องรู้ก่อนขาย: โลโก้แบรนด์จริง</h2>
+  <div class="callout warn"><b>ความเสี่ยง</b>เอาโลโก้จริงของ Anthropic/Claude มาเป็นการ์ตูนตกแต่ง "สินค้าที่ขาย" เสี่ยงเรื่องเครื่องหมายการค้า — แบรนด์ใหญ่ทุกเจ้ามีข้อห้ามแบบนี้</div>
+  <div class="callout try"><b>ทางที่ปลอดภัย (และดีกว่าในระยะยาว)</b>
+    ✅ ใช้ชื่อแบรนด์ในเนื้อหาเพื่อสอน/รีวิว/เปรียบเทียบ — ทำได้ปกติ<br>
+    ✅ สร้าง <b>มาสคอตต้นฉบับของเราเอง</b> ที่ให้อารมณ์แบรนด์ (ตัวกลมส้มอบอุ่นมีแฉกรัศมี) → กลายเป็นทรัพย์สินและเอกลักษณ์ของแบรนด์หนังสือเราเอง<br>
+    ✅ ใส่ข้อความ "ไม่ใช่สินค้าทางการของ Anthropic" ในหน้าลิขสิทธิ์<br>
+    ❌ ไม่วางโลโก้จริงเป็นลายตกแต่งบนปก/ในเล่ม
+  </div>
+
+  <!-- ========== phases ========== -->
+  <h2 class="sec">🗓️ แผนลงมือทำ 4 เฟส (เห็นของจริงทุกเฟส)</h2>
+  <div class="phases">
+    <div class="phase"><span class="n">เฟส 1</span><h3>โครงโรงงาน + Storyboard เล่มแรก</h3>
+      <ul><li>โครงสร้างโฟลเดอร์ + รูปแบบต้นฉบับ</li><li>ธีมสี + กล่องข้อความ 4 แบบ</li><li>มาสคอต SVG หลายท่าทาง</li><li>Storyboard เล่ม 1 ให้ตรวจ</li></ul>
+      <span class="win">✓ เห็นหน้าตรวจงานจริงครั้งแรก</span></div>
+    <div class="phase"><span class="n">เฟส 2</span><h3>เครื่องผลิต 2 เวอร์ชัน</h3>
+      <ul><li>Web reader พลิกหน้า + สารบัญ</li><li>PDF พร้อมพิมพ์ (bleed, เลขหน้า)</li><li>ระบบ short link + QR</li></ul>
+      <span class="win">✓ โยนต้นฉบับเข้า ได้ไฟล์ออก 2 แบบ</span></div>
+    <div class="phase"><span class="n">เฟส 3</span><h3>เว็บขาย + สมาชิก</h3>
+      <ul><li>หน้าชั้นหนังสือ + ตัวอย่างฟรี</li><li>ล็อกอิน + สิทธิ์รายเล่ม</li><li>ปลดล็อกดาวน์โหลด + ลายน้ำ</li></ul>
+      <span class="win">✓ เว็บพร้อมรับลูกค้า</span></div>
+    <div class="phase"><span class="n">เฟส 4</span><h3>ผลิตจริง 3 เล่มแรก</h3>
+      <ul><li>เนื้อหาเต็ม เล่ม 1 → 2 → 3</li><li>ของแจกประกอบเล่ม + landing ทุก QR</li></ul>
+      <span class="win">✓ สินค้าพร้อมขายจริง</span></div>
+  </div>
+
+  <!-- ========== decisions ========== -->
+  <h2 class="sec">❓ สิ่งที่ต้องตัดสินใจ (ตอบทีหลังได้ ไม่บล็อกเฟส 1–2)</h2>
+  <div class="card">
+    <ul class="clean">
+      <li><b>ขนาดเล่มพิมพ์:</b> A5 (พกง่าย ถูก) หรือ B5 (ภาพใหญ่ อ่านสบาย)</li>
+      <li><b>โดเมน:</b> สำหรับเว็บ + short link — มีอยู่แล้วหรือจดใหม่?</li>
+      <li><b>ช่องทางรับเงิน:</b> Stripe / PromptPay / ขายคู่บนแพลตฟอร์ม (meb, Ookbee)?</li>
+      <li><b>โฮสติ้ง:</b> แนะนำ VPS ถูกๆ หรือ Railway/Render (~$5/เดือน)</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>
