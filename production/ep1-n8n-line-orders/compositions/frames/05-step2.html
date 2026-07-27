@@ -1,0 +1,613 @@
+<template>
+  <style>
+    /* ---- fonts (local files only) ---- */
+    @font-face { font-family: "Prompt"; font-weight: 300; src: url("public/fonts/Prompt-Light.ttf") format("truetype"); }
+    @font-face { font-family: "Prompt"; font-weight: 400; src: url("public/fonts/Prompt-Regular.ttf") format("truetype"); }
+    @font-face { font-family: "Prompt"; font-weight: 500; src: url("public/fonts/Prompt-Medium.ttf") format("truetype"); }
+    @font-face { font-family: "Prompt"; font-weight: 600; src: url("public/fonts/Prompt-SemiBold.ttf") format("truetype"); }
+    @font-face { font-family: "Prompt"; font-weight: 700; src: url("public/fonts/Prompt-Bold.ttf") format("truetype"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 400; src: url("public/fonts/JetBrainsMono-Regular.ttf") format("truetype"); }
+    @font-face { font-family: "JetBrains Mono"; font-weight: 700; src: url("public/fonts/JetBrainsMono-Bold.ttf") format("truetype"); }
+
+    /* ---- root (styled via #root per contract) ---- */
+    #root {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      container-type: size;
+      font-family: "Prompt", sans-serif;
+    }
+
+    .clip { position: absolute; }
+
+    /* ---- track 0 · background (full-bleed ground + dot-grid) ---- */
+    #f05-step2-bg {
+      inset: 0;
+      background-color: #EEF2FA;
+      background-image: radial-gradient(#D6DEF0 2.5px, transparent 2.5px);
+      background-size: 56px 56px;
+      background-position: 28px 28px;
+    }
+
+    /* ---- track 2 · series clock chip ---- */
+    #f05-step2-clock {
+      top: 58px;
+      right: 90px;
+      background: #EEF2FA;
+      border: 2px solid #D6DEF0;
+      border-radius: 6px;
+      padding: 10px 20px;
+    }
+    #f05-step2-clock-digits {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 27px;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+      color: #111725;
+      min-width: 140px;
+      display: inline-block;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* ---- track 1 · main stack ---- */
+    #f05-step2-main { inset: 0; }
+    #f05-step2-zoom { position: absolute; inset: 0; transform-origin: 50% 28%; }
+
+    #f05-step2-topbar {
+      position: absolute;
+      left: 90px;
+      top: 74px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 24px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #111725;
+      white-space: nowrap;
+    }
+
+    /* card A — store settings mock */
+    #f05-step2-cardA {
+      position: absolute;
+      left: 90px;
+      top: 190px;
+      width: 900px;
+      height: 620px;
+      background: #EEF2FA;
+      border: 2.5px solid #111725;
+      border-radius: 8px;
+      padding: 44px;
+      box-sizing: border-box;
+    }
+    .f05-step2-tag {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 22px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #4A5875;
+    }
+    #f05-step2-cardA-title {
+      margin-top: 12px;
+      font-weight: 500;
+      font-size: 46px;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      color: #111725;
+    }
+    #f05-step2-cardA-rule {
+      margin-top: 18px;
+      height: 2px;
+      background: #111725;
+    }
+    #f05-step2-field-label {
+      margin-top: 30px;
+      font-weight: 500;
+      font-size: 29px;
+      line-height: 1.35;
+      color: #0A0E16;
+    }
+    #f05-step2-input {
+      margin-top: 14px;
+      height: 96px;
+      border: 2.5px solid #111725;
+      border-radius: 8px;
+      background: #D6DEF0;
+      display: flex;
+      align-items: center;
+      padding: 0 26px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    #f05-step2-url-wrap {
+      display: inline-flex;
+      align-items: baseline;
+      white-space: nowrap;
+      min-width: 600px; /* >= widest typed state — stops edge jitter */
+    }
+    #f05-step2-url {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 25px;
+      color: #0A0E16;
+      white-space: pre;
+    }
+    #f05-step2-caret {
+      display: inline-block;
+      width: 14px;
+      height: 34px;
+      margin-left: 4px;
+      background: #111725;
+      align-self: center;
+    }
+    #f05-step2-btn {
+      position: absolute;
+      right: 44px;
+      bottom: 40px;
+      width: 200px;
+      height: 78px;
+      background: #111725;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      font-size: 34px;
+      color: #EEF2FA;
+      transform-origin: 50% 50%;
+    }
+
+    /* connector between the two cards */
+    #f05-step2-connector {
+      position: absolute;
+      left: 539px;
+      top: 810px;
+      width: 2px;
+      height: 140px;
+      background: #4A5875;
+      transform-origin: 50% 0%;
+    }
+    #f05-step2-pulse {
+      position: absolute;
+      left: 533px;
+      top: 796px;
+      width: 14px;
+      height: 76px;
+      border-radius: 7px;
+      background: #FF6D7E;
+      opacity: 0;
+      z-index: 12;
+    }
+
+    /* card B — webhook node mock */
+    #f05-step2-cardB {
+      position: absolute;
+      left: 90px;
+      top: 950px;
+      width: 900px;
+      height: 290px;
+      background: #111725;
+      border-radius: 8px;
+      padding: 40px 44px;
+      box-sizing: border-box;
+      transform-origin: 50% 50%;
+    }
+    .f05-step2-tag-oncolor { color: #5EE0C8; }
+    #f05-step2-cardB-title {
+      margin-top: 10px;
+      font-weight: 500;
+      font-size: 44px;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      color: #EEF2FA;
+    }
+    #f05-step2-status {
+      margin-top: 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    #f05-step2-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #3ECFB2;
+    }
+    #f05-step2-status-text {
+      font-weight: 400;
+      font-size: 30px;
+      line-height: 1.35;
+      color: #EEF2FA;
+    }
+    #f05-step2-chip {
+      position: absolute;
+      top: -28px;
+      right: -14px;
+      background: #3ECFB2;
+      border-radius: 6px;
+      padding: 12px 26px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+      font-size: 30px;
+      line-height: 1.3;
+      color: #0A0E16;
+      z-index: 20;
+      transform-origin: 50% 50%;
+      white-space: nowrap;
+    }
+
+    /* order data — anchored-layout-expand under the node */
+    #f05-step2-mask {
+      position: absolute;
+      left: 90px;
+      top: 1254px;
+      width: 900px;
+      height: 300px; /* authored final height — never tweened */
+      overflow: hidden;
+    }
+    #f05-step2-sheet {
+      position: absolute;
+      inset: 0;
+      background: #D6DEF0;
+      border: 2.5px solid #111725;
+      border-radius: 8px;
+      padding: 28px 44px;
+      box-sizing: border-box;
+      will-change: transform;
+    }
+    #f05-step2-sheet-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    #f05-step2-live {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: 0.16em;
+      color: #FF6D7E;
+    }
+    .f05-step2-row {
+      display: flex;
+      align-items: baseline;
+      gap: 28px;
+      padding: 12px 0;
+    }
+    .f05-step2-row + .f05-step2-row { border-top: 2px solid #111725; }
+    #f05-step2-rows { margin-top: 12px; }
+    .f05-step2-row-label {
+      flex: 0 0 140px;
+      font-weight: 500;
+      font-size: 26px;
+      line-height: 1.35;
+      color: #0A0E16;
+    }
+    .f05-step2-row-value {
+      font-weight: 400;
+      font-size: 30px;
+      line-height: 1.35;
+      color: #0A0E16;
+    }
+
+    /* warning banner — thick coral frame */
+    #f05-step2-banner {
+      position: absolute;
+      left: 140px;
+      top: 828px;
+      width: 800px;
+      height: 124px;
+      background: #EEF2FA;
+      border: 6px solid #FF6D7E;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      box-sizing: border-box;
+      z-index: 30;
+      transform-origin: 50% 50%;
+    }
+    #f05-step2-banner-mark {
+      width: 46px;
+      height: 46px;
+      border-radius: 6px;
+      background: #C42B45;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 30px;
+      color: #EEF2FA;
+    }
+    #f05-step2-banner-text {
+      font-weight: 600;
+      font-size: 40px;
+      line-height: 1.3;
+      color: #C42B45;
+      white-space: nowrap;
+    }
+
+    /* cursor */
+    #f05-step2-cursor {
+      position: absolute;
+      left: 841px;
+      top: 729px;
+      width: 54px;
+      height: 54px;
+      z-index: 40;
+      transform-origin: 8% 4%;
+    }
+
+    /* ---- track 3 · chapter card (0–0.8s, hard cut via clip gating) ---- */
+    #f05-step2-chapter {
+      inset: 0;
+      background: #111725;
+      z-index: 50;
+    }
+    #f05-step2-chapter-inner {
+      position: absolute;
+      left: 90px;
+      right: 90px;
+      top: 620px;
+      transform-origin: 50% 50%;
+    }
+    #f05-step2-chapter-kicker {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 26px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #5EE0C8;
+    }
+    #f05-step2-chapter-num {
+      margin-top: 26px;
+      font-weight: 500;
+      font-size: 230px;
+      line-height: 0.92;
+      letter-spacing: -0.02em;
+      color: #5EE0C8;
+    }
+    #f05-step2-chapter-rule {
+      margin-top: 34px;
+      width: 140px;
+      height: 2px;
+      background: #3ECFB2;
+    }
+    #f05-step2-chapter-title {
+      margin-top: 30px;
+      font-weight: 500;
+      font-size: 78px;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      color: #EEF2FA;
+    }
+  </style>
+
+  <div data-composition-id="05-step2" data-width="1080" data-height="1920">
+  <!-- track 0 · full-bleed ground -->
+  <div id="f05-step2-bg" class="clip" data-start="0" data-duration="17" data-track-index="0"></div>
+
+  <!-- track 1 · main stack -->
+  <div id="f05-step2-main" class="clip" data-start="0.8" data-duration="16.2" data-track-index="1">
+    <div id="f05-step2-zoom">
+      <div id="f05-step2-topbar">STEP 02 · CONNECT STORE</div>
+
+      <!-- store settings mock (control) -->
+      <div id="f05-step2-cardA">
+        <div class="f05-step2-tag">STORE SETTINGS</div>
+        <div id="f05-step2-cardA-title">ตั้งค่าร้าน</div>
+        <div id="f05-step2-cardA-rule"></div>
+        <div id="f05-step2-field-label">URL แจ้งเตือนออเดอร์</div>
+        <div id="f05-step2-input">
+          <span id="f05-step2-url-wrap"><span id="f05-step2-url"></span><span id="f05-step2-caret"></span></span>
+        </div>
+        <div id="f05-step2-btn">Test</div>
+      </div>
+
+      <div id="f05-step2-connector"></div>
+      <div id="f05-step2-pulse"></div>
+
+      <!-- webhook node mock (target) -->
+      <div id="f05-step2-cardB">
+        <div class="f05-step2-tag f05-step2-tag-oncolor">WEBHOOK NODE</div>
+        <div id="f05-step2-cardB-title">โหนด Webhook</div>
+        <div id="f05-step2-status">
+          <div id="f05-step2-dot"></div>
+          <div id="f05-step2-status-text">รอฟัง</div>
+        </div>
+        <div id="f05-step2-chip">
+          <span>Test ผ่าน</span>
+          <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 12.5 L10 18.5 L20 6.5" fill="none" stroke="#0A0E16" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- order data unfolds under the node (anchored-layout-expand) -->
+      <div id="f05-step2-mask" data-layout-allow-overflow>
+        <div id="f05-step2-sheet">
+          <div id="f05-step2-sheet-head">
+            <div class="f05-step2-tag" style="color:#0A0E16; font-size:20px; letter-spacing:0.16em;">INCOMING ORDER</div>
+            <div id="f05-step2-live">LIVE</div>
+          </div>
+          <div id="f05-step2-rows">
+            <div class="f05-step2-row">
+              <div class="f05-step2-row-label">ชื่อ</div>
+              <div class="f05-step2-row-value">คุณสมศรี</div>
+            </div>
+            <div class="f05-step2-row">
+              <div class="f05-step2-row-label">ที่อยู่</div>
+              <div class="f05-step2-row-value">ลาดพร้าว 42 กรุงเทพฯ</div>
+            </div>
+            <div class="f05-step2-row">
+              <div class="f05-step2-row-label">เมนู</div>
+              <div class="f05-step2-row-value">ข้าวกะเพราไก่ ×2</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- warning banner -->
+      <div id="f05-step2-banner">
+        <div id="f05-step2-banner-mark">!</div>
+        <div id="f05-step2-banner-text">ต้องกด Test ก่อนทุกครั้ง</div>
+      </div>
+
+      <!-- cursor -->
+      <div id="f05-step2-cursor">
+        <svg width="54" height="54" viewBox="0 0 24 24">
+          <path d="M2 1 L2 20 L7.2 15.6 L10.6 22.4 L13.8 20.8 L10.4 14.2 L17 13.6 Z"
+                fill="#0A0E16" stroke="#EEF2FA" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- track 2 · series clock chip -->
+  <div id="f05-step2-clock" class="clip" data-start="0" data-duration="17" data-track-index="2">
+    <span id="f05-step2-clock-digits">01:50:05</span>
+  </div>
+
+  <!-- track 3 · chapter card -->
+  <div id="f05-step2-chapter" class="clip" data-start="0" data-duration="0.8" data-track-index="3">
+    <div id="f05-step2-chapter-inner">
+      <div id="f05-step2-chapter-kicker">CHAPTER</div>
+      <div id="f05-step2-chapter-num">02</div>
+      <div id="f05-step2-chapter-rule"></div>
+      <div id="f05-step2-chapter-title">ต่อเข้าหน้าร้าน</div>
+    </div>
+  </div>
+  </div>
+
+  <script src="public/vendor/gsap.min.js"></script>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      /* ============ series clock — counts down 1s/s from 01:50:05 (6605s) ============ */
+      const clockEl = document.getElementById("f05-step2-clock-digits");
+      const CLOCK_BASE = 6605; /* 01:50:05 */
+      const pad2 = (n) => String(n).padStart(2, "0");
+      const clockDriver = { t: 0 };
+      tl.to(clockDriver, {
+        t: 17,
+        duration: 17,
+        ease: "none",
+        onUpdate: () => {
+          const r = CLOCK_BASE - Math.floor(clockDriver.t);
+          clockEl.textContent =
+            pad2(Math.floor(r / 3600)) + ":" + pad2(Math.floor((r % 3600) / 60)) + ":" + pad2(r % 60);
+        },
+      }, 0);
+
+      /* ============ Scene 1 (0.0–0.8) — chapter card, quiet settle, hard cut via clip ============ */
+      tl.fromTo("#f05-step2-chapter-inner", { scale: 1.045 }, { scale: 1, duration: 0.8, ease: "power2.out" }, 0);
+
+      /* ============ Scene 2 (0.8–4.8) — stack reveals, URL typed, dot blinks ============ */
+      tl.fromTo("#f05-step2-topbar", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.9);
+      tl.fromTo("#f05-step2-cardA", { y: 44, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.85);
+      tl.fromTo("#f05-step2-cardB", { y: 44, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 1.0);
+      tl.fromTo("#f05-step2-connector", { scaleY: 0 }, { scaleY: 1, duration: 0.4, ease: "power2.out" }, 1.1);
+
+      /* macro move running underneath the whole shot */
+      tl.fromTo("#f05-step2-zoom", { scale: 1 }, { scale: 1.014, duration: 16.1, ease: "none" }, 0.9);
+
+      /* discrete-text-sequence — the link arrives in chunks (paste-like), pause, then the tail */
+      const URL_SEQ = [
+        { t: 0.0,  text: "" },
+        { t: 0.15, text: "https://" },
+        { t: 0.55, text: "https://n8n" },
+        { t: 0.78, text: "https://n8n.myshop" },
+        { t: 1.05, text: "https://n8n.myshop.app" },
+        /* thinking pause */
+        { t: 1.6,  text: "https://n8n.myshop.app/webhook/" },
+        { t: 2.15, text: "https://n8n.myshop.app/webhook/orders" },
+      ];
+      const urlEl = document.getElementById("f05-step2-url");
+      const urlAt = (time) => {
+        for (let i = URL_SEQ.length - 1; i >= 0; i--) if (time >= URL_SEQ[i].t) return URL_SEQ[i].text;
+        return "";
+      };
+      const typeDriver = { t: 0 };
+      tl.to(typeDriver, {
+        t: 2.9,
+        duration: 2.9,
+        ease: "none",
+        onUpdate: () => { urlEl.textContent = urlAt(typeDriver.t); },
+      }, 1.7);
+
+      /* caret blink — deterministic sin square wave on the same timeline */
+      const caretEl = document.getElementById("f05-step2-caret");
+      const blink = { p: 0 };
+      tl.to(blink, {
+        p: Math.PI * 2 * 4.5,
+        duration: 2.9,
+        ease: "none",
+        onUpdate: () => { caretEl.style.opacity = Math.sin(blink.p) >= 0 ? "1" : "0"; },
+      }, 1.7);
+      tl.set("#f05-step2-caret", { opacity: 0 }, 4.75);
+
+      /* status dot — blinks slowly twice, then steady */
+      tl.fromTo("#f05-step2-dot", { opacity: 1 }, { opacity: 0.25, duration: 0.55, ease: "power1.inOut" }, 1.5);
+      tl.to("#f05-step2-dot", { opacity: 1, duration: 0.55, ease: "power1.inOut" }, 2.05);
+      tl.to("#f05-step2-dot", { opacity: 0.25, duration: 0.55, ease: "power1.inOut" }, 2.6);
+      tl.to("#f05-step2-dot", { opacity: 1, duration: 0.55, ease: "power1.inOut" }, 3.15);
+
+      /* ============ Scene 3 (4.8–8.0) — warning banner slams into the seam, then docks ============ */
+      tl.fromTo("#f05-step2-banner",
+        { opacity: 0, scale: 1.7 },
+        { opacity: 1, scale: 1, duration: 0.3, ease: "power4.out" }, 4.8);
+      /* impact jolt on both cards — one beat */
+      tl.to(["#f05-step2-cardA", "#f05-step2-cardB"], { y: 5, duration: 0.09, ease: "power2.out" }, 4.88);
+      tl.to(["#f05-step2-cardA", "#f05-step2-cardB"], { y: 0, duration: 0.26, ease: "back.out(2)" }, 4.98);
+      /* holds ~2s, then shrinks and perches above the Test button */
+      tl.to("#f05-step2-banner", { x: 260, y: -235, scale: 0.42, duration: 0.6, ease: "power3.inOut" }, 7.0);
+
+      /* ============ Scene 4 (8.0–13.0) — press Test → pulse → data unfolds (control-target-sync) ============ */
+      tl.fromTo("#f05-step2-cursor",
+        { x: 250, y: 210, opacity: 0 },
+        { x: 0, y: 0, opacity: 1, duration: 0.7, ease: "power2.inOut" }, 8.0);
+
+      tl.addLabel("press", 8.85);
+      /* press-sink */
+      tl.to("#f05-step2-btn", { scale: 0.93, duration: 0.1, ease: "power2.in" }, "press");
+      tl.to("#f05-step2-cursor", { scale: 0.9, duration: 0.1, ease: "power2.in" }, "press");
+      /* spring back */
+      tl.to("#f05-step2-btn", { scale: 1, duration: 0.32, ease: "back.out(2.2)" }, "press+=0.12");
+      tl.to("#f05-step2-cursor", { scale: 1, duration: 0.32, ease: "back.out(2.2)" }, "press+=0.12");
+
+      /* same beat — coral pulse flows down the connector from control to target */
+      tl.fromTo("#f05-step2-pulse", { opacity: 0 }, { opacity: 1, duration: 0.08, ease: "none" }, "press+=0.1");
+      tl.fromTo("#f05-step2-pulse", { y: 0 }, { y: 180, duration: 0.45, ease: "power1.in" }, "press+=0.1");
+      tl.to("#f05-step2-pulse", { opacity: 0, duration: 0.1, ease: "none" }, "press+=0.5");
+
+      /* the target answers — node card pops as the pulse lands */
+      tl.to("#f05-step2-cardB", { scale: 1.02, duration: 0.12, ease: "power2.out" }, "press+=0.5");
+      tl.to("#f05-step2-cardB", { scale: 1, duration: 0.3, ease: "power2.inOut" }, "press+=0.64");
+
+      /* anchored-layout-expand — order card unfolds under the node.
+         MASK_H matches the mask's authored CSS height exactly; the mask is never tweened. */
+      const MASK_H = 300;
+      tl.fromTo("#f05-step2-sheet", { y: -MASK_H }, { y: 0, duration: 0.55, ease: "power3.out" }, 9.5);
+      tl.fromTo(".f05-step2-row",
+        { opacity: 0, x: -14 },
+        { opacity: 1, x: 0, duration: 0.3, stagger: 0.14, ease: "power2.out" }, 9.68);
+      tl.fromTo("#f05-step2-sheet-head", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 9.62);
+
+      /* cursor eases aside so the result reads */
+      tl.to("#f05-step2-cursor", { x: 60, y: 40, duration: 0.8, ease: "power2.inOut" }, 12.2);
+
+      /* ============ Scene 5 (13.0–17.0) — mint chip pops, still read ============ */
+      tl.fromTo("#f05-step2-chip", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, 13.0);
+      tl.fromTo("#f05-step2-chip", { scale: 0 }, { scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 13.0);
+
+      window.__timelines["05-step2"] = tl;
+    })();
+  </script>
+</template>

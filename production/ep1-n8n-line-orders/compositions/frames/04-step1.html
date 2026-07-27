@@ -1,0 +1,543 @@
+<template>
+  <style>
+    /* ---- fonts (local files only) ---- */
+    @font-face { font-family: "Prompt"; src: url("public/fonts/Prompt-Light.ttf") format("truetype"); font-weight: 300; font-style: normal; }
+    @font-face { font-family: "Prompt"; src: url("public/fonts/Prompt-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: "Prompt"; src: url("public/fonts/Prompt-Medium.ttf") format("truetype"); font-weight: 500; font-style: normal; }
+    @font-face { font-family: "Prompt"; src: url("public/fonts/Prompt-SemiBold.ttf") format("truetype"); font-weight: 600; font-style: normal; }
+    @font-face { font-family: "Prompt"; src: url("public/fonts/Prompt-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
+    @font-face { font-family: "JetBrains Mono"; src: url("public/fonts/JetBrainsMono-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: "JetBrains Mono"; src: url("public/fonts/JetBrainsMono-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
+
+    /* ---- root (styled via #root, never a class) ---- */
+    #root {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      font-family: "Prompt", sans-serif;
+    }
+
+    /* ---- track 0 · full-bleed ground (a clip, never on #root) ---- */
+    .f04-bg { position: absolute; inset: 0; background: #0A0E16; z-index: 1; }
+
+    /* ---- track 1 · mock n8n canvas (background role, dimmed) ---- */
+    .f04-canvas {
+      position: absolute;
+      left: 48px; top: 200px;
+      width: 984px; height: 1320px;
+      background: #0A0E16;
+      border: 2px solid #111725;
+      border-radius: 8px;
+      z-index: 2;
+      transform-origin: 50% 42%;
+      overflow: hidden;
+    }
+    .f04-grid {
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, #111725 1.7px, transparent 1.8px);
+      background-size: 44px 44px;
+      background-position: 22px 22px;
+      opacity: 0.6; /* canvas mock dimmed 40% */
+    }
+    .f04-canvaslabel {
+      position: absolute; left: 30px; top: 28px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 20px; font-weight: 400;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: #4A5875;
+    }
+
+    /* + button */
+    .f04-plus {
+      position: absolute; left: 427px; top: 395px;
+      width: 130px; height: 130px;
+      background: #111725;
+      border: 2.5px solid #3ECFB2;
+      border-radius: 8px;
+      color: #EEF2FA;
+      font-family: "Prompt", sans-serif;
+      font-weight: 300; font-size: 82px; line-height: 122px;
+      text-align: center;
+      opacity: 0;
+      filter: blur(0px);
+      transform-origin: 50% 50%;
+    }
+
+    /* click ripples (in DOM from t=0, invisible) */
+    .f04-rip {
+      position: absolute;
+      border-radius: 50%;
+      border: 3px solid #FF6D7E;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .f04-rip-plus { left: 427px; top: 395px; width: 130px; height: 130px; }
+    .f04-rip-row  { left: 507px; top: 639px; width: 90px;  height: 90px; }
+
+    /* node-picker menu (anchored-layout-expand) */
+    .f04-menu {
+      position: absolute; left: 232px; top: 570px;
+      width: 520px;
+      transform-origin: 50% 0%;
+      filter: blur(0px);
+    }
+    .f04-menu-head {
+      position: relative; z-index: 2;
+      height: 76px;
+      background: #0A0E16;
+      border-radius: 8px 8px 0 0;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 22px; font-weight: 400;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: #3ECFB2;
+      line-height: 76px;
+      padding-left: 26px;
+    }
+    .f04-mask { height: 368px; overflow: hidden; position: relative; z-index: 1; }
+    .f04-sheet {
+      height: 368px;
+      background: #111725;
+      border-radius: 0 0 8px 8px;
+      will-change: transform;
+    }
+    .f04-row {
+      position: relative;
+      height: 92px;
+      display: flex; align-items: center; gap: 20px;
+      padding: 0 26px;
+      opacity: 0;
+      transform-origin: 50% 50%;
+    }
+    .f04-row-hl {
+      position: absolute; left: 8px; right: 8px; top: 7px; bottom: 7px;
+      background: #FF6D7E;
+      border-radius: 6px;
+      opacity: 0;
+    }
+    .f04-row-ic {
+      position: relative;
+      width: 14px; height: 14px;
+      background: #3ECFB2;
+      border-radius: 3px;
+      flex: 0 0 auto;
+    }
+    .f04-row-tx {
+      position: relative;
+      font-family: "Prompt", sans-serif;
+      font-size: 33px; font-weight: 400;
+      color: #EEF2FA;
+    }
+
+    /* Webhook node */
+    .f04-node {
+      position: absolute; left: 277px; top: 525px;
+      width: 430px; height: 150px;
+      background: #111725;
+      border: 2.5px solid #3ECFB2;
+      border-radius: 8px;
+      display: flex; align-items: center; gap: 22px;
+      padding: 0 26px;
+      box-sizing: border-box;
+      opacity: 0;
+      transform-origin: 50% 50%;
+    }
+    .f04-node-ic {
+      width: 72px; height: 72px;
+      background: #3ECFB2;
+      border-radius: 8px;
+      flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .f04-node-name {
+      font-family: "Prompt", sans-serif;
+      font-size: 44px; font-weight: 500; line-height: 1.05;
+      color: #EEF2FA;
+    }
+    .f04-node-sub {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 19px; font-weight: 400;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: #3ECFB2;
+      margin-top: 4px;
+    }
+    .f04-port {
+      position: absolute;
+      width: 24px; height: 24px;
+      background: #0A0E16;
+      border: 2.5px solid #3ECFB2;
+      border-radius: 50%;
+      top: 60px;
+      transform-origin: 50% 50%;
+    }
+    .f04-port-l { left: -14px; }
+    .f04-port-r { right: -14px; }
+
+    /* data-arrival pulses at the left port */
+    .f04-pulse {
+      position: absolute; left: 235px; top: 558px;
+      width: 84px; height: 84px;
+      border-radius: 50%;
+      border: 3px solid #3ECFB2;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* explainer chip under the node */
+    .f04-chip {
+      position: absolute; left: 232px; top: 719px;
+      width: 520px; height: 64px;
+      background: #D6DEF0;
+      border: 2px solid #111725;
+      border-radius: 8px;
+      box-sizing: border-box;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "Prompt", sans-serif;
+      font-size: 29px; font-weight: 400;
+      color: #0A0E16;
+      opacity: 0;
+      transform-origin: 50% 50%;
+    }
+
+    /* copied toast (above the copy button) */
+    .f04-toast {
+      position: absolute; left: 610px; top: 807px;
+      height: 56px;
+      background: #3ECFB2;
+      border-radius: 6px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 20px;
+      font-family: "Prompt", sans-serif;
+      font-size: 27px; font-weight: 500;
+      color: #0A0E16;
+      opacity: 0;
+      transform-origin: 50% 100%;
+    }
+
+    /* link field — anchored expand mask + sheet */
+    .f04-linkmask {
+      position: absolute; left: 162px; top: 890px;
+      width: 660px; height: 118px;
+      overflow: hidden;
+    }
+    .f04-linksheet {
+      margin-top: 4px;
+      width: 660px; height: 110px;
+      background: #EEF2FA;
+      border: 2.5px solid #111725;
+      border-radius: 8px;
+      box-sizing: border-box;
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 16px;
+      will-change: transform;
+    }
+    .f04-url {
+      flex: 1 1 auto;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 25px; font-weight: 400;
+      color: #0A0E16;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .f04-btnwrap { position: relative; flex: 0 0 auto; width: 132px; height: 70px; }
+    .f04-burst {
+      position: absolute; left: -4px; top: -35px;
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      background: #FF6D7E;
+      filter: blur(26px);
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .f04-copybtn {
+      position: relative; z-index: 2;
+      width: 132px; height: 70px;
+      background: #FF6D7E;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "Prompt", sans-serif;
+      font-size: 29px; font-weight: 500;
+      color: #0A0E16;
+      transform-origin: 50% 50%;
+    }
+
+    /* ---- track 2 · chrome: topbar label + series clock ---- */
+    .f04-chrome { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+    .f04-topbar-label {
+      position: absolute; left: 60px; top: 84px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 23px; font-weight: 400;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: #D6DEF0;
+    }
+    .f04-clock {
+      position: absolute; right: 48px; top: 64px;
+      background: #0A0E16;
+      border: 2px solid #4A5875;
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 30px; font-weight: 400;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+      color: #EEF2FA;
+    }
+
+    /* ---- track 3 · oversized cursor (eye-carrier) ---- */
+    .f04-cursor {
+      position: absolute; left: 0; top: 0;
+      z-index: 4;
+      transform-origin: 12% 6%;
+      will-change: transform;
+      pointer-events: none;
+    }
+
+    /* ---- track 4 · chapter card (full-bleed, hard-cut out via clip gate) ---- */
+    .f04-card { position: absolute; inset: 0; background: #111725; z-index: 5; }
+    .f04-num {
+      position: absolute; left: 0; top: 540px;
+      width: 100%;
+      text-align: center;
+      font-family: "Prompt", sans-serif;
+      font-size: 330px; font-weight: 500; line-height: 0.92;
+      letter-spacing: -0.02em;
+      color: #FF8FA0;
+      opacity: 0;
+    }
+    .f04-cardtitle {
+      position: absolute; left: 0; top: 984px;
+      width: 100%;
+      text-align: center;
+      font-family: "Prompt", sans-serif;
+      font-size: 62px; font-weight: 500; line-height: 1.1;
+      letter-spacing: -0.01em;
+      color: #EEF2FA;
+      opacity: 0;
+    }
+  </style>
+
+  <div id="root" data-composition-id="04-step1" data-width="1080" data-height="1920">
+    <!-- track 0 · ground -->
+    <div id="f04-bg" class="clip f04-bg" data-start="0" data-duration="17" data-track-index="0"></div>
+
+    <!-- track 1 · mock canvas + workflow UI -->
+    <div id="f04-canvas" class="clip f04-canvas" data-start="0.8" data-duration="16.2" data-track-index="1">
+      <div class="f04-grid"></div>
+      <div class="f04-canvaslabel">WORKFLOW &middot; UNTITLED</div>
+
+      <div id="f04-plus" class="f04-plus">+</div>
+      <div id="f04-rip1" class="f04-rip f04-rip-plus"></div>
+      <div id="f04-riprow" class="f04-rip f04-rip-row"></div>
+
+      <div id="f04-menu" class="f04-menu">
+        <div class="f04-menu-head">ADD TRIGGER</div>
+        <div id="f04-mask" class="f04-mask" data-layout-allow-overflow>
+          <div id="f04-sheet" class="f04-sheet">
+            <div id="f04-row1" class="f04-row">
+              <span id="f04-row1-hl" class="f04-row-hl"></span>
+              <span id="f04-row1-ic" class="f04-row-ic"></span>
+              <span id="f04-row1-tx" class="f04-row-tx">Webhook</span>
+            </div>
+            <div class="f04-row">
+              <span class="f04-row-ic"></span>
+              <span class="f04-row-tx">Schedule</span>
+            </div>
+            <div class="f04-row">
+              <span class="f04-row-ic"></span>
+              <span class="f04-row-tx">Manual</span>
+            </div>
+            <div class="f04-row">
+              <span class="f04-row-ic"></span>
+              <span class="f04-row-tx">App Event</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="f04-node" class="f04-node">
+        <span class="f04-port f04-port-l" id="f04-portl"></span>
+        <span class="f04-port f04-port-r" id="f04-portr"></span>
+        <div class="f04-node-ic">
+          <svg width="38" height="38" viewBox="0 0 24 24">
+            <path d="M13 2 L4 14 L11 14 L9 22 L20 9 L13 9 Z" fill="#0A0E16"/>
+          </svg>
+        </div>
+        <div>
+          <div class="f04-node-name">Webhook</div>
+          <div class="f04-node-sub">POST /hook</div>
+        </div>
+      </div>
+
+      <div id="f04-pulse1" class="f04-pulse"></div>
+      <div id="f04-pulse2" class="f04-pulse"></div>
+
+      <div id="f04-chip" class="f04-chip">ประตูรับข้อมูลเข้าเส้นงาน</div>
+
+      <div id="f04-linkmask" class="f04-linkmask" data-layout-allow-overflow>
+        <div id="f04-linksheet" class="f04-linksheet">
+          <div class="f04-url">https://n8n.app/webhook/7f3a91c2b8</div>
+          <div class="f04-btnwrap">
+            <div id="f04-burst" class="f04-burst"></div>
+            <div id="f04-copybtn" class="f04-copybtn">คัดลอก</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="f04-toast" class="f04-toast">
+        <svg width="22" height="22" viewBox="0 0 24 24">
+          <path d="M4 12.5 L9.5 18 L20 6.5" fill="none" stroke="#0A0E16" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>คัดลอกแล้ว</span>
+      </div>
+    </div>
+
+    <!-- track 2 · chrome: topbar + series clock -->
+    <div id="f04-chrome" class="clip f04-chrome" data-start="0" data-duration="17" data-track-index="2">
+      <div class="f04-topbar-label">STEP 01 &middot; WEBHOOK</div>
+      <div class="f04-clock"><span id="f04-clock-digits">01:55:20</span></div>
+    </div>
+
+    <!-- track 3 · oversized cursor -->
+    <div id="f04-cursor" class="clip f04-cursor" data-start="0.8" data-duration="16.2" data-track-index="3">
+      <svg width="80" height="112" viewBox="0 0 60 84">
+        <path d="M6 3 L6 66 L21 52 L31 76 L42 71 L32 48 L50 46 Z"
+              fill="#EEF2FA" stroke="#0A0E16" stroke-width="3.5" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- track 4 · chapter card (0–0.8s, clip gate = hard cut out) -->
+    <div id="f04-card" class="clip f04-card" data-start="0" data-duration="0.8" data-track-index="4">
+      <div id="f04-num" class="f04-num">01</div>
+      <div id="f04-cardtitle" class="f04-cardtitle">สร้าง Webhook</div>
+    </div>
+  </div>
+
+  <script src="public/vendor/gsap.min.js"></script>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* ---------- series clock: counts down 01:55:20 -> 01:55:03 across 17s ---------- */
+      var clockEl = document.querySelector("#f04-clock-digits");
+      var clk = { t: 6920 }; /* 1*3600 + 55*60 + 20 */
+      function pad(n) { return (n < 10 ? "0" : "") + n; }
+      function fmt(v) {
+        var s = Math.floor(v);
+        return pad(Math.floor(s / 3600)) + ":" + pad(Math.floor((s % 3600) / 60)) + ":" + pad(s % 60);
+      }
+      tl.to(clk, {
+        t: 6903, duration: 17, ease: "none",
+        onUpdate: function () { clockEl.textContent = fmt(clk.t); }
+      }, 0);
+
+      /* ---------- Scene 1 (0.0–0.8s) · chapter card ---------- */
+      /* waterfall-entry: number is the anchor — binary opacity + whip from below */
+      tl.set("#f04-num", { opacity: 1, y: 90 }, 0.05);
+      tl.to("#f04-num", { y: 0, duration: 0.2, ease: "power4.out" }, 0.05);
+      /* title fades in under the number (per storyboard) */
+      tl.fromTo("#f04-cardtitle", { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.34, ease: "power2.out" }, 0.26);
+      /* hard cut out = clip gate at 0.8, no tween */
+
+      /* ---------- Scene 2 (0.8–3.8s) · canvas appears, cursor travels ---------- */
+      tl.fromTo("#f04-canvas", { opacity: 0, scale: 0.985 },
+        { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out" }, 0.8);
+      /* slow macro drift underneath for the rest of the shot */
+      tl.fromTo("#f04-canvas", { scale: 1 },
+        { scale: 1.016, duration: 15.7, ease: "none", immediateRender: false }, 1.3);
+
+      /* + button pops onto the canvas */
+      tl.set("#f04-plus", { opacity: 1 }, 1.15);
+      tl.fromTo("#f04-plus", { scale: 0.5 },
+        { scale: 1, duration: 0.4, ease: "back.out(1.6)" }, 1.15);
+
+      /* oversized cursor: one-way path from off-screen bottom-left to the + button */
+      tl.fromTo("#f04-cursor", { x: -170, y: 1700 },
+        { x: 528, y: 648, duration: 2.4, ease: "power2.inOut" }, 0.95);
+
+      /* ---------- Scene 3 (3.8–8.2s) · click -> menu expands -> pick Webhook ---------- */
+      /* cursor-click-ripple: press (paired tweens, no yoyo/repeat) */
+      tl.to("#f04-cursor", { scale: 0.85, duration: 0.09, ease: "power2.in" }, 3.8);
+      tl.to("#f04-cursor", { scale: 1, duration: 0.09, ease: "power2.out" }, 3.89);
+      tl.to("#f04-plus", { scale: 0.94, duration: 0.09, ease: "power2.in" }, 3.8);
+      tl.to("#f04-plus", { scale: 1, duration: 0.09, ease: "power2.out" }, 3.89);
+      tl.fromTo("#f04-rip1", { scale: 0, opacity: 1 },
+        { scale: 4.2, opacity: 0, duration: 0.7, ease: "power2.out", immediateRender: false }, 3.86);
+
+      /* anchored-layout-expand: header pops, sheet slides from behind it (BODY_H = 368) */
+      tl.fromTo("#f04-menu", { opacity: 0, y: -14 },
+        { opacity: 1, y: 0, duration: 0.22, ease: "power2.out" }, 3.95);
+      tl.fromTo("#f04-sheet", { y: -372 },
+        { y: 0, duration: 0.5, ease: "power3.out" }, 4.0);
+      tl.fromTo(".f04-row", { opacity: 0 },
+        { opacity: 1, duration: 0.26, stagger: 0.06, ease: "power2.out" }, 4.15);
+
+      /* cursor descends to the Webhook row (one-way) */
+      tl.to("#f04-cursor", { x: 600, y: 884, duration: 1.15, ease: "power2.inOut" }, 5.0);
+
+      /* row highlights coral when the cursor reaches it */
+      tl.fromTo("#f04-row1-hl", { opacity: 0 },
+        { opacity: 1, duration: 0.24, ease: "power2.out" }, 6.2);
+      tl.to("#f04-row1-tx", { color: "#0A0E16", duration: 0.2, ease: "none" }, 6.2);
+      tl.to("#f04-row1-ic", { backgroundColor: "#0A0E16", duration: 0.2, ease: "none" }, 6.2);
+
+      /* click-select the row */
+      tl.to("#f04-cursor", { scale: 0.85, duration: 0.09, ease: "power2.in" }, 7.4);
+      tl.to("#f04-cursor", { scale: 1, duration: 0.09, ease: "power2.out" }, 7.49);
+      tl.to("#f04-row1", { scale: 0.97, duration: 0.09, ease: "power2.in" }, 7.4);
+      tl.to("#f04-row1", { scale: 1, duration: 0.09, ease: "power2.out" }, 7.49);
+      tl.fromTo("#f04-riprow", { scale: 0, opacity: 1 },
+        { scale: 3, opacity: 0, duration: 0.55, ease: "power2.out", immediateRender: false }, 7.5);
+
+      /* ---------- Scene 4 (8.2–12.4s) · Webhook node spring-pops ---------- */
+      /* within-scene swap (cut catalog): menu + button leave via Z-scale + blur + opacity */
+      tl.to(["#f04-menu", "#f04-plus"],
+        { scale: 0.92, opacity: 0, filter: "blur(10px)", duration: 0.3, ease: "power2.in" }, 8.2);
+      /* cursor drifts aside so the node owns the center */
+      tl.to("#f04-cursor", { x: 815, y: 850, duration: 0.8, ease: "power2.inOut" }, 8.3);
+
+      /* spring-pop entrance: binary opacity + overshoot scale */
+      tl.set("#f04-node", { opacity: 1 }, 8.55);
+      tl.fromTo("#f04-node", { scale: 0.3 },
+        { scale: 1, duration: 0.55, ease: "back.out(1.7)" }, 8.55);
+      tl.fromTo(["#f04-portl", "#f04-portr"], { scale: 0 },
+        { scale: 1, duration: 0.3, stagger: 0.08, ease: "back.out(2)" }, 9.0);
+
+      /* explainer chip pops under the node on the "door" cue */
+      tl.set("#f04-chip", { opacity: 1 }, 10.3);
+      tl.fromTo("#f04-chip", { scale: 0.7, y: 14 },
+        { scale: 1, y: 0, duration: 0.45, ease: "back.out(1.9)" }, 10.3);
+
+      /* data-arrival pulses at the input port — "workflow fires the moment data comes in" */
+      tl.fromTo("#f04-pulse1", { scale: 0.4, opacity: 0.9 },
+        { scale: 3, opacity: 0, duration: 0.8, ease: "power2.out", immediateRender: false }, 11.2);
+      tl.fromTo("#f04-pulse2", { scale: 0.4, opacity: 0.9 },
+        { scale: 3, opacity: 0, duration: 0.8, ease: "power2.out", immediateRender: false }, 11.75);
+
+      /* ---------- Scene 5 (12.4–17.0s) · link field, copy, toast ---------- */
+      /* anchored expand: link sheet slides down out of its mask under the node */
+      tl.fromTo("#f04-linksheet", { y: -126 },
+        { y: 0, duration: 0.5, ease: "power3.out" }, 12.5);
+
+      /* cursor to the copy button (one-way) */
+      tl.to("#f04-cursor", { x: 762, y: 1132, duration: 1.0, ease: "power2.inOut" }, 12.95);
+
+      /* press-release-spring: linear press, spring release, burst behind */
+      tl.to("#f04-cursor", { scale: 0.85, duration: 0.1, ease: "power2.in" }, 14.2);
+      tl.to("#f04-cursor", { scale: 1, duration: 0.1, ease: "power2.out" }, 14.3);
+      tl.to("#f04-copybtn", { scale: 0.9, duration: 0.12, ease: "power1.in" }, 14.2);
+      tl.to("#f04-copybtn", { scale: 1, duration: 0.5, ease: "back.out(2.0)" }, 14.32);
+      tl.fromTo("#f04-burst", { scale: 1, opacity: 0 },
+        { scale: 4, opacity: 0.4, duration: 0.45, ease: "power2.out", immediateRender: false }, 14.32);
+      tl.to("#f04-burst", { opacity: 0, duration: 0.4, ease: "power2.in" }, 14.8);
+
+      /* toast pops above the button, then the shot holds to read */
+      tl.set("#f04-toast", { opacity: 1 }, 14.55);
+      tl.fromTo("#f04-toast", { scale: 0.7, y: 12 },
+        { scale: 1, y: 0, duration: 0.45, ease: "back.out(1.8)" }, 14.55);
+
+      window.__timelines["04-step1"] = tl;
+    })();
+  </script>
+</template>
