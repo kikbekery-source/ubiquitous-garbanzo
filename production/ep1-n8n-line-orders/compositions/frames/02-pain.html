@@ -1,0 +1,523 @@
+<template>
+  <div id="root" data-composition-id="02-pain" data-width="1080" data-height="1920">
+    <style>
+      /* ---- local fonts (no network at render) ---- */
+      @font-face {
+        font-family: "Prompt";
+        font-weight: 300;
+        font-style: normal;
+        src: url("public/fonts/Prompt-Light.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "Prompt";
+        font-weight: 400;
+        font-style: normal;
+        src: url("public/fonts/Prompt-Regular.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "Prompt";
+        font-weight: 500;
+        font-style: normal;
+        src: url("public/fonts/Prompt-Medium.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "Prompt";
+        font-weight: 600;
+        font-style: normal;
+        src: url("public/fonts/Prompt-SemiBold.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "Prompt";
+        font-weight: 700;
+        font-style: normal;
+        src: url("public/fonts/Prompt-Bold.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-weight: 400;
+        font-style: normal;
+        src: url("public/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-weight: 700;
+        font-style: normal;
+        src: url("public/fonts/JetBrainsMono-Bold.ttf") format("truetype");
+      }
+
+      /* ---- frame root (styled via #root per contract) ---- */
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        container-type: size;
+        font-family: "Prompt", sans-serif;
+      }
+
+      .clip {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* ---- background: green ground + dot grid (roles: dot-grid = background) ---- */
+      .pain2-bg {
+        background: #111725;
+      }
+      .pain2-dots {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 1960px; /* extra tail so the slow upward drift never exposes an edge */
+        background-image: radial-gradient(circle, #4a5875 2.2px, transparent 2.8px);
+        background-size: 46px 46px;
+        background-position: 23px 23px;
+        opacity: 0.5;
+        will-change: transform;
+      }
+
+      /* ---- topbar (system spine): mono label left, clock chip docks right ---- */
+      .pain2-topbar {
+        position: absolute;
+        left: 54px;
+        right: 54px;
+        top: 54px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .pain2-topbar-label {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 400;
+        font-size: 24px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #3ecfb2;
+        opacity: 0;
+      }
+
+      /* ---- order counter chip, top-left (Scene 1-2) ---- */
+      .pain2-counter {
+        position: absolute;
+        left: 54px;
+        top: 150px;
+        background: #3ecfb2;
+        color: #0a0e16; /* green-deep (navy-ink) on pink surface per frame.md */
+        border-radius: 6px;
+        padding: 26px 36px 30px;
+        opacity: 0;
+        transform-origin: top left;
+      }
+      .pain2-counter-label {
+        font-weight: 500;
+        font-size: 30px;
+        line-height: 1.35;
+        letter-spacing: -0.01em;
+        margin-bottom: 16px; /* real gap — keeps label and figure boxes apart at every scale */
+      }
+      .pain2-count {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 124px;
+        height: 140px; /* tall enough for the 96px line box — glyph ink stays inside */
+        margin-top: 0;
+        font-weight: 500;
+        font-size: 96px;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        transform-origin: center center;
+      }
+
+      /* ---- manual-work loop list (rule-of-thirds left, absolute slots) ---- */
+      .pain2-list {
+        position: absolute;
+        left: 54px;
+        right: 54px;
+        top: 620px;
+        height: 616px;
+        transform-origin: center center;
+      }
+      .pain2-row {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 122px;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        border-bottom: 2px solid #4a5875;
+        font-weight: 500;
+        font-size: 48px;
+        letter-spacing: -0.01em;
+        color: #eef2fa;
+        opacity: 0;
+      }
+      #pain2-row-1 { top: 0; }
+      #pain2-row-2 { top: 122px; }
+      #pain2-row-3 { top: 244px; }
+      #pain2-row-4 { top: 366px; } /* shifts down +122 when the error row inserts */
+      #pain2-row-err { top: 366px; }
+
+      /* coral cross mark (CSS-built, no glyph dependency) */
+      .pain2-x {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        flex: none;
+      }
+      .pain2-x::before,
+      .pain2-x::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 32px;
+        height: 3px;
+        border-radius: 2px;
+        background: #ff6d7e;
+      }
+      .pain2-x::before { transform: translate(-50%, -50%) rotate(45deg); }
+      .pain2-x::after { transform: translate(-50%, -50%) rotate(-45deg); }
+      .pain2-x-pop { opacity: 0; }
+
+      /* error row + chromatic-glitch stack (base on top, ghosts behind) */
+      .pain2-row-error {
+        color: #ff6d7e;
+        border-bottom-color: #ff6d7e;
+        transform-origin: left center;
+      }
+      .pain2-glitch-stack {
+        display: grid;
+      }
+      .pain2-gbase,
+      .pain2-gcopy {
+        grid-area: 1 / 1;
+        white-space: nowrap;
+      }
+      .pain2-gbase {
+        z-index: 2;
+        color: #ff6d7e;
+      }
+      .pain2-gcopy {
+        z-index: 1;
+        opacity: 0;
+        will-change: transform;
+        mix-blend-mode: screen;
+      }
+      .pain2-gwarm { color: #eef2fa; }
+      .pain2-gcool { color: #3ecfb2; }
+
+      /* ---- hero time count-up (Scene 4) ---- */
+      .pain2-clock-label {
+        position: absolute;
+        left: 54px;
+        top: 424px;
+        width: fit-content; /* narrow box at the left margin — outside the clock's dock flight corridor */
+        text-align: left;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 400;
+        font-size: 26px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #eef2fa;
+        opacity: 0;
+      }
+      .pain2-clock {
+        position: absolute;
+        left: 240px;
+        top: 470px; /* box 470–620: clear of the list (first row text starts y≈647) */
+        width: 600px;
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+        font-size: 112px;
+        color: #3ecfb2;
+        font-variant-numeric: tabular-nums;
+        transform-origin: center center;
+        opacity: 0;
+        z-index: 5;
+        will-change: transform;
+      }
+
+      /* ---- SERIES CLOCK CHIP (dock target — canonical docked geometry).
+             Other frames re-instantiate this exact chip at rest:
+             top:54px right:54px · 170×48 · bg #0A0E16 · 2px #4A5875 border ·
+             radius 6px · digits JetBrains Mono 700, ~28px visual, #3ECFB2,
+             tabular, centered. ---- */
+      .pain2-chip {
+        position: absolute;
+        right: 54px;
+        top: 54px;
+        width: 170px;
+        height: 48px;
+        background: #0a0e16;
+        border: 2px solid #4a5875;
+        border-radius: 6px;
+        opacity: 0;
+        transform-origin: center center;
+        z-index: 4;
+      }
+    </style>
+
+    <!-- full-bleed ground (never on #root) -->
+    <div class="clip pain2-bg" data-start="0" data-duration="15.200" data-track-index="0">
+      <div class="pain2-dots" id="pain2-dots"></div>
+    </div>
+
+    <!-- content stage -->
+    <div class="clip" data-start="0" data-duration="15.200" data-track-index="1">
+      <div class="pain2-topbar">
+        <div class="pain2-topbar-label" id="pain2-topbar-label">EP.01 — MANUAL LOOP</div>
+      </div>
+
+      <div class="pain2-counter" id="pain2-counter">
+        <div class="pain2-counter-label">ออเดอร์ที่</div>
+        <div class="pain2-count" id="pain2-count">1</div>
+      </div>
+
+      <div class="pain2-list" id="pain2-list">
+        <div class="pain2-row" id="pain2-row-1">
+          <span class="pain2-x pain2-x-pop" id="pain2-x-1"></span>
+          <span>ก็อปชื่อลูกค้า</span>
+        </div>
+        <div class="pain2-row" id="pain2-row-2">
+          <span class="pain2-x"></span>
+          <span>ก็อปที่อยู่</span>
+        </div>
+        <div class="pain2-row" id="pain2-row-3">
+          <span class="pain2-x"></span>
+          <span>สลับไปวางใน LINE</span>
+        </div>
+        <div class="pain2-row" id="pain2-row-4">
+          <span class="pain2-x"></span>
+          <span>ทำซ้ำ…</span>
+        </div>
+        <div class="pain2-row pain2-row-error" id="pain2-row-err">
+          <span class="pain2-x"></span>
+          <div class="pain2-glitch-stack">
+            <span class="pain2-gcopy pain2-gwarm" id="pain2-gwarm" aria-hidden="true">ที่อยู่ผิด — ของไปส่งผิดบ้าน</span>
+            <span class="pain2-gcopy pain2-gcool" id="pain2-gcool" aria-hidden="true">ที่อยู่ผิด — ของไปส่งผิดบ้าน</span>
+            <span class="pain2-gbase">ที่อยู่ผิด — ของไปส่งผิดบ้าน</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- dock frame first (behind), traveling clock above it -->
+      <div class="pain2-chip" id="pain2-chip"></div>
+      <div class="pain2-clock-label" id="pain2-clock-label">TIME LOST</div>
+      <div class="pain2-clock" id="pain2-clock">00:00:00</div>
+    </div>
+
+    <script src="public/vendor/gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+      (function () {
+        var tl = gsap.timeline({ paused: true });
+        var $ = function (id) {
+          return document.getElementById(id);
+        };
+
+        var row1 = $("pain2-row-1"),
+          row2 = $("pain2-row-2"),
+          row3 = $("pain2-row-3"),
+          row4 = $("pain2-row-4"),
+          rowErr = $("pain2-row-err"),
+          list = $("pain2-list"),
+          counterChip = $("pain2-counter"),
+          countEl = $("pain2-count"),
+          clock = $("pain2-clock"),
+          clockLabel = $("pain2-clock-label"),
+          chip = $("pain2-chip"),
+          dots = $("pain2-dots"),
+          topbarLabel = $("pain2-topbar-label");
+
+        /* ambient macro move: dot grid drifts up across the whole shot */
+        tl.fromTo(dots, { y: 0 }, { y: -32, duration: 15.2, ease: "none" }, 0);
+
+        /* chrome in fast */
+        tl.fromTo(
+          topbarLabel,
+          { opacity: 0, y: -12 },
+          { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+          0.05
+        );
+
+        /* ---- VO@0.00 "เมื่อก่อนผมนั่งเฝ้า..." — opening line + counter chip
+                land 0.2–1.0, then ambient while the VO sets the scene ---- */
+        tl.set(row1, { opacity: 1, x: -90 }, 0.2);
+        tl.to(row1, { x: 0, duration: 0.42, ease: "power4.out" }, 0.2);
+        tl.fromTo(
+          counterChip,
+          { opacity: 0, scale: 0.7 },
+          { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.6)" },
+          0.55
+        );
+        /* cue@3.68 "ก็ก็อปชื่อลูกค้า" — the loop starts: coral cross checks line 1 */
+        tl.fromTo(
+          "#pain2-x-1",
+          { scale: 0, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.32, ease: "back.out(2)" },
+          3.68
+        );
+
+        /* ---- loop rows waterfall on their VO cues: ก็อปที่อยู่@4.92,
+                วางในไลน์@5.71, ทำซ้ำ@6.7 (binary opacity via set, whip from
+                below, power4.out) ---- */
+        var wf = [
+          [row2, 4.92],
+          [row3, 5.71],
+          [row4, 6.7]
+        ];
+        var i, r, t;
+        for (i = 0; i < wf.length; i++) {
+          r = wf[i][0];
+          t = wf[i][1];
+          tl.set(r, { opacity: 1, y: 50 }, t);
+          tl.to(r, { y: 0, duration: 0.16, ease: "power4.out" }, t);
+        }
+
+        /* counter 1→34 on cue@7.68 "วันนึงสามสิบกว่า" —
+           counting-dynamic-scale: value + scale share ease/duration */
+        var count = { v: 1 };
+        tl.to(
+          count,
+          {
+            v: 34,
+            duration: 1.32,
+            ease: "power2.out",
+            onUpdate: function () {
+              countEl.textContent = String(Math.round(count.v));
+            }
+          },
+          7.68
+        );
+        tl.fromTo(
+          countEl,
+          { scale: 0.62 },
+          { scale: 1, duration: 1.32, ease: "power2.out" },
+          7.68
+        );
+
+        /* ---- error beat AFTER the count-up (spoken order): cue@11.55
+                "แล้วบางทีก็อปพลาด" — "ทำซ้ำ…" shifts down to open the slot ---- */
+        tl.to(row4, { y: 122, duration: 0.38, ease: "power3.out" }, 11.6);
+
+        var gcopies = [$("pain2-gwarm"), $("pain2-gcool")];
+        var glitchHash = function (n) {
+          var x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+          return x - Math.floor(x); /* pure — same frame on every seek */
+        };
+        var GLITCH_START = 12.88, /* cue "ที่อยู่ผิด" */
+          GLITCH_DUR = 0.38,
+          JITTER_STEP = 1 / 24,
+          MAX_SPLIT = 8,
+          SPLIT_OPACITY = 0.75;
+
+        /* glitch-stretch entrance on the whole row */
+        tl.fromTo(
+          rowErr,
+          { opacity: 0, scaleX: 1.45 },
+          { opacity: 1, scaleX: 1, duration: GLITCH_DUR, ease: "power4.out" },
+          GLITCH_START
+        );
+        var amp = { a: 0 };
+        tl.set(amp, { a: 1 }, GLITCH_START);
+        tl.set(gcopies, { opacity: SPLIT_OPACITY }, GLITCH_START);
+        tl.to(
+          amp,
+          {
+            a: 0,
+            duration: GLITCH_DUR,
+            ease: "power3.in",
+            onUpdate: function () {
+              var step = Math.floor(tl.time() / JITTER_STEP); /* quantized stutter */
+              gcopies.forEach(function (el, layer) {
+                var jx = (glitchHash(step * 13 + layer * 7) * 2 - 1) * MAX_SPLIT * amp.a;
+                var jy = (glitchHash(step * 29 + layer * 11) * 2 - 1) * MAX_SPLIT * 0.35 * amp.a;
+                gsap.set(el, { x: jx, y: jy });
+              });
+            }
+          },
+          GLITCH_START
+        );
+        /* clamp ghosts to exact rest — the snap-sharp */
+        tl.set(gcopies, { x: 0, y: 0, opacity: 0 }, GLITCH_START + GLITCH_DUR);
+
+        /* other lines dim deeper while the mistake holds focus (error row stays
+           bright — rows are dimmed individually, never the list container) */
+        tl.to([row1, row2, row3, row4], { opacity: 0.28, duration: 0.5, ease: "power2.inOut" }, 11.65);
+
+        /* ---- cue@9.22 "เสียเวลาสองชั่วโมงต่อวัน" — list recedes to 40%
+                and the hero time count-up takes the frame ---- */
+        tl.to([row1, row2, row3, row4], { opacity: 0.4, duration: 0.7, ease: "power2.inOut" }, 9.05);
+        tl.to(list, { scale: 0.965, duration: 0.7, ease: "power2.inOut" }, 9.05);
+        tl.to(counterChip, { opacity: 0.4, scale: 0.94, duration: 0.7, ease: "power2.inOut" }, 9.05);
+
+        tl.fromTo(
+          clockLabel,
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+          9.45
+        );
+
+        /* count 00:00:00 → 02:00:00 (proxy seconds 0→7200), scale 0.5→1,
+           value + scale share duration + ease (counting-dynamic-scale) */
+        var timeState = { v: 0 };
+        var pad2 = function (n) {
+          return (n < 10 ? "0" : "") + n;
+        };
+        var fmtClock = function () {
+          var v = Math.round(timeState.v);
+          var h = Math.floor(v / 3600),
+            m = Math.floor((v % 3600) / 60),
+            s = v % 60;
+          clock.textContent = pad2(h) + ":" + pad2(m) + ":" + pad2(s);
+        };
+        tl.fromTo(clock, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out" }, 9.25);
+        tl.fromTo(clock, { scale: 0.5 }, { scale: 1, duration: 1.95, ease: "power2.out" }, 9.25);
+        tl.to(timeState, { v: 7200, duration: 1.95, ease: "power2.out", onUpdate: fmtClock }, 9.25);
+
+        /* clock holds full size 11.2–13.7 while the error beat plays below it;
+           the error row joins the dimmed background as the finale starts */
+        tl.to(rowErr, { opacity: 0.4, duration: 0.5, ease: "power2.inOut" }, 13.7);
+
+        /* then ONE long journey 13.7–14.7:
+           center (540,545) → chip center (941,78), scale 1→0.25
+           (112px type × 0.25 ≈ 28px docked digits inside the 170×48 chip) */
+        tl.to(clock, { x: 401, y: -467, scale: 0.25, duration: 1.0, ease: "power3.inOut" }, 13.7);
+        tl.to(clockLabel, { opacity: 0, y: -10, duration: 0.4, ease: "power2.in" }, 13.7);
+
+        /* chip frame materializes just before touchdown */
+        tl.fromTo(
+          chip,
+          { opacity: 0, scale: 0.85 },
+          { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" },
+          14.4
+        );
+        /* landing: one coral accent flash, decays to the chip's CSS rest colors
+           (#0A0E16 / #4A5875 — palette-true, matches .pain2-chip) — still to 15.2 */
+        tl.fromTo(
+          chip,
+          { backgroundColor: "#FF6D7E", borderColor: "#FF6D7E" },
+          { backgroundColor: "#0A0E16", borderColor: "#4A5875", duration: 0.35, ease: "power2.out" },
+          14.7
+        );
+        tl.fromTo(
+          clock,
+          { color: "#0A0E16" },
+          { color: "#3ECFB2", duration: 0.35, ease: "power2.out" },
+          14.7
+        );
+
+        window.__timelines["02-pain"] = tl;
+      })();
+    </script>
+  </div>
+</template>

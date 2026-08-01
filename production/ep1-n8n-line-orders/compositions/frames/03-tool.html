@@ -1,0 +1,590 @@
+<template>
+  <style>
+    /* ── Fonts (local files only — no network at render) ── */
+    @font-face {
+      font-family: "Prompt";
+      src: url("public/fonts/Prompt-Light.ttf") format("truetype");
+      font-weight: 300;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Prompt";
+      src: url("public/fonts/Prompt-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Prompt";
+      src: url("public/fonts/Prompt-Medium.ttf") format("truetype");
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Prompt";
+      src: url("public/fonts/Prompt-SemiBold.ttf") format("truetype");
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Prompt";
+      src: url("public/fonts/Prompt-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("public/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("public/fonts/JetBrainsMono-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    /* ── Frame root (styled via #root — contract) ── */
+    #root {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      font-family: "Prompt", sans-serif;
+    }
+
+    .clip {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ── Background: green ground + subtle cream dot-grid (dimmed) ── */
+    #f03-tool-bg {
+      background-color: #111725;
+    }
+    .f03-tool-dots {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(188, 238, 228, 0.1) 2.2px, transparent 2.2px);
+      background-size: 52px 52px;
+      background-position: 26px 26px;
+    }
+
+    /* ── Topbar (the spine): mono label left · series clock chip right ── */
+    .f03-tool-topbar {
+      position: absolute;
+      top: 54px;
+      left: 54px;
+      right: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 8;
+    }
+    .f03-tool-toplabel {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 26px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #3ecfb2;
+    }
+    .f03-tool-clock {
+      display: flex;
+      align-items: center;
+      padding: 10px 18px;
+      border: 2px solid #4A5875;
+      border-radius: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 26px;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+      color: #D6DEF0;
+    }
+
+    /* ── Phase 1: nodes + quick connecting lines (0.1–1.0s) ── */
+    #f03-tool-lines {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+    }
+    #f03-tool-lines path {
+      fill: none;
+      stroke: #3ecfb2;
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .f03-tool-node {
+      position: absolute;
+      border-radius: 50%;
+      z-index: 3;
+      transform-origin: 50% 50%;
+      will-change: transform;
+      opacity: 0;
+    }
+    #f03-tool-node-a {
+      left: 202px;
+      top: 422px;
+      width: 96px;
+      height: 96px;
+      background: #3ecfb2;
+    }
+    #f03-tool-node-b {
+      left: 794px;
+      top: 384px;
+      width: 72px;
+      height: 72px;
+      background: #eef2fa;
+      filter: blur(1.2px);
+    }
+    #f03-tool-node-c {
+      left: 836px;
+      top: 876px;
+      width: 108px;
+      height: 108px;
+      background: #ff6d7e;
+    }
+    #f03-tool-node-d {
+      left: 180px;
+      top: 1040px;
+      width: 80px;
+      height: 80px;
+      background: #D6DEF0;
+      filter: blur(1.2px);
+    }
+    #f03-tool-node-e {
+      left: 546px;
+      top: 1286px;
+      width: 88px;
+      height: 88px;
+      background: #4A5875;
+      border: 2.5px solid #3ecfb2;
+    }
+
+    /* ── Phase 2: glow (behind), assemble ring, wordmark (lands @~1.2 on cue) ── */
+    #f03-tool-glow {
+      position: absolute;
+      left: 50px;
+      top: 316px;
+      width: 980px;
+      height: 980px;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(224, 62, 88, 0.85) 0%, rgba(224, 62, 88, 0) 70%);
+      z-index: 1;
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+    #f03-tool-ring {
+      position: absolute;
+      left: 390px;
+      top: 656px;
+      width: 300px;
+      height: 300px;
+      border: 2px solid #3ecfb2;
+      border-radius: 50%;
+      z-index: 4;
+      opacity: 0;
+      transform-origin: 50% 50%;
+    }
+    #f03-tool-lockup {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1920px;
+      z-index: 5;
+    }
+    #f03-tool-wordmark {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 626px;
+      height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Prompt", sans-serif;
+      font-weight: 500;
+      font-size: 360px;
+      line-height: 0.92;
+      letter-spacing: -0.02em;
+      color: #ff6d7e;
+      transform-origin: 50% 50%;
+      will-change: transform;
+      opacity: 0;
+    }
+
+    /* ── Phase 3: Thai subline (waterfall tokens, 2.5–4.0s) ── */
+    #f03-tool-subline {
+      position: absolute;
+      left: 54px;
+      right: 54px;
+      /* 1112 (not 1052): the wordmark's 360px line box (ascent+descent ≈ 1.37em)
+         reaches y ≈ 1053 — keep the subline rect clear of it (content_overlap) */
+      top: 1112px;
+      display: flex;
+      justify-content: center;
+      align-items: baseline;
+      gap: 18px;
+      flex-wrap: wrap;
+      font-family: "Prompt", sans-serif;
+      font-weight: 400;
+      font-size: 40px;
+      line-height: 1.34;
+      color: #eef2fa;
+    }
+    .f03-tool-word {
+      display: inline-block;
+      opacity: 0;
+      will-change: transform;
+    }
+
+    /* ── Phase 4: connect-line mini-flow emphasis (@4.4 on cue) ── */
+    #f03-tool-miniflow {
+      position: absolute;
+      left: 280px;
+      top: 1210px;
+      width: 520px;
+      height: 120px;
+      z-index: 5;
+    }
+    #f03-tool-miniflow path {
+      fill: none;
+      stroke: #3ecfb2;
+      stroke-width: 5;
+      stroke-linecap: round;
+    }
+    .f03-tool-mini-node {
+      transform-origin: 50% 50%;
+      opacity: 0;
+    }
+
+    /* ── Phase 5: feature badges (each on its own VO cue) ── */
+    #f03-tool-pills {
+      position: absolute;
+      left: 54px;
+      right: 54px;
+      top: 1360px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 22px;
+      z-index: 6;
+    }
+    .f03-tool-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 76px;
+      padding: 0 36px;
+      border-radius: 8px;
+      transform-origin: 50% 50%;
+      will-change: transform;
+      opacity: 0;
+    }
+    #f03-tool-pill-1 {
+      background: #3ecfb2;
+      color: #0A0E16;
+      font-family: "Prompt", sans-serif;
+      font-weight: 500;
+      font-size: 36px;
+    }
+    #f03-tool-pill-2 {
+      background: #eef2fa;
+      color: #111725;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 27px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    #f03-tool-pill-3 {
+      background: transparent;
+      border: 2px solid #3ecfb2;
+      color: #3ecfb2;
+      font-family: "Prompt", sans-serif;
+      font-weight: 500;
+      font-size: 36px;
+    }
+  </style>
+
+  <div id="root" data-composition-id="03-tool" data-width="1080" data-height="1920">
+    <!-- Full-bleed ground on its own clip (never on #root) -->
+    <div id="f03-tool-bg" class="clip" data-start="0" data-duration="10.24" data-track-index="0">
+      <div class="f03-tool-dots"></div>
+    </div>
+
+    <div id="f03-tool-main" class="clip" data-start="0" data-duration="10.24" data-track-index="1">
+      <!-- Topbar: chrome label + series clock chip (present from t=0, quiet) -->
+      <div class="f03-tool-topbar">
+        <div class="f03-tool-toplabel">EP 01 &middot; AUTOMATION</div>
+        <div class="f03-tool-clock"><span id="f03-tool-clock-time">01:58:41</span></div>
+      </div>
+
+      <!-- Glow behind the mark (z1) -->
+      <div id="f03-tool-glow"></div>
+
+      <!-- Connector lines (z2) -->
+      <svg id="f03-tool-lines" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+        <g id="f03-tool-lines-g">
+          <path id="f03-tool-edge-1" d="M 250 470 Q 540 372 830 420" />
+          <path id="f03-tool-edge-2" d="M 830 420 Q 926 664 890 930" />
+          <path id="f03-tool-edge-3" d="M 250 470 Q 172 780 220 1080" />
+          <path id="f03-tool-edge-4" d="M 220 1080 Q 376 1268 590 1330" />
+          <path id="f03-tool-edge-5" d="M 890 930 Q 792 1192 590 1330" />
+        </g>
+      </svg>
+
+      <!-- Nodes (z3) -->
+      <div class="f03-tool-node" id="f03-tool-node-a"></div>
+      <div class="f03-tool-node" id="f03-tool-node-b"></div>
+      <div class="f03-tool-node" id="f03-tool-node-c"></div>
+      <div class="f03-tool-node" id="f03-tool-node-d"></div>
+      <div class="f03-tool-node" id="f03-tool-node-e"></div>
+
+      <!-- Assemble ring accent (z4) -->
+      <div id="f03-tool-ring"></div>
+
+      <!-- Lockup: wordmark + subline (z5) -->
+      <div id="f03-tool-lockup">
+        <div id="f03-tool-wordmark">n8n</div>
+        <div id="f03-tool-subline">
+          <span class="f03-tool-word" id="f03-tool-word-1">เครื่องมือต่องานอัตโนมัติ</span>
+          <span class="f03-tool-word" id="f03-tool-word-2">—</span>
+          <span class="f03-tool-word" id="f03-tool-word-3">ลากบล็อกต่อกันเป็นเส้น</span>
+        </div>
+      </div>
+
+      <!-- Connect-line mini-flow: drag blocks, connect with a line (z5) -->
+      <svg id="f03-tool-miniflow" viewBox="0 0 520 120" xmlns="http://www.w3.org/2000/svg">
+        <path id="f03-tool-mini-line-1" d="M 58 60 L 242 60" />
+        <path id="f03-tool-mini-line-2" d="M 278 60 L 462 60" />
+        <circle class="f03-tool-mini-node" id="f03-tool-mini-node-1" cx="40" cy="60" r="18" fill="#3ecfb2" />
+        <circle class="f03-tool-mini-node" id="f03-tool-mini-node-2" cx="260" cy="60" r="18" fill="#eef2fa" />
+        <circle class="f03-tool-mini-node" id="f03-tool-mini-node-3" cx="480" cy="60" r="18" fill="#ff6d7e" />
+      </svg>
+
+      <!-- Feature badges (z6) -->
+      <div id="f03-tool-pills">
+        <div class="f03-tool-pill" id="f03-tool-pill-1">ฟรี</div>
+        <div class="f03-tool-pill" id="f03-tool-pill-2">OPEN SOURCE</div>
+        <div class="f03-tool-pill" id="f03-tool-pill-3">ไม่มีค่ารายเดือน</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="public/vendor/gsap.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+
+      /* ── Series clock: counts down from 01:58:41 across the whole frame (deterministic) ── */
+      var clockEl = document.getElementById("f03-tool-clock-time");
+      var CLOCK_START = 1 * 3600 + 58 * 60 + 41;
+      var clock = { t: 0 };
+      tl.to(
+        clock,
+        {
+          t: 10.24,
+          duration: 10.24,
+          ease: "none",
+          onUpdate: function () {
+            var total = CLOCK_START - Math.floor(clock.t);
+            var h = Math.floor(total / 3600);
+            var m = Math.floor((total % 3600) / 60);
+            var s = total % 60;
+            clockEl.textContent =
+              (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+          },
+        },
+        0,
+      );
+
+      /* ── Phase 1 (0.1–1.0s, cue ตัวที่ผมใช้ชื่อ@0.00): 5 nodes spring-pop in ── */
+      var nodeIds = [
+        "#f03-tool-node-a",
+        "#f03-tool-node-b",
+        "#f03-tool-node-c",
+        "#f03-tool-node-d",
+        "#f03-tool-node-e",
+      ];
+      /* layered depth: far nodes (b, d) settle slightly dimmed */
+      var nodeOpacity = [1, 0.88, 1, 0.88, 1];
+      nodeIds.forEach(function (sel, i) {
+        tl.fromTo(
+          sel,
+          { scale: 0, opacity: 0, y: 24 },
+          { scale: 1, opacity: nodeOpacity[i], y: 0, duration: 0.42, ease: "power3.out" },
+          0.08 + i * 0.08,
+        );
+      });
+
+      /* Quick connector draws between the scattered nodes (svg-path-draw: measured lengths) */
+      var edges = [
+        "#f03-tool-edge-1",
+        "#f03-tool-edge-2",
+        "#f03-tool-edge-3",
+        "#f03-tool-edge-4",
+        "#f03-tool-edge-5",
+      ];
+      edges.forEach(function (sel) {
+        var p = document.querySelector(sel);
+        var len = p.getTotalLength();
+        p.style.strokeDasharray = String(len);
+        p.style.strokeDashoffset = String(len);
+      });
+      edges.forEach(function (sel, i) {
+        tl.to(
+          sel,
+          { strokeDashoffset: 0, duration: 0.26, ease: "power2.out" },
+          0.3 + i * 0.1,
+        );
+      });
+
+      /* ── Phase 2 (0.8–1.25s): converge; wordmark + glow land as ONE beat @~1.22
+         (cue เอ็นเอทเอ็น@1.12) ── */
+      var CX = 540;
+      var CY = 806;
+      var nodeCenters = [
+        { x: 250, y: 470 },
+        { x: 830, y: 420 },
+        { x: 890, y: 930 },
+        { x: 220, y: 1080 },
+        { x: 590, y: 1330 },
+      ];
+      nodeIds.forEach(function (sel, i) {
+        tl.to(
+          sel,
+          {
+            x: CX - nodeCenters[i].x,
+            y: CY - nodeCenters[i].y,
+            scale: 0.14,
+            opacity: 0,
+            duration: 0.36,
+            ease: "power2.in",
+          },
+          0.82 + i * 0.02,
+        );
+      });
+      tl.to(
+        "#f03-tool-lines-g",
+        {
+          scale: 0.1,
+          opacity: 0,
+          svgOrigin: "540 806",
+          duration: 0.42,
+          ease: "power2.in",
+        },
+        0.8,
+      );
+
+      /* Assemble ring accent: one finite expanding pass at the impact beat */
+      tl.fromTo(
+        "#f03-tool-ring",
+        { scale: 0.4, opacity: 0.7 },
+        { scale: 2.2, opacity: 0, duration: 0.6, ease: "power2.out" },
+        0.9,
+      );
+
+      /* Wordmark pops in — calm settle; glow blooms behind it, landing together @1.22 */
+      tl.fromTo(
+        "#f03-tool-wordmark",
+        { scale: 0.5, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+        0.72,
+      );
+      tl.fromTo(
+        "#f03-tool-glow",
+        { opacity: 0, scale: 0.85 },
+        { opacity: 0.32, scale: 1, duration: 0.5, ease: "power2.out" },
+        0.72,
+      );
+
+      /* Bounded glow breathe during the hold — finite phase tween, sin(0)=0, amp within ceiling */
+      var glowEl = document.getElementById("f03-tool-glow");
+      var phase = { p: 0 };
+      tl.to(
+        phase,
+        {
+          p: Math.PI * 2 * 3,
+          duration: 8.85,
+          ease: "none",
+          onUpdate: function () {
+            var s = Math.sin(phase.p);
+            glowEl.style.opacity = String(0.32 + s * 0.03);
+            glowEl.style.transform = "scale(" + (1 + s * 0.015) + ")";
+          },
+        },
+        1.25,
+      );
+
+      /* ── Phase 3 (2.5–4.0s, cue มันคือเครื่องมือต่องานอัตโนมัติ@2.40): subline waterfall ── */
+      var t0 = 2.5; /* anchor phrase: heaviest — biggest travel, longest settle */
+      tl.set("#f03-tool-word-1", { opacity: 1, y: 70 }, t0);
+      tl.to("#f03-tool-word-1", { y: 0, duration: 0.18, ease: "power4.out" }, t0);
+      var t1 = 3.1; /* light dash: snaps in tight */
+      tl.set("#f03-tool-word-2", { opacity: 1, y: 40 }, t1);
+      tl.to("#f03-tool-word-2", { y: 0, duration: 0.12, ease: "power4.out" }, t1);
+      var t2 = 3.55; /* closing phrase: lands inside the 2.5–4.0 window */
+      tl.set("#f03-tool-word-3", { opacity: 1, y: 55 }, t2);
+      tl.to("#f03-tool-word-3", { y: 0, duration: 0.16, ease: "power4.out" }, t2);
+
+      /* ── Phase 4 (cue ลากบล็อกต่อกันเป็นเส้น@4.40): connect-line draw emphasis —
+         block → line draws → block → line draws → block ── */
+      var miniLines = ["#f03-tool-mini-line-1", "#f03-tool-mini-line-2"];
+      miniLines.forEach(function (sel) {
+        var p = document.querySelector(sel);
+        var len = p.getTotalLength();
+        p.style.strokeDasharray = String(len);
+        p.style.strokeDashoffset = String(len);
+      });
+      tl.fromTo(
+        "#f03-tool-mini-node-1",
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" },
+        4.35,
+      );
+      tl.to(
+        "#f03-tool-mini-line-1",
+        { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" },
+        4.45,
+      );
+      tl.fromTo(
+        "#f03-tool-mini-node-2",
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" },
+        4.9,
+      );
+      tl.to(
+        "#f03-tool-mini-line-2",
+        { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" },
+        5.0,
+      );
+      tl.fromTo(
+        "#f03-tool-mini-node-3",
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" },
+        5.45,
+      );
+
+      /* ── Phase 5: badges snap on their own VO cues — ฟรี@5.9 · OPEN SOURCE@6.5 ·
+         ไม่มีค่ารายเดือน@9.2 (the third pill waits for its cue) ── */
+      var pillSels = ["#f03-tool-pill-1", "#f03-tool-pill-2", "#f03-tool-pill-3"];
+      var pillStarts = [5.9, 6.5, 9.2];
+      pillSels.forEach(function (sel, i) {
+        tl.fromTo(
+          sel,
+          { scale: 0, opacity: 0, y: 24 },
+          { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+          pillStarts[i],
+        );
+      });
+      /* 9.7 → 10.24: held read — lockup dead still; only the clock ticks and the glow breathes */
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["03-tool"] = tl;
+    })();
+  </script>
+</template>

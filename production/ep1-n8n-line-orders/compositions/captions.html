@@ -1,0 +1,224 @@
+<template id="captions-template" data-composition-id="captions" data-width="1080" data-height="1920">
+<script src="public/vendor/gsap.min.js"></script>
+
+
+<style data-brand-tokens>
+      @font-face { font-family: 'Prompt'; src: url('assets/fonts/Prompt-Bold.ttf') format('truetype'); font-weight: 700; font-display: block; }
+      @font-face { font-family: 'Prompt'; src: url('assets/fonts/Prompt-Light.ttf') format('truetype'); font-weight: 300; font-display: block; }
+      @font-face { font-family: 'Prompt'; src: url('assets/fonts/Prompt-Medium.ttf') format('truetype'); font-weight: 500; font-display: block; }
+      @font-face { font-family: 'Prompt'; src: url('assets/fonts/Prompt-Regular.ttf') format('truetype'); font-weight: 400; font-display: block; }
+      @font-face { font-family: 'Prompt'; src: url('assets/fonts/Prompt-SemiBold.ttf') format('truetype'); font-weight: 600; font-display: block; }
+      :root {
+      --green: #111725;
+      --green-deep: #0A0E16;
+      --green-lite: #4A5875;
+      --pink: #3ECFB2;
+      --pink-deep: #FF6D7E;
+      --cream: #EEF2FA;
+      --cream-2: #D6DEF0;
+      --ink: #0A0E16;
+      --cap-ink: #0A0E16;
+      --cap-canvas: #EEF2FA;
+      --cap-accent: #FF6D7E;
+      --cap-accent-2: #3ECFB2;
+      --font-display: "Prompt", system-ui, serif;
+      --font-body: "Prompt", system-ui, sans-serif;
+      --cap-band-top: 1600px;
+      --cap-band-height: 320px;
+      }
+    </style>
+
+<style>
+  #captions-root {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .caption-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+  }
+  /* the keep-out band, from captionBand(H) — frame content stays above it */
+  .caption-stage {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--cap-band-top, 900px);
+    height: var(--cap-band-height, 180px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .caption-group {
+    /* every group is absolutely stacked over the SAME band — exactly one shown at a
+       time via opacity. Must be absolute: in-flow groups would lay out side-by-side. */
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+
+  /* THE oat-cream card — single 2px green hairline border (the system's only
+     separator), 6px card radius, NO shadow (flat, paper-based) */
+  .caption-pill {
+    max-width: 78%;
+    padding: 20px 44px 24px;
+    background: var(--cap-canvas, #efe7d4);
+    border: 2px solid var(--cap-accent, #d27e96);
+    border-radius: 6px;
+  }
+  .caption-line {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.1em 0.34em;
+    font-family: "Prompt", Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(40px, 4.4vw, 58px);
+    line-height: 1.16;
+    letter-spacing: -0.02em;
+  }
+
+  /* upcoming — faint warm ink, no panel */
+  .caption-word {
+    display: inline-block;
+    padding: 0 0.06em;
+    color: color-mix(in srgb, var(--cap-ink, #1a1a17) 42%, var(--cap-canvas, #efe7d4));
+  }
+  /* current word — a quiet dusty-rose panel (box-shadow spread = a soft 6px block w/o
+     layout shift; no blur — editorial restraint, not a loud block), warm ink on top */
+  .caption-word.is-active {
+    color: var(--cap-ink, #1a1a17);
+    background: var(--cap-accent, #d27e96);
+    box-shadow: 0 0 0 0.05em var(--cap-accent, #d27e96);
+    border-radius: 6px;
+  }
+  /* already spoken — solid warm ink, panel cleared */
+  .caption-word.is-spoken {
+    color: var(--cap-ink, #1a1a17);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* optional per-word accents (dormant until a word-classer tags them) */
+  /* brand / key term — heavier serif weight, editorial-forest's only display inflection */
+  .caption-word.cap-brand {
+    font-weight: 600;
+  }
+  /* numerals / data — the mono chrome voice, slightly recessed */
+  .caption-word.cap-num {
+    font-family: "Prompt", ui-monospace, monospace;
+    color: color-mix(in srgb, var(--cap-ink, #1a1a17) 72%, var(--cap-canvas, #efe7d4));
+  }
+  /* emphasis — a 2px green hairline underline (the system's only separator, never heavy) */
+  .caption-word.cap-cta {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--cap-accent-2, #e89cb1);
+    text-underline-offset: 0.1em;
+  }
+
+  @media (max-aspect-ratio: 9/16) {
+    .caption-pill {
+      max-width: 92%;
+    }
+    .caption-line {
+      font-size: clamp(34px, 5.4vw, 48px);
+    }
+  }
+</style>
+
+<div
+  id="captions-root"
+  data-composition-id="captions"
+  data-timeline-locked
+  data-start="0"
+  data-duration="96.56"
+  data-fps="30"
+  data-width="1080"
+  data-height="1920"
+>
+  <div class="caption-layer" aria-hidden="true">
+    <div id="caption-stage" class="caption-stage"></div>
+  </div>
+</div>
+
+<script>
+  // captions.mjs injects the engine's scene-aware groups + real duration here.
+  var GROUPS = [{"id":"caption-group-0","frame":1,"start":0,"end":4.76,"text":"ผมจะสอนทำระบบออโตเมติกด้วย เอ็นเอทเอ็น แบบฟรีๆ ไม่ต้องเสียตังค์สักบาท","words":[{"id":"caption-word-0-0","text":"ผมจะสอนทำระบบออโตเมติกด้วย","start":0,"end":1.84},{"id":"caption-word-0-1","text":"เอ็นเอทเอ็น","start":1.867,"end":2.4},{"id":"caption-word-0-2","text":"แบบฟรีๆ","start":2.48,"end":3.28},{"id":"caption-word-0-3","text":"ไม่ต้องเสียตังค์สักบาท","start":3.36,"end":4.72}]},{"id":"caption-group-1","frame":1,"start":4.76,"end":8.88,"text":"ดูนะ ออเดอร์เพิ่งเข้าเมื่อกี้ เด้งเข้าไลน์เองเลย ผมไม่ได้แตะอะไรเลย","words":[{"id":"caption-word-1-0","text":"ดูนะ","start":4.76,"end":5.04},{"id":"caption-word-1-1","text":"ออเดอร์เพิ่งเข้าเมื่อกี้","start":5.16,"end":6.32},{"id":"caption-word-1-2","text":"เด้งเข้าไลน์เองเลย","start":6.427,"end":7.76},{"id":"caption-word-1-3","text":"ผมไม่ได้แตะอะไรเลย","start":7.84,"end":8.88}]},{"id":"caption-group-2","frame":2,"start":8.88,"end":14.587,"text":"เมื่อก่อนผมนั่งเฝ้าหน้าร้านออนไลน์ทั้งวัน มีออเดอร์เข้าที ก็ก็อปชื่อลูกค้า ก็อปที่อยู่","words":[{"id":"caption-word-2-0","text":"เมื่อก่อนผมนั่งเฝ้าหน้าร้านออนไลน์ทั้งวัน","start":8.88,"end":11.44},{"id":"caption-word-2-1","text":"มีออเดอร์เข้าที","start":11.48,"end":12.48},{"id":"caption-word-2-2","text":"ก็ก็อปชื่อลูกค้า","start":12.56,"end":13.68},{"id":"caption-word-2-3","text":"ก็อปที่อยู่","start":13.8,"end":14.48}]},{"id":"caption-group-3","frame":2,"start":14.587,"end":21.721,"text":"ไปวางในกลุ่มไลน์ของทีมครัว วันนึงสามสิบกว่าออเดอร์ รวมแล้วเสียเวลาไปสองชั่วโมงต่อวัน แล้วบางทีก็อปพลาด","words":[{"id":"caption-word-3-0","text":"ไปวางในกลุ่มไลน์ของทีมครัว","start":14.587,"end":16.4},{"id":"caption-word-3-1","text":"วันนึงสามสิบกว่าออเดอร์","start":16.56,"end":18},{"id":"caption-word-3-2","text":"รวมแล้วเสียเวลาไปสองชั่วโมงต่อวัน","start":18.1,"end":20.321},{"id":"caption-word-3-3","text":"แล้วบางทีก็อปพลาด","start":20.428,"end":21.601}]},{"id":"caption-group-4","frame":2,"start":21.761,"end":24.08,"text":"ที่อยู่ผิด ของไปส่งผิดบ้านก็มี","words":[{"id":"caption-word-4-0","text":"ที่อยู่ผิด","start":21.761,"end":22.401},{"id":"caption-word-4-1","text":"ของไปส่งผิดบ้านก็มี","start":22.501,"end":24.081}]},{"id":"caption-group-5","frame":3,"start":24.08,"end":29.96,"text":"ตัวที่ผมใช้ชื่อ เอ็นเอทเอ็น มันคือเครื่องมือต่องานอัตโนมัติ ลากบล็อกต่อกันเป็นเส้น","words":[{"id":"caption-word-5-0","text":"ตัวที่ผมใช้ชื่อ","start":24.08,"end":25.12},{"id":"caption-word-5-1","text":"เอ็นเอทเอ็น","start":25.2,"end":26.32},{"id":"caption-word-5-2","text":"มันคือเครื่องมือต่องานอัตโนมัติ","start":26.48,"end":28.4},{"id":"caption-word-5-3","text":"ลากบล็อกต่อกันเป็นเส้น","start":28.48,"end":29.84}]},{"id":"caption-group-6","frame":3,"start":29.973,"end":34.32,"text":"ฟรี เป็นโอเพนซอร์สด้วย เอาไปลงเครื่องตัวเองได้เลย ไม่มีค่ารายเดือน","words":[{"id":"caption-word-6-0","text":"ฟรี","start":29.973,"end":30.48},{"id":"caption-word-6-1","text":"เป็นโอเพนซอร์สด้วย","start":30.533,"end":31.68},{"id":"caption-word-6-2","text":"เอาไปลงเครื่องตัวเองได้เลย","start":31.733,"end":33.2},{"id":"caption-word-6-3","text":"ไม่มีค่ารายเดือน","start":33.253,"end":34.32}]},{"id":"caption-group-7","frame":4,"start":34.32,"end":40,"text":"ขั้นแรก สร้างเวิร์กโฟลว์ใหม่ แล้วเลือกตัวเริ่มต้นเป็นเว็บฮุค เว็บฮุคคือประตูรับข้อมูล","words":[{"id":"caption-word-7-0","text":"ขั้นแรก","start":34.32,"end":34.88},{"id":"caption-word-7-1","text":"สร้างเวิร์กโฟลว์ใหม่","start":34.96,"end":36},{"id":"caption-word-7-2","text":"แล้วเลือกตัวเริ่มต้นเป็นเว็บฮุค","start":36.107,"end":38},{"id":"caption-word-7-3","text":"เว็บฮุคคือประตูรับข้อมูล","start":38.08,"end":39.92}]},{"id":"caption-group-8","frame":4,"start":40,"end":45.56,"text":"ใครส่งอะไรเข้ามาตรงนี้ เส้นงานจะเริ่มทำงานทันที มันจะให้ลิงก์มาอันนึง ก็อปเก็บไว้ก่อน","words":[{"id":"caption-word-8-0","text":"ใครส่งอะไรเข้ามาตรงนี้","start":40,"end":41.52},{"id":"caption-word-8-1","text":"เส้นงานจะเริ่มทำงานทันที","start":41.547,"end":43.28},{"id":"caption-word-8-2","text":"มันจะให้ลิงก์มาอันนึง","start":43.32,"end":44.4},{"id":"caption-word-8-3","text":"ก็อปเก็บไว้ก่อน","start":44.48,"end":45.44}]},{"id":"caption-group-9","frame":4,"start":45.56,"end":48,"text":"พอสร้างเสร็จจะเห็นบล็อกแรกโผล่มาแบบนี้","words":[{"id":"caption-word-9-0","text":"พอสร้างเสร็จจะเห็นบล็อกแรกโผล่มาแบบนี้","start":45.56,"end":48}]},{"id":"caption-group-10","frame":5,"start":48,"end":54.12,"text":"ขั้นที่สอง เอาลิงก์เมื่อกี้ไปใส่ในหน้าตั้งค่าของร้านค้า ตรงช่องแจ้งเตือนออเดอร์ ตรงนี้สำคัญ","words":[{"id":"caption-word-10-0","text":"ขั้นที่สอง","start":48,"end":48.56},{"id":"caption-word-10-1","text":"เอาลิงก์เมื่อกี้ไปใส่ในหน้าตั้งค่าของร้านค้า","start":48.72,"end":51.52},{"id":"caption-word-10-2","text":"ตรงช่องแจ้งเตือนออเดอร์","start":51.68,"end":53.04},{"id":"caption-word-10-3","text":"ตรงนี้สำคัญ","start":53.147,"end":54}]},{"id":"caption-group-11","frame":5,"start":54.12,"end":60.28,"text":"ต้องกดเทสก่อนทุกครั้ง ถ้าไม่กดเทส มันจะยังไม่รู้ว่าข้อมูลหน้าตายังไง แล้วขั้นต่อไปจะพัง","words":[{"id":"caption-word-11-0","text":"ต้องกดเทสก่อนทุกครั้ง","start":54.12,"end":55.52},{"id":"caption-word-11-1","text":"ถ้าไม่กดเทส","start":55.68,"end":56.64},{"id":"caption-word-11-2","text":"มันจะยังไม่รู้ว่าข้อมูลหน้าตายังไง","start":56.76,"end":58.88},{"id":"caption-word-11-3","text":"แล้วขั้นต่อไปจะพัง","start":58.933,"end":60.16}]},{"id":"caption-group-12","frame":5,"start":60.28,"end":63.6,"text":"พอเทสผ่าน จะเห็นข้อมูลออเดอร์จริงวิ่งเข้ามาแบบนี้","words":[{"id":"caption-word-12-0","text":"พอเทสผ่าน","start":60.28,"end":61.12},{"id":"caption-word-12-1","text":"จะเห็นข้อมูลออเดอร์จริงวิ่งเข้ามาแบบนี้","start":61.2,"end":63.6}]},{"id":"caption-group-13","frame":6,"start":63.6,"end":64.52,"text":"ขั้นที่สาม","words":[{"id":"caption-word-13-0","text":"ขั้นที่สาม","start":63.6,"end":64.4}]},{"id":"caption-group-14","frame":6,"start":64.6,"end":71.4,"text":"ต่อบล็อกไลน์เข้าไปท้ายเส้น แล้วลากชื่อลูกค้ากับที่อยู่จากบล็อกแรก มาวางในช่องข้อความ เท่านี้คือจบแล้ว","words":[{"id":"caption-word-14-0","text":"ต่อบล็อกไลน์เข้าไปท้ายเส้น","start":64.6,"end":66.24},{"id":"caption-word-14-1","text":"แล้วลากชื่อลูกค้ากับที่อยู่จากบล็อกแรก","start":66.32,"end":68.72},{"id":"caption-word-14-2","text":"มาวางในช่องข้อความ","start":68.76,"end":70},{"id":"caption-word-14-3","text":"เท่านี้คือจบแล้ว","start":70.08,"end":71.28}]},{"id":"caption-group-15","frame":6,"start":71.44,"end":73.2,"text":"กดแอคทีฟมุมขวาบน","words":[{"id":"caption-word-15-0","text":"กดแอคทีฟมุมขวาบน","start":71.44,"end":73.2}]},{"id":"caption-group-16","frame":7,"start":73.2,"end":74.04,"text":"ลองสั่งจริงนะ","words":[{"id":"caption-word-16-0","text":"ลองสั่งจริงนะ","start":73.2,"end":73.92}]},{"id":"caption-group-17","frame":7,"start":74.12,"end":75,"text":"กดสั่ง...","words":[{"id":"caption-word-17-0","text":"กดสั่ง...","start":74.12,"end":74.88}]},{"id":"caption-group-18","frame":7,"start":75,"end":78.74,"text":"สี่วินาที เข้าไลน์แล้ว ชื่อถูก ที่อยู่ถูก","words":[{"id":"caption-word-18-0","text":"สี่วินาที","start":75,"end":75.92},{"id":"caption-word-18-1","text":"เข้าไลน์แล้ว","start":76.027,"end":76.96},{"id":"caption-word-18-2","text":"ชื่อถูก","start":77.12,"end":77.76},{"id":"caption-word-18-3","text":"ที่อยู่ถูก","start":77.88,"end":78.64}]},{"id":"caption-group-19","frame":7,"start":78.74,"end":83.2,"text":"จากที่ทำมือสองชั่วโมงต่อวัน เหลือศูนย์ ผมไม่ต้องเฝ้าหน้าจอเลย","words":[{"id":"caption-word-19-0","text":"จากที่ทำมือสองชั่วโมงต่อวัน","start":78.74,"end":80.64},{"id":"caption-word-19-1","text":"เหลือศูนย์","start":80.8,"end":81.6},{"id":"caption-word-19-2","text":"ผมไม่ต้องเฝ้าหน้าจอเลย","start":81.76,"end":83.2}]},{"id":"caption-group-20","frame":8,"start":83.2,"end":88.6,"text":"ถ้าจะเริ่ม ทำแค่อย่างเดียวพอ ไปสมัครเอ็นเอทเอ็น แล้วสร้างเว็บฮุคให้ได้ลิงก์มา","words":[{"id":"caption-word-20-0","text":"ถ้าจะเริ่ม","start":83.2,"end":83.92},{"id":"caption-word-20-1","text":"ทำแค่อย่างเดียวพอ","start":84.053,"end":85.2},{"id":"caption-word-20-2","text":"ไปสมัครเอ็นเอทเอ็น","start":85.307,"end":86.56},{"id":"caption-word-20-3","text":"แล้วสร้างเว็บฮุคให้ได้ลิงก์มา","start":86.64,"end":88.48}]},{"id":"caption-group-21","frame":8,"start":88.64,"end":93.12,"text":"แค่นั้น พรุ่งนี้ค่อยต่อตัวถัดไป ตอนหน้า ผมจะเอาข้อความธรรมดา","words":[{"id":"caption-word-21-0","text":"แค่นั้น","start":88.64,"end":89.2},{"id":"caption-word-21-1","text":"พรุ่งนี้ค่อยต่อตัวถัดไป","start":89.28,"end":90.72},{"id":"caption-word-21-2","text":"ตอนหน้า","start":90.82,"end":91.52},{"id":"caption-word-21-3","text":"ผมจะเอาข้อความธรรมดา","start":91.64,"end":93.04}]},{"id":"caption-group-22","frame":8,"start":93.12,"end":96.68,"text":"ให้เอไอแปลงเป็นผังงานให้ทีมเข้าใจในสามนาที","words":[{"id":"caption-word-22-0","text":"ให้เอไอแปลงเป็นผังงานให้ทีมเข้าใจในสามนาที","start":93.12,"end":96.56}]}];
+  var DURATION = 96.56;
+
+  (function () {
+    var stage = document.getElementById("caption-stage");
+
+    // build DOM: one .caption-group per group, .caption-word per word
+    GROUPS.forEach(function (group, g) {
+      var groupEl = document.createElement("div");
+      groupEl.className = "caption-group";
+      groupEl.id = "caption-group-" + g;
+      var pill = document.createElement("div");
+      pill.className = "caption-pill";
+      var line = document.createElement("div");
+      line.className = "caption-line";
+      (group.words || []).forEach(function (w, i) {
+        var span = document.createElement("span");
+        span.className = "caption-word";
+        span.id = "caption-word-" + g + "-" + i;
+        span.textContent = String(w.text);
+        line.appendChild(span);
+      });
+      pill.appendChild(line);
+      groupEl.appendChild(pill);
+      stage.appendChild(groupEl);
+    });
+
+    window.__timelines = window.__timelines || {};
+    var tl = gsap.timeline({ paused: true });
+
+    GROUPS.forEach(function (group, g) {
+      var groupEl = document.getElementById("caption-group-" + g);
+      var words = group.words || [];
+      var next = GROUPS[g + 1];
+      var isLast = g === GROUPS.length - 1;
+      var start = Math.max(0, Number(group.start));
+      var end = isLast ? DURATION : Math.min(Number(next.start), Number(group.end) + 0.3);
+      if (end <= start) end = start + 0.01;
+
+      // group on/off — exactly one group visible at a time
+      tl.set(groupEl, { opacity: 1 }, start);
+      tl.set(groupEl, { opacity: 0 }, end);
+
+      // 3-state karaoke via className SETS — seek-safe (gsap.set applies on the
+      // engine's frame-by-frame seek; .call callbacks would NOT fire).
+      words.forEach(function (w, i) {
+        var el = document.getElementById("caption-word-" + g + "-" + i);
+        var at = Math.max(start, Number(w.start));
+        tl.set(el, { className: "caption-word" }, start); // upcoming (also resets on reverse-seek)
+        tl.set(el, { className: "caption-word is-active" }, at); // current
+        tl.fromTo(el, { scale: 0.985 }, { scale: 1, duration: 0.18, ease: "power1.out" }, at);
+        if (i + 1 < words.length) {
+          var nextAt = Math.max(start, Number(words[i + 1].start));
+          tl.set(el, { className: "caption-word is-spoken" }, nextAt); // demote when next activates
+        }
+      });
+      if (words.length) {
+        var lastEl = document.getElementById("caption-word-" + g + "-" + (words.length - 1));
+        var lastSpoken = Math.min(end, Number(words[words.length - 1].end) + 0.1);
+        tl.set(lastEl, { className: "caption-word is-spoken" }, lastSpoken);
+      }
+    });
+
+    // full-span anchor so the sub-comp timeline spans the whole video
+    tl.to({}, { duration: DURATION }, 0);
+    window.__timelines["captions"] = tl;
+  })();
+</script>
+
+<style>
+  .caption-line { line-height: 1.1 !important; }
+</style>
+</template>

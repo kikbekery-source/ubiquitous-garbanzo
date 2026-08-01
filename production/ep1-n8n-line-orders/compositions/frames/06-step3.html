@@ -1,0 +1,1161 @@
+<template>
+  <style>
+    /* ── Fonts (local files only — no network at render) ── */
+    @font-face {
+      font-family: "Prompt";
+      src: url("public/fonts/Prompt-Light.ttf") format("truetype");
+      font-weight: 300;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Prompt";
+      src: url("public/fonts/Prompt-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Prompt";
+      src: url("public/fonts/Prompt-Medium.ttf") format("truetype");
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Prompt";
+      src: url("public/fonts/Prompt-SemiBold.ttf") format("truetype");
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Prompt";
+      src: url("public/fonts/Prompt-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("public/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("public/fonts/JetBrainsMono-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    /* ── Frame root (styled via #root — contract) ── */
+    #root {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      font-family: "Prompt", sans-serif;
+    }
+    #root * {
+      box-sizing: border-box;
+    }
+    .clip {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ── Ground: cream paper + faint green dot grid ── */
+    #f06-bg {
+      background-color: #eef2fa;
+    }
+    .f06-grounddots {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(23, 93, 79, 0.07) 2.2px, transparent 2.2px);
+      background-size: 52px 52px;
+      background-position: 26px 26px;
+    }
+
+    /* ── Topbar: mono label left · series clock chip right ── */
+    .f06-topbar {
+      position: absolute;
+      top: 54px;
+      left: 54px;
+      right: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 8;
+    }
+    .f06-toplabel {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 26px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #111725;
+    }
+    .f06-clock {
+      display: flex;
+      align-items: center;
+      padding: 10px 18px;
+      border: 2px solid #D6DEF0;
+      border-radius: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 26px;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+      color: #0A0E16;
+    }
+
+    /* ── Header: mono kicker + headline ── */
+    #f06-kick {
+      position: absolute;
+      left: 60px;
+      top: 162px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #4A5875;
+      opacity: 0;
+    }
+    #f06-head {
+      position: absolute;
+      left: 60px;
+      top: 212px;
+      font-weight: 500;
+      font-size: 68px;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: #111725;
+      opacity: 0;
+    }
+
+    /* ── The n8n-style canvas panel (brand-identity mock) ── */
+    #f06-canvas {
+      position: absolute;
+      left: 50px;
+      top: 320px;
+      width: 980px;
+      height: 1120px;
+      background-color: #eef2fa;
+      border: 2.5px solid #111725;
+      border-radius: 8px;
+      transform-origin: 50% 36%;
+      z-index: 4;
+    }
+    .f06-dots {
+      position: absolute;
+      inset: 0;
+      border-radius: 8px;
+      background-image: radial-gradient(rgba(23, 93, 79, 0.14) 2.2px, transparent 2.2px);
+      background-size: 48px 48px;
+      background-position: 24px 24px;
+    }
+
+    /* canvas header strip */
+    .f06-strip {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 84px;
+      border-bottom: 2px solid #111725;
+      z-index: 7;
+    }
+    .f06-striplabel {
+      position: absolute;
+      left: 32px;
+      top: 0;
+      height: 84px;
+      display: flex;
+      align-items: center;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 22px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #4A5875;
+    }
+    #f06-active-label {
+      position: absolute;
+      right: 166px;
+      top: 0;
+      height: 84px;
+      display: flex;
+      align-items: center;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+      font-size: 26px;
+      letter-spacing: 0.06em;
+      color: #0A0E16;
+    }
+    #f06-track {
+      position: absolute;
+      left: 836px;
+      top: 20px;
+      width: 112px;
+      height: 44px;
+      background-color: #D6DEF0;
+      border: 2px solid #111725;
+      border-radius: 6px;
+    }
+    #f06-track-on {
+      position: absolute;
+      inset: 4px;
+      border-radius: 4px;
+      background-color: #3ecfb2;
+      opacity: 0;
+    }
+    #f06-knob {
+      position: absolute;
+      left: 6px;
+      top: 4px;
+      width: 32px;
+      height: 32px;
+      background-color: #0A0E16;
+      border-radius: 4px;
+    }
+
+    /* wires */
+    #f06-wires {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+    }
+    #f06-wire-base {
+      fill: none;
+      stroke: #111725;
+      stroke-width: 4;
+      stroke-linecap: round;
+    }
+    #f06-wire-on {
+      fill: none;
+      stroke: #3ecfb2;
+      stroke-width: 5;
+      stroke-linecap: round;
+      opacity: 0;
+    }
+    #f06-wire-pulse {
+      fill: none;
+      stroke: #D6DEF0;
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 16 14;
+      opacity: 0;
+    }
+
+    /* nodes */
+    .f06-node {
+      position: absolute;
+      width: 160px;
+      height: 160px;
+      background-color: #eef2fa;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+    #f06-node-hook {
+      left: 90px;
+      top: 200px;
+      border: 2.5px solid #111725;
+    }
+    #f06-node-chat {
+      left: 730px;
+      top: 200px;
+      border: 2.5px solid #3ecfb2;
+      opacity: 0;
+    }
+    #f06-hook-lit {
+      position: absolute;
+      inset: -2.5px;
+      border: 2.5px solid #3ecfb2;
+      border-radius: 8px;
+      opacity: 0;
+    }
+    .f06-nodelabel {
+      position: absolute;
+      width: 160px;
+      text-align: center;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 22px;
+      letter-spacing: 0.12em;
+      color: #0A0E16;
+      z-index: 5;
+    }
+    #f06-hook-label {
+      left: 90px;
+      top: 374px;
+    }
+    #f06-chat-label {
+      left: 730px;
+      top: 374px;
+      opacity: 0;
+    }
+    .f06-port {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      z-index: 6;
+    }
+    #f06-port-out {
+      left: 242px;
+      top: 272px;
+      background-color: #111725;
+    }
+    #f06-port-in {
+      left: 722px;
+      top: 272px;
+      background-color: #eef2fa;
+      border: 2.5px solid #3ecfb2;
+      opacity: 0;
+    }
+
+    /* tray chips under the Webhook node */
+    #f06-traylabel {
+      position: absolute;
+      left: 70px;
+      top: 398px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 18px;
+      letter-spacing: 0.22em;
+      color: #4A5875;
+      opacity: 0;
+      z-index: 6;
+    }
+    .f06-chip {
+      position: absolute;
+      width: 230px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      background-color: #eef2fa;
+      border: 2px solid #111725;
+      border-radius: 6px;
+      font-weight: 400;
+      font-size: 26px;
+      color: #0A0E16;
+      z-index: 6;
+    }
+    #f06-chip-1 {
+      left: 70px;
+      top: 430px;
+      opacity: 0;
+    }
+    #f06-chip-2 {
+      left: 70px;
+      top: 510px;
+      opacity: 0;
+    }
+    .f06-ghost {
+      position: absolute;
+      width: 230px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      background-color: #D6DEF0;
+      border: 2px solid #4A5875;
+      border-radius: 6px;
+      font-weight: 400;
+      font-size: 26px;
+      color: #0A0E16;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 14;
+    }
+    #f06-ghost-1 {
+      left: 70px;
+      top: 430px;
+    }
+    #f06-ghost-2 {
+      left: 70px;
+      top: 510px;
+    }
+    .f06-grip {
+      fill: #4A5875;
+      flex: none;
+    }
+
+    /* message card (the chat node's text field) */
+    #f06-msg {
+      position: absolute;
+      left: 90px;
+      top: 660px;
+      width: 800px;
+      height: 340px;
+      background-color: #eef2fa;
+      border: 2.5px solid #111725;
+      border-radius: 8px;
+      transform-origin: 40% 0%;
+      opacity: 0;
+      z-index: 4;
+    }
+    #f06-msg-flash {
+      position: absolute;
+      inset: -9px;
+      border: 2px solid #3ecfb2;
+      border-radius: 11px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #f06-msg-title {
+      position: absolute;
+      left: 36px;
+      top: 20px;
+      font-weight: 500;
+      font-size: 30px;
+      color: #111725;
+    }
+    #f06-check {
+      position: absolute;
+      left: 708px;
+      top: 16px;
+    }
+    #f06-msg-rule {
+      position: absolute;
+      left: 36px;
+      top: 82px;
+      width: 728px;
+      height: 2px;
+      background-color: #111725;
+    }
+    .f06-rowlabel {
+      position: absolute;
+      left: 36px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      font-weight: 400;
+      font-size: 28px;
+      color: #0a0e16;
+    }
+    #f06-row-1 {
+      top: 100px;
+    }
+    #f06-row-2 {
+      top: 200px;
+    }
+    .f06-slot {
+      position: absolute;
+      left: 300px;
+      width: 230px;
+      height: 60px;
+      border: 2px dashed #4A5875;
+      border-radius: 6px;
+    }
+    #f06-slot-1 {
+      top: 100px;
+    }
+    #f06-slot-2 {
+      top: 200px;
+    }
+    .f06-placed {
+      position: absolute;
+      left: 300px;
+      width: 230px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      background-color: #D6DEF0;
+      border: 2px solid #111725;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 26px;
+      color: #0A0E16;
+      opacity: 0;
+      z-index: 3;
+    }
+    #f06-placed-1 {
+      top: 100px;
+    }
+    #f06-placed-2 {
+      top: 200px;
+    }
+    .f06-selbox {
+      position: absolute;
+      left: 291px;
+      width: 248px;
+      height: 78px;
+      border: 2px solid #3ecfb2;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 8;
+    }
+    #f06-selbox-1 {
+      top: 91px;
+    }
+    #f06-selbox-2 {
+      top: 191px;
+    }
+    .f06-handle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #3ecfb2;
+    }
+    .f06-h-tl {
+      left: -5px;
+      top: -5px;
+    }
+    .f06-h-tr {
+      right: -5px;
+      top: -5px;
+    }
+    .f06-h-bl {
+      left: -5px;
+      bottom: -5px;
+    }
+    .f06-h-br {
+      right: -5px;
+      bottom: -5px;
+    }
+
+    /* status badge above the wire */
+    #f06-badge {
+      position: absolute;
+      left: 330px;
+      top: 116px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 26px;
+      background-color: #111725;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 30px;
+      color: #eef2fa;
+      transform-origin: 50% 100%;
+      opacity: 0;
+      z-index: 12;
+    }
+    #f06-badge-dot {
+      display: block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: #3ecfb2;
+      flex: none;
+    }
+
+    /* driven cursor */
+    #f06-cursor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform-origin: 0 0;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* ── Chapter card (Scene 1, hard-cut out) ── */
+    #f06-card {
+      background-color: #111725;
+    }
+    #f06-card-inner {
+      position: absolute;
+      left: 90px;
+      top: 780px;
+    }
+    #f06-card-ord {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 400;
+      font-size: 34px;
+      letter-spacing: 0.35em;
+      color: #3ecfb2;
+    }
+    #f06-card-rule {
+      width: 140px;
+      height: 2px;
+      background-color: #3ecfb2;
+      margin: 30px 0 34px 0;
+    }
+    #f06-card-title {
+      font-weight: 500;
+      font-size: 104px;
+      line-height: 0.98;
+      letter-spacing: -0.01em;
+      color: #eef2fa;
+    }
+  </style>
+
+  <div id="root" data-composition-id="06-step3" data-width="1080" data-height="1920">
+    <!-- Full-bleed ground on its own clip (never on #root) -->
+    <div id="f06-bg" class="clip" data-start="0" data-duration="9.6" data-track-index="0">
+      <div class="f06-grounddots"></div>
+    </div>
+
+    <div id="f06-main" class="clip" data-start="0" data-duration="9.6" data-track-index="1">
+      <!-- Topbar: chrome label + series clock chip (present from t=0; covered by the chapter card) -->
+      <div class="f06-topbar">
+        <div class="f06-toplabel">EP 01 &middot; AUTOMATION</div>
+        <div class="f06-clock"><span id="f06-clock-time">01:45:12</span></div>
+      </div>
+
+      <div id="f06-kick">STEP 03</div>
+      <div id="f06-head">ส่งเข้า LINE</div>
+
+      <!-- n8n-style canvas (brand-identity mock, generic marks only) -->
+      <div id="f06-canvas">
+        <div class="f06-dots"></div>
+
+        <!-- canvas chrome strip: label + Active switch (top-right) -->
+        <div class="f06-strip">
+          <div class="f06-striplabel">N8N &middot; WORKFLOW</div>
+          <div id="f06-active-label">Active</div>
+          <div id="f06-track">
+            <div id="f06-track-on"></div>
+            <div id="f06-knob"></div>
+          </div>
+        </div>
+
+        <!-- wires -->
+        <svg id="f06-wires" viewBox="0 0 980 1120" xmlns="http://www.w3.org/2000/svg">
+          <path id="f06-wire-base" d="M 258 280 C 400 280 580 280 722 280" />
+          <path id="f06-wire-on" d="M 258 280 C 400 280 580 280 722 280" />
+          <path id="f06-wire-pulse" d="M 258 280 C 400 280 580 280 722 280" />
+        </svg>
+
+        <!-- Webhook node (start of the line) -->
+        <div class="f06-node" id="f06-node-hook">
+          <svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M 40 8 L 20 40 L 33 40 L 28 64 L 52 30 L 38 30 Z"
+              fill="none"
+              stroke="#111725"
+              stroke-width="4"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div id="f06-hook-lit"></div>
+        </div>
+        <div class="f06-nodelabel" id="f06-hook-label">Webhook</div>
+        <div class="f06-port" id="f06-port-out"></div>
+
+        <!-- Chat node (generic bubble, mint edge — never the real LINE logo) -->
+        <div class="f06-node" id="f06-node-chat">
+          <svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+            <rect
+              x="10"
+              y="14"
+              width="52"
+              height="38"
+              rx="10"
+              fill="none"
+              stroke="#3ecfb2"
+              stroke-width="4"
+            />
+            <path
+              d="M 26 52 L 22 66 L 40 52"
+              fill="none"
+              stroke="#3ecfb2"
+              stroke-width="4"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+            <circle cx="24" cy="33" r="3.2" fill="#3ecfb2" />
+            <circle cx="36" cy="33" r="3.2" fill="#3ecfb2" />
+            <circle cx="48" cy="33" r="3.2" fill="#3ecfb2" />
+          </svg>
+        </div>
+        <div class="f06-nodelabel" id="f06-chat-label">LINE</div>
+        <div class="f06-port" id="f06-port-in"></div>
+
+        <!-- data chips under the Webhook node -->
+        <div id="f06-traylabel">OUTPUT</div>
+        <div class="f06-chip" id="f06-chip-1">
+          <svg class="f06-grip" width="14" height="24" viewBox="0 0 14 24">
+            <circle cx="4" cy="5" r="2" />
+            <circle cx="4" cy="12" r="2" />
+            <circle cx="4" cy="19" r="2" />
+            <circle cx="10" cy="5" r="2" />
+            <circle cx="10" cy="12" r="2" />
+            <circle cx="10" cy="19" r="2" />
+          </svg>
+          <span>ชื่อลูกค้า</span>
+        </div>
+        <div class="f06-chip" id="f06-chip-2">
+          <svg class="f06-grip" width="14" height="24" viewBox="0 0 14 24">
+            <circle cx="4" cy="5" r="2" />
+            <circle cx="4" cy="12" r="2" />
+            <circle cx="4" cy="19" r="2" />
+            <circle cx="10" cy="5" r="2" />
+            <circle cx="10" cy="12" r="2" />
+            <circle cx="10" cy="19" r="2" />
+          </svg>
+          <span>ที่อยู่</span>
+        </div>
+
+        <!-- pre-rendered drag ghosts (revealed by tl.set at the grab) -->
+        <div class="f06-ghost" id="f06-ghost-1">
+          <svg class="f06-grip" width="14" height="24" viewBox="0 0 14 24">
+            <circle cx="4" cy="5" r="2" />
+            <circle cx="4" cy="12" r="2" />
+            <circle cx="4" cy="19" r="2" />
+            <circle cx="10" cy="5" r="2" />
+            <circle cx="10" cy="12" r="2" />
+            <circle cx="10" cy="19" r="2" />
+          </svg>
+          <span>ชื่อลูกค้า</span>
+        </div>
+        <div class="f06-ghost" id="f06-ghost-2">
+          <svg class="f06-grip" width="14" height="24" viewBox="0 0 14 24">
+            <circle cx="4" cy="5" r="2" />
+            <circle cx="4" cy="12" r="2" />
+            <circle cx="4" cy="19" r="2" />
+            <circle cx="10" cy="5" r="2" />
+            <circle cx="10" cy="12" r="2" />
+            <circle cx="10" cy="19" r="2" />
+          </svg>
+          <span>ที่อยู่</span>
+        </div>
+
+        <!-- the chat node's message field -->
+        <div id="f06-msg">
+          <div id="f06-msg-flash"></div>
+          <div id="f06-msg-title" class="f06-msg-in">ข้อความ</div>
+          <svg id="f06-check" width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <circle
+              id="f06-check-ring"
+              cx="24"
+              cy="24"
+              r="19"
+              fill="none"
+              stroke="#3ecfb2"
+              stroke-width="3.5"
+            />
+            <polyline
+              id="f06-check-tick"
+              points="15,25 21,31 33,17"
+              fill="none"
+              stroke="#3ecfb2"
+              stroke-width="3.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div id="f06-msg-rule" class="f06-msg-in"></div>
+          <div class="f06-rowlabel f06-msg-in" id="f06-row-1">ออเดอร์ใหม่จาก</div>
+          <div class="f06-slot f06-msg-in" id="f06-slot-1"></div>
+          <div class="f06-rowlabel f06-msg-in" id="f06-row-2">ส่งไปที่</div>
+          <div class="f06-slot f06-msg-in" id="f06-slot-2"></div>
+
+          <div class="f06-placed" id="f06-placed-1"><span>ชื่อลูกค้า</span></div>
+          <div class="f06-placed" id="f06-placed-2"><span>ที่อยู่</span></div>
+
+          <div class="f06-selbox" id="f06-selbox-1">
+            <div class="f06-handle f06-h-tl"></div>
+            <div class="f06-handle f06-h-tr"></div>
+            <div class="f06-handle f06-h-bl"></div>
+            <div class="f06-handle f06-h-br"></div>
+          </div>
+          <div class="f06-selbox" id="f06-selbox-2">
+            <div class="f06-handle f06-h-tl"></div>
+            <div class="f06-handle f06-h-tr"></div>
+            <div class="f06-handle f06-h-bl"></div>
+            <div class="f06-handle f06-h-br"></div>
+          </div>
+        </div>
+
+        <!-- status badge above the lit line -->
+        <div id="f06-badge">
+          <span id="f06-badge-dot"></span>
+          <span>ระบบทำงานแล้ว</span>
+        </div>
+
+        <!-- driven cursor (tip at viewBox origin, transform-origin 0 0) -->
+        <svg id="f06-cursor" width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M 4 2 L 4 46 L 15 36 L 22 58 L 32 54 L 25 33 L 41 31 Z"
+            fill="#0A0E16"
+            stroke="#eef2fa"
+            stroke-width="3"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Scene 1: chapter card, hard cut out at 0.95s (clip-gated) -->
+    <div id="f06-card" class="clip" data-start="0" data-duration="0.95" data-track-index="2">
+      <div id="f06-card-inner">
+        <div id="f06-card-ord">03</div>
+        <div id="f06-card-rule"></div>
+        <div id="f06-card-title">ส่งเข้า LINE</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="public/vendor/gsap.min.js"></script>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+
+      /* ── Authored coordinate truth (panel-local px, mirrored in the CSS above) ── */
+      var CHIP1 = { x: 70, y: 430 };
+      var CHIP2 = { x: 70, y: 510 };
+      var SLOT1 = { x: 390, y: 760 }; /* msg card (90,660) + slot local (300,100) */
+      var SLOT2 = { x: 390, y: 860 }; /* msg card (90,660) + slot local (300,200) */
+      var GRIP = { dx: 34, dy: 30 }; /* cursor tip on the chip's grip dots */
+      var D1 = { x: SLOT1.x - CHIP1.x, y: SLOT1.y - CHIP1.y }; /* 320, 330 */
+      var D2 = { x: SLOT2.x - CHIP2.x, y: SLOT2.y - CHIP2.y }; /* 320, 350 */
+      var TOGGLE = { x: 892, y: 42 }; /* Active track center */
+
+      /* ── Series clock: slow countdown from 01:45:12 across the whole frame ── */
+      var clockEl = document.getElementById("f06-clock-time");
+      var CLOCK_START = 1 * 3600 + 45 * 60 + 12;
+      var clock = { t: 0 };
+      tl.to(
+        clock,
+        {
+          t: 6,
+          duration: 9.6,
+          ease: "none",
+          onUpdate: function () {
+            var total = CLOCK_START - Math.floor(clock.t);
+            var h = Math.floor(total / 3600);
+            var m = Math.floor((total % 3600) / 60);
+            var s = total % 60;
+            clockEl.textContent =
+              (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+          },
+        },
+        0,
+      );
+
+      /* ── Scene 1 (0.0–0.95s): chapter card — cut lands on VO cue "ต่อบล็อกไลน์" @1.00 ── */
+      tl.fromTo(
+        "#f06-card-title",
+        { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.3, ease: "expo.out", immediateRender: false },
+        0.03,
+      );
+
+      /* ── Scene 2 (1.0–2.5s): canvas revealed; chat node spring-pops; wire draws itself ── */
+      tl.fromTo(
+        "#f06-canvas",
+        { scale: 0.985 },
+        { scale: 1, duration: 0.4, ease: "power2.out", immediateRender: false },
+        0.95,
+      );
+      tl.fromTo(
+        ["#f06-kick", "#f06-head"],
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power3.out", stagger: 0.07, immediateRender: false },
+        0.98,
+      );
+
+      /* chat node spring-pop onto the end of the line (VO @1.00) */
+      tl.fromTo(
+        "#f06-node-chat",
+        { opacity: 0, scale: 0.55 },
+        { opacity: 1, scale: 1, duration: 0.55, ease: "back.out(1.9)", immediateRender: false },
+        1.0,
+      );
+      tl.fromTo(
+        ["#f06-chat-label", "#f06-port-in"],
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25, ease: "power1.out", immediateRender: false },
+        1.35,
+      );
+
+      /* wire draws from Webhook to the new node (svg-path-draw: measured length) */
+      var wireBase = document.getElementById("f06-wire-base");
+      var wireLen = wireBase.getTotalLength();
+      wireBase.style.strokeDasharray = String(wireLen);
+      wireBase.style.strokeDashoffset = String(wireLen);
+      tl.to(
+        "#f06-wire-base",
+        { strokeDashoffset: 0, duration: 0.8, ease: "power2.out" },
+        1.65,
+      );
+
+      /* message field pops open + rows assemble */
+      tl.fromTo(
+        "#f06-msg",
+        { opacity: 0, scale: 0.95 },
+        { opacity: 1, scale: 1, duration: 0.35, ease: "power3.out", immediateRender: false },
+        2.4,
+      );
+      tl.fromTo(
+        ".f06-msg-in",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.28, ease: "power2.out", stagger: 0.06, immediateRender: false },
+        2.52,
+      );
+
+      /* tray chips appear on the drag cue (VO "แล้วลากชื่อลูกค้า..." @2.72) */
+      tl.fromTo(
+        "#f06-traylabel",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.28, ease: "power2.out", immediateRender: false },
+        2.55,
+      );
+      tl.fromTo(
+        "#f06-chip-1",
+        { opacity: 0, y: 12, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.28, ease: "power3.out", immediateRender: false },
+        2.62,
+      );
+      tl.fromTo(
+        "#f06-chip-2",
+        { opacity: 0, y: 12, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.28, ease: "power3.out", immediateRender: false },
+        2.72,
+      );
+
+      /* ── Scene 3 (2.75–5.18s): cursor-drag ×2 — grab, ghost ride, drop-snap (tight) ── */
+
+      /* cursor enters from the frame edge and approaches chip 1 */
+      tl.set("#f06-cursor", { opacity: 1 }, 2.75);
+      tl.fromTo(
+        "#f06-cursor",
+        { x: 1030, y: 1150 },
+        {
+          x: CHIP1.x + GRIP.dx,
+          y: CHIP1.y + GRIP.dy,
+          duration: 0.45,
+          ease: "power2.inOut",
+          immediateRender: false,
+        },
+        2.75,
+      );
+
+      /* grab 1: press dip on cursor + chip together (physics-press-reaction) */
+      tl.to(["#f06-cursor", "#f06-chip-1"], { scale: 0.93, duration: 0.08, ease: "power1.in" }, 3.22);
+      tl.set("#f06-ghost-1", { opacity: 0.65 }, 3.3);
+      tl.fromTo(
+        "#f06-ghost-1",
+        { scale: 1 },
+        { scale: 1.06, duration: 0.12, ease: "power2.out", immediateRender: false },
+        3.3,
+      );
+      tl.to(["#f06-cursor", "#f06-chip-1"], { scale: 1, duration: 0.14, ease: "power2.out" }, 3.32);
+
+      /* travel 1 — MATCHED tweens, absolute endpoints, same duration + ease (lockstep) */
+      tl.fromTo(
+        "#f06-ghost-1",
+        { x: 0, y: 0 },
+        { x: D1.x, y: D1.y, duration: 0.5, ease: "power2.inOut", immediateRender: false },
+        3.5,
+      );
+      tl.fromTo(
+        "#f06-cursor",
+        { x: CHIP1.x + GRIP.dx, y: CHIP1.y + GRIP.dy },
+        {
+          x: CHIP1.x + GRIP.dx + D1.x,
+          y: CHIP1.y + GRIP.dy + D1.y,
+          duration: 0.5,
+          ease: "power2.inOut",
+          immediateRender: false,
+        },
+        3.5,
+      );
+
+      /* drop 1 — state commit: ghost off + placed field on at the same position */
+      tl.set("#f06-ghost-1", { opacity: 0 }, 4.0);
+      tl.set("#f06-slot-1", { opacity: 0 }, 4.0);
+      tl.fromTo(
+        "#f06-placed-1",
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.2, ease: "power3.out", immediateRender: false },
+        4.0,
+      );
+      tl.fromTo(
+        "#f06-selbox-1",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.12, ease: "power2.out", immediateRender: false },
+        4.06,
+      );
+      tl.fromTo(
+        "#f06-selbox-1 .f06-handle",
+        { scale: 0.4 },
+        { scale: 1, duration: 0.14, ease: "power3.out", stagger: 0.02, immediateRender: false },
+        4.08,
+      );
+      tl.to("#f06-selbox-1", { opacity: 0, duration: 0.18, ease: "power1.out" }, 4.35);
+
+      /* approach chip 2 */
+      tl.to(
+        "#f06-cursor",
+        { x: CHIP2.x + GRIP.dx, y: CHIP2.y + GRIP.dy, duration: 0.33, ease: "power2.inOut" },
+        4.15,
+      );
+
+      /* grab 2 */
+      tl.to(["#f06-cursor", "#f06-chip-2"], { scale: 0.93, duration: 0.08, ease: "power1.in" }, 4.5);
+      tl.set("#f06-ghost-2", { opacity: 0.65 }, 4.58);
+      tl.fromTo(
+        "#f06-ghost-2",
+        { scale: 1 },
+        { scale: 1.06, duration: 0.12, ease: "power2.out", immediateRender: false },
+        4.58,
+      );
+      tl.to(["#f06-cursor", "#f06-chip-2"], { scale: 1, duration: 0.14, ease: "power2.out" }, 4.6);
+
+      /* travel 2 — matched pair */
+      tl.fromTo(
+        "#f06-ghost-2",
+        { x: 0, y: 0 },
+        { x: D2.x, y: D2.y, duration: 0.4, ease: "power2.inOut", immediateRender: false },
+        4.78,
+      );
+      tl.fromTo(
+        "#f06-cursor",
+        { x: CHIP2.x + GRIP.dx, y: CHIP2.y + GRIP.dy },
+        {
+          x: CHIP2.x + GRIP.dx + D2.x,
+          y: CHIP2.y + GRIP.dy + D2.y,
+          duration: 0.4,
+          ease: "power2.inOut",
+          immediateRender: false,
+        },
+        4.78,
+      );
+
+      /* drop 2 — lands on VO cue "มาวางในช่องข้อความ" @5.16 */
+      tl.set("#f06-ghost-2", { opacity: 0 }, 5.18);
+      tl.set("#f06-slot-2", { opacity: 0 }, 5.18);
+      tl.fromTo(
+        "#f06-placed-2",
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.2, ease: "power3.out", immediateRender: false },
+        5.18,
+      );
+      tl.fromTo(
+        "#f06-selbox-2",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.12, ease: "power2.out", immediateRender: false },
+        5.24,
+      );
+      tl.fromTo(
+        "#f06-selbox-2 .f06-handle",
+        { scale: 0.4 },
+        { scale: 1, duration: 0.14, ease: "power3.out", stagger: 0.02, immediateRender: false },
+        5.26,
+      );
+      tl.to("#f06-selbox-2", { opacity: 0, duration: 0.2, ease: "power1.out" }, 5.7);
+
+      /* template complete (5.2–6.1) — mint flash; check stamp on "เท่านี้คือจบแล้ว" @6.48 */
+      var ring = document.getElementById("f06-check-ring");
+      var ringLen = ring.getTotalLength();
+      ring.style.strokeDasharray = String(ringLen);
+      ring.style.strokeDashoffset = String(ringLen);
+      var tick = document.getElementById("f06-check-tick");
+      var tickLen = tick.getTotalLength();
+      tick.style.strokeDasharray = String(tickLen);
+      tick.style.strokeDashoffset = String(tickLen);
+      tl.fromTo(
+        "#f06-msg-flash",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.22, ease: "power1.out", immediateRender: false },
+        5.3,
+      );
+      tl.to("#f06-msg-flash", { opacity: 0, duration: 0.25, ease: "power1.out" }, 5.85);
+      tl.to("#f06-check-ring", { strokeDashoffset: 0, duration: 0.28, ease: "power2.out" }, 6.5);
+      tl.to("#f06-check-tick", { strokeDashoffset: 0, duration: 0.2, ease: "power2.out" }, 6.72);
+
+      /* gentle camera breathe under the drags, settling before the toggle beat */
+      tl.to("#f06-canvas", { scale: 1.018, duration: 3.0, ease: "power1.inOut" }, 2.75);
+      tl.to("#f06-canvas", { scale: 1, duration: 1.4, ease: "power2.inOut" }, 6.2);
+
+      /* ── Scene 4 (7.15–8.6s): Active toggle on "กดแอคทีฟมุมขวาบน" @7.84 — line powers up ── */
+      tl.to(
+        "#f06-cursor",
+        { x: TOGGLE.x, y: TOGGLE.y, duration: 0.7, ease: "power2.inOut" },
+        7.15,
+      );
+
+      /* physics-press-reaction: cursor + track compress together, spring back together */
+      tl.to(["#f06-cursor", "#f06-track"], { scale: 0.92, duration: 0.1, ease: "power1.in" }, 7.87);
+      tl.to(["#f06-cursor", "#f06-track"], { scale: 1, duration: 0.32, ease: "back.out(2)" }, 7.97);
+
+      /* switch commits: knob slides, track floods mint */
+      tl.fromTo(
+        "#f06-knob",
+        { x: 0 },
+        { x: 64, duration: 0.22, ease: "power3.out", immediateRender: false },
+        7.97,
+      );
+      tl.fromTo(
+        "#f06-track-on",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.16, ease: "power1.in", immediateRender: false },
+        7.97,
+      );
+
+      /* the whole line lights up in one beat */
+      tl.fromTo(
+        "#f06-wire-on",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.28, ease: "power2.out", immediateRender: false },
+        8.02,
+      );
+      tl.fromTo(
+        "#f06-hook-lit",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.28, ease: "power2.out", immediateRender: false },
+        8.02,
+      );
+      tl.to(
+        ["#f06-node-hook", "#f06-node-chat"],
+        { scale: 1.045, duration: 0.13, ease: "power2.out" },
+        8.02,
+      );
+      tl.to(
+        ["#f06-node-hook", "#f06-node-chat"],
+        { scale: 1, duration: 0.24, ease: "power2.out" },
+        8.17,
+      );
+
+      /* cursor steps aside so the lit switch reads */
+      tl.to("#f06-cursor", { x: 872, y: 84, duration: 0.35, ease: "power2.out" }, 8.2);
+
+      /* pulses run the line (svg-icon-enrichment dash-flow — limited cycles, linear) */
+      tl.fromTo(
+        "#f06-wire-pulse",
+        { opacity: 0 },
+        { opacity: 0.9, duration: 0.25, ease: "power1.out", immediateRender: false },
+        8.2,
+      );
+      var flow = { offset: 0 };
+      var pulseEl = document.getElementById("f06-wire-pulse");
+      tl.to(
+        flow,
+        {
+          offset: -90 /* 3 × dash period (16+14) — integer multiple */,
+          duration: 1.35,
+          ease: "none",
+          onUpdate: function () {
+            pulseEl.style.strokeDashoffset = String(flow.offset);
+          },
+        },
+        8.2,
+      );
+
+      /* ── Scene 5 (8.6–9.6s): badge pops above the line, still by ~9.05 ── */
+      tl.fromTo(
+        "#f06-badge",
+        { opacity: 0, scale: 0.7, y: 16 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "back.out(1.8)", immediateRender: false },
+        8.6,
+      );
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["06-step3"] = tl;
+    })();
+  </script>
+</template>
