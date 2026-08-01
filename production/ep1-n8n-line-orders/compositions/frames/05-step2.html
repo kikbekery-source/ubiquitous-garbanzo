@@ -390,10 +390,10 @@
 
   <div data-composition-id="05-step2" data-width="1080" data-height="1920">
   <!-- track 0 · full-bleed ground -->
-  <div id="f05-step2-bg" class="clip" data-start="0" data-duration="17" data-track-index="0"></div>
+  <div id="f05-step2-bg" class="clip" data-start="0" data-duration="15.372" data-track-index="0"></div>
 
   <!-- track 1 · main stack -->
-  <div id="f05-step2-main" class="clip" data-start="0.8" data-duration="16.2" data-track-index="1">
+  <div id="f05-step2-main" class="clip" data-start="0.85" data-duration="14.522" data-track-index="1">
     <div id="f05-step2-zoom">
       <div id="f05-step2-topbar">STEP 02 · CONNECT STORE</div>
 
@@ -469,12 +469,12 @@
   </div>
 
   <!-- track 2 · series clock chip -->
-  <div id="f05-step2-clock" class="clip" data-start="0" data-duration="17" data-track-index="2">
+  <div id="f05-step2-clock" class="clip" data-start="0" data-duration="15.372" data-track-index="2">
     <span id="f05-step2-clock-digits">01:50:05</span>
   </div>
 
   <!-- track 3 · chapter card -->
-  <div id="f05-step2-chapter" class="clip" data-start="0" data-duration="0.8" data-track-index="3">
+  <div id="f05-step2-chapter" class="clip" data-start="0" data-duration="0.85" data-track-index="3">
     <div id="f05-step2-chapter-inner">
       <div id="f05-step2-chapter-kicker">CHAPTER</div>
       <div id="f05-step2-chapter-num">02</div>
@@ -496,8 +496,8 @@
       const pad2 = (n) => String(n).padStart(2, "0");
       const clockDriver = { t: 0 };
       tl.to(clockDriver, {
-        t: 17,
-        duration: 17,
+        t: 15.372,
+        duration: 15.372,
         ease: "none",
         onUpdate: () => {
           const r = CLOCK_BASE - Math.floor(clockDriver.t);
@@ -506,17 +506,17 @@
         },
       }, 0);
 
-      /* ============ Scene 1 (0.0–0.8) — chapter card, quiet settle, hard cut via clip ============ */
-      tl.fromTo("#f05-step2-chapter-inner", { scale: 1.045 }, { scale: 1, duration: 0.8, ease: "power2.out" }, 0);
+      /* ============ Scene 1 (0.0–0.85) — chapter card, quiet settle, hard cut on cue "เอาลิงก์"@0.91 ============ */
+      tl.fromTo("#f05-step2-chapter-inner", { scale: 1.045 }, { scale: 1, duration: 0.85, ease: "power2.out" }, 0);
 
-      /* ============ Scene 2 (0.8–4.8) — stack reveals, URL typed, dot blinks ============ */
-      tl.fromTo("#f05-step2-topbar", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.9);
-      tl.fromTo("#f05-step2-cardA", { y: 44, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.85);
-      tl.fromTo("#f05-step2-cardB", { y: 44, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 1.0);
-      tl.fromTo("#f05-step2-connector", { scaleY: 0 }, { scaleY: 1, duration: 0.4, ease: "power2.out" }, 1.1);
+      /* ============ Scene 2 (0.85–6.0) — stack reveals 0.9–1.6, URL types 1.7–4.2 ============ */
+      tl.fromTo("#f05-step2-topbar", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.95);
+      tl.fromTo("#f05-step2-cardA", { y: 44, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.9);
+      tl.fromTo("#f05-step2-cardB", { y: 44, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 1.05);
+      tl.fromTo("#f05-step2-connector", { scaleY: 0 }, { scaleY: 1, duration: 0.4, ease: "power2.out" }, 1.15);
 
       /* macro move running underneath the whole shot */
-      tl.fromTo("#f05-step2-zoom", { scale: 1 }, { scale: 1.014, duration: 16.1, ease: "none" }, 0.9);
+      tl.fromTo("#f05-step2-zoom", { scale: 1 }, { scale: 1.014, duration: 14.45, ease: "none" }, 0.9);
 
       /* discrete-text-sequence — the link arrives in chunks (paste-like), pause, then the tail */
       const URL_SEQ = [
@@ -536,8 +536,8 @@
       };
       const typeDriver = { t: 0 };
       tl.to(typeDriver, {
-        t: 2.9,
-        duration: 2.9,
+        t: 2.5,
+        duration: 2.5,
         ease: "none",
         onUpdate: () => { urlEl.textContent = urlAt(typeDriver.t); },
       }, 1.7);
@@ -546,35 +546,41 @@
       const caretEl = document.getElementById("f05-step2-caret");
       const blink = { p: 0 };
       tl.to(blink, {
-        p: Math.PI * 2 * 4.5,
-        duration: 2.9,
+        p: Math.PI * 2 * 4,
+        duration: 2.5,
         ease: "none",
         onUpdate: () => { caretEl.style.opacity = Math.sin(blink.p) >= 0 ? "1" : "0"; },
       }, 1.7);
-      tl.set("#f05-step2-caret", { opacity: 0 }, 4.75);
+      tl.set("#f05-step2-caret", { opacity: 0 }, 4.35);
 
-      /* status dot — blinks slowly twice, then steady */
-      tl.fromTo("#f05-step2-dot", { opacity: 1 }, { opacity: 0.25, duration: 0.55, ease: "power1.inOut" }, 1.5);
-      tl.to("#f05-step2-dot", { opacity: 1, duration: 0.55, ease: "power1.inOut" }, 2.05);
-      tl.to("#f05-step2-dot", { opacity: 0.25, duration: 0.55, ease: "power1.inOut" }, 2.6);
-      tl.to("#f05-step2-dot", { opacity: 1, duration: 0.55, ease: "power1.inOut" }, 3.15);
+      /* field highlight — cue "ตรงช่องแจ้งเตือนออเดอร์"@4.41 */
+      tl.to("#f05-step2-input", { borderColor: "#3ECFB2", duration: 0.22, ease: "power2.out" }, 4.4);
+      tl.to("#f05-step2-input", { scale: 1.02, duration: 0.16, ease: "power2.out" }, 4.4);
+      tl.to("#f05-step2-input", { scale: 1, duration: 0.3, ease: "power2.inOut" }, 4.58);
+      tl.to("#f05-step2-input", { borderColor: "#175D4F", duration: 0.35, ease: "power1.inOut" }, 5.4);
 
-      /* ============ Scene 3 (4.8–8.0) — warning banner slams into the seam, then docks ============ */
+      /* ============ Scene 3 (6.05–8.2) — warning banner slams on "ตรงนี้สำคัญ"@6.05, docks @7.6 ============ */
       tl.fromTo("#f05-step2-banner",
         { opacity: 0, scale: 1.7 },
-        { opacity: 1, scale: 1, duration: 0.3, ease: "power4.out" }, 4.8);
+        { opacity: 1, scale: 1, duration: 0.3, ease: "power4.out" }, 6.05);
       /* impact jolt on both cards — one beat */
-      tl.to(["#f05-step2-cardA", "#f05-step2-cardB"], { y: 5, duration: 0.09, ease: "power2.out" }, 4.88);
-      tl.to(["#f05-step2-cardA", "#f05-step2-cardB"], { y: 0, duration: 0.26, ease: "back.out(2)" }, 4.98);
-      /* holds ~2s, then shrinks and perches above the Test button */
-      tl.to("#f05-step2-banner", { x: 260, y: -235, scale: 0.42, duration: 0.6, ease: "power3.inOut" }, 7.0);
+      tl.to(["#f05-step2-cardA", "#f05-step2-cardB"], { y: 5, duration: 0.09, ease: "power2.out" }, 6.13);
+      tl.to(["#f05-step2-cardA", "#f05-step2-cardB"], { y: 0, duration: 0.26, ease: "back.out(2)" }, 6.23);
+      /* holds through "ต้องกดเทสก่อนทุกครั้ง", then shrinks and perches above the Test button */
+      tl.to("#f05-step2-banner", { x: 260, y: -235, scale: 0.42, duration: 0.6, ease: "power3.inOut" }, 7.6);
 
-      /* ============ Scene 4 (8.0–13.0) — press Test → pulse → data unfolds (control-target-sync) ============ */
+      /* idle tension 8.5–11.9 — VO explains the failure case; listening dot pulses twice, nothing new enters */
+      tl.fromTo("#f05-step2-dot", { opacity: 1 }, { opacity: 0.25, duration: 0.55, ease: "power1.inOut" }, 8.7);
+      tl.to("#f05-step2-dot", { opacity: 1, duration: 0.55, ease: "power1.inOut" }, 9.25);
+      tl.to("#f05-step2-dot", { opacity: 0.25, duration: 0.55, ease: "power1.inOut" }, 9.95);
+      tl.to("#f05-step2-dot", { opacity: 1, duration: 0.55, ease: "power1.inOut" }, 10.5);
+
+      /* ============ Scene 4 (11.85–13.6) — press Test on "พอเทสผ่าน"@12.07 → pulse → data unfolds ============ */
       tl.fromTo("#f05-step2-cursor",
-        { x: 250, y: 210, opacity: 0 },
-        { x: 0, y: 0, opacity: 1, duration: 0.7, ease: "power2.inOut" }, 8.0);
+        { x: 200, y: 170, opacity: 0 },
+        { x: 0, y: 0, opacity: 1, duration: 0.4, ease: "power2.inOut" }, 11.85);
 
-      tl.addLabel("press", 8.85);
+      tl.addLabel("press", 12.25);
       /* press-sink */
       tl.to("#f05-step2-btn", { scale: 0.93, duration: 0.1, ease: "power2.in" }, "press");
       tl.to("#f05-step2-cursor", { scale: 0.9, duration: 0.1, ease: "power2.in" }, "press");
@@ -594,18 +600,18 @@
       /* anchored-layout-expand — order card unfolds under the node.
          MASK_H matches the mask's authored CSS height exactly; the mask is never tweened. */
       const MASK_H = 300;
-      tl.fromTo("#f05-step2-sheet", { y: -MASK_H }, { y: 0, duration: 0.55, ease: "power3.out" }, 9.5);
+      tl.fromTo("#f05-step2-sheet", { y: -MASK_H }, { y: 0, duration: 0.5, ease: "power3.out" }, 12.85);
       tl.fromTo(".f05-step2-row",
         { opacity: 0, x: -14 },
-        { opacity: 1, x: 0, duration: 0.3, stagger: 0.14, ease: "power2.out" }, 9.68);
-      tl.fromTo("#f05-step2-sheet-head", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 9.62);
+        { opacity: 1, x: 0, duration: 0.28, stagger: 0.13, ease: "power2.out" }, 13.0);
+      tl.fromTo("#f05-step2-sheet-head", { opacity: 0 }, { opacity: 1, duration: 0.28, ease: "power2.out" }, 12.95);
 
       /* cursor eases aside so the result reads */
-      tl.to("#f05-step2-cursor", { x: 60, y: 40, duration: 0.8, ease: "power2.inOut" }, 12.2);
+      tl.to("#f05-step2-cursor", { x: 60, y: 40, duration: 0.7, ease: "power2.inOut" }, 13.6);
 
-      /* ============ Scene 5 (13.0–17.0) — mint chip pops, still read ============ */
-      tl.fromTo("#f05-step2-chip", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, 13.0);
-      tl.fromTo("#f05-step2-chip", { scale: 0 }, { scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 13.0);
+      /* ============ Scene 5 (13.8–15.372) — mint chip pops, resolved by 14.6, still read ============ */
+      tl.fromTo("#f05-step2-chip", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, 13.8);
+      tl.fromTo("#f05-step2-chip", { scale: 0 }, { scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 13.8);
 
       window.__timelines["05-step2"] = tl;
     })();

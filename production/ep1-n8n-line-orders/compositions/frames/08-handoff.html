@@ -1,7 +1,7 @@
 <template>
   <div id="root" data-composition-id="08-handoff" data-width="1080" data-height="1920">
     <!-- Track 0 — full-bleed ground: cream paper + dot-grid + persistent topbar chrome -->
-    <div class="clip h08-bg" id="h08-bg" data-start="0" data-duration="14" data-track-index="0">
+    <div class="clip h08-bg" id="h08-bg" data-start="0" data-duration="11.842" data-track-index="0">
       <div class="h08-topbar h08-mono">
         <span class="h08-topbar-label">HANDOFF</span>
         <span class="h08-topbar-ep">EP1</span>
@@ -10,8 +10,8 @@
       <div class="h08-endcap" id="h08-endcap"></div>
     </div>
 
-    <!-- Scene 1 (0.0–5.0s) — Card 1: homework checklist -->
-    <div class="clip" id="h08-card1" data-start="0" data-duration="5" data-track-index="1">
+    <!-- Scene 1 (0.0–6.0s) — Card 1: homework checklist -->
+    <div class="clip" id="h08-card1" data-start="0" data-duration="6" data-track-index="1">
       <div class="h08-card1-box" id="h08-card1-box">
         <div class="h08-eyebrow h08-mono">01 / 03</div>
         <h2 class="h08-c1-head">การบ้านวันนี้ · 5 นาที</h2>
@@ -40,22 +40,22 @@
       </div>
     </div>
 
-    <!-- Scene 2 (5.0–9.4s) — Card 2: EP2 teaser, hard cut in, one move, then still -->
-    <div class="clip" id="h08-card2" data-start="5" data-duration="4.4" data-track-index="1">
+    <!-- Scene 2 (6.0–9.4s) — Card 2: EP2 teaser, hard cut in, staged reveal, then still -->
+    <div class="clip" id="h08-card2" data-start="6" data-duration="3.4" data-track-index="1">
       <div class="h08-card2-box">
         <div class="h08-c2-bar"></div>
         <div class="h08-card2-inner">
           <div class="h08-eyebrow h08-eyebrow-green h08-mono">02 / 03</div>
-          <div class="h08-c2-kicker">ตอนหน้า</div>
-          <h2 class="h08-c2-head">EP2 · Excalidraw</h2>
+          <div class="h08-c2-kicker" id="h08-c2-kicker">ตอนหน้า</div>
+          <h2 class="h08-c2-head" id="h08-c2-head">EP2 · Excalidraw</h2>
           <div class="h08-c2-rule"></div>
           <p class="h08-c2-sub" id="h08-c2-sub">พิมพ์ข้อความ ได้ผังงานทันที</p>
         </div>
       </div>
     </div>
 
-    <!-- Scene 3 (9.4–14.0s) — Card 3: series title + 9-segment progress, then dead-still hold -->
-    <div class="clip" id="h08-card3" data-start="9.4" data-duration="4.6" data-track-index="1">
+    <!-- Scene 3 (9.4–11.842s) — Card 3: series title + 9-segment progress, then dead-still hold -->
+    <div class="clip" id="h08-card3" data-start="9.4" data-duration="2.442" data-track-index="1">
       <div class="h08-c3-center">
         <div class="h08-eyebrow h08-mono">03 / 03</div>
         <h2 class="h08-c3-title">ซีรีส์ 9 ตอน</h2>
@@ -284,6 +284,7 @@
       font-weight: 500;
       line-height: 1.3;
       color: #5ee0c8;
+      opacity: 0;
     }
     .h08-c2-head {
       margin-top: 42px;
@@ -292,6 +293,7 @@
       line-height: 1.12;
       letter-spacing: -0.01em;
       color: #eef2fa;
+      opacity: 0;
     }
     .h08-c2-rule {
       margin-top: 36px;
@@ -382,12 +384,13 @@
       var tl = gsap.timeline({ paused: true });
       var F = 1 / 60;
 
-      /* ---- Scene 1 (0.0–5.0s) — card 1 arrives, checklist waterfalls line-by-line ---- */
+      /* ---- Scene 1 (0.0–6.0s) — card 1 arrives, checklist waterfalls on real VO cues ---- */
+      /* header lands @0.3 */
       tl.fromTo(
         "#h08-card1-box",
         { opacity: 0, y: 26 },
-        { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" },
-        0.08
+        { opacity: 1, y: 0, duration: 0.28, ease: "power3.out" },
+        0.02
       );
       tl.fromTo(
         "#h08-c1-rule",
@@ -396,39 +399,54 @@
         0.6
       );
 
-      /* waterfall-entry: binary opacity via set + whip from below, one row per VO cue */
-      tl.set("#h08-row1", { opacity: 1, y: 52 }, 1.85);
-      tl.to("#h08-row1", { y: 0, duration: 0.17, ease: "power4.out" }, 1.85);
-      tl.to("#h08-tick1", { strokeDashoffset: 0, duration: 0.42, ease: "power2.out" }, 2.28);
+      /* waterfall-entry: binary opacity via set + whip from below, one row per VO cue,
+         tick draws (svg-path-draw) right after each row lands */
+      tl.set("#h08-row1", { opacity: 1, y: 52 }, 2.1); /* สมัคร n8n @2.1 */
+      tl.to("#h08-row1", { y: 0, duration: 0.17, ease: "power4.out" }, 2.1);
+      tl.to("#h08-tick1", { strokeDashoffset: 0, duration: 0.42, ease: "power2.out" }, 2.5);
 
-      tl.set("#h08-row2", { opacity: 1, y: 52 }, 2.85);
-      tl.to("#h08-row2", { y: 0, duration: 0.17, ease: "power4.out" }, 2.85);
-      tl.to("#h08-tick2", { strokeDashoffset: 0, duration: 0.42, ease: "power2.out" }, 3.28);
+      tl.set("#h08-row2", { opacity: 1, y: 52 }, 3.05); /* สร้าง Webhook @3.05 */
+      tl.to("#h08-row2", { y: 0, duration: 0.17, ease: "power4.out" }, 3.05);
+      tl.to("#h08-tick2", { strokeDashoffset: 0, duration: 0.42, ease: "power2.out" }, 3.45);
 
-      tl.set("#h08-row3", { opacity: 1, y: 52 }, 3.85);
-      tl.to("#h08-row3", { y: 0, duration: 0.17, ease: "power4.out" }, 3.85);
-      tl.to("#h08-tick3", { strokeDashoffset: 0, duration: 0.42, ease: "power2.out" }, 4.28);
+      tl.set("#h08-row3", { opacity: 1, y: 52 }, 4.55); /* ก็อปลิงก์ @4.55 */
+      tl.to("#h08-row3", { y: 0, duration: 0.17, ease: "power4.out" }, 4.55);
+      tl.to("#h08-tick3", { strokeDashoffset: 0, duration: 0.42, ease: "power2.out" }, 4.95);
 
-      /* ---- Scene 2 (5.0–9.4s) — hard cut via clip window; card 2 fully formed.
-             One restrained move: the sub line slide-up crossfade, then stillness. ---- */
+      /* ---- Scene 2 (6.0–9.4s) — hard cut via clip window; frame/bar/eyebrow/rule at cut.
+             Staged reveal on cues: kicker @6.1, heading + subline slide-up 6.5–8.0, then still.
+             (head travels 28px < the 42px kicker/head gap and 36px head/rule gap — no overlap
+             at rest or mid-move) ---- */
+      tl.fromTo(
+        "#h08-c2-kicker",
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" },
+        6.1
+      ); /* ตอนหน้า @6.1 */
+      tl.fromTo(
+        "#h08-c2-head",
+        { opacity: 0, y: 28 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" },
+        6.5
+      ); /* fully visible from ~6.85 through the 9.4 cut */
       tl.fromTo(
         "#h08-c2-sub",
         { opacity: 0, y: 36 },
         { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" },
-        6.45
-      );
+        7.25
+      ); /* settles 7.8, inside the 6.5–8.0 window */
 
-      /* ---- Scene 3 (9.4–14.0s) — hard cut; title + dim strip present at cut.
-             One move: EP1 segment fills coral, then dead-still hold to the last frame. ---- */
+      /* ---- Scene 3 (9.4–11.842s) — hard cut; title + dim strip present at cut.
+             One move: EP1 segment fills coral 9.8–10.4, then DEAD STILL to the last frame. ---- */
       tl.fromTo(
         "#h08-seg-fill",
         { scaleX: 0 },
-        { scaleX: 1, duration: 0.9, ease: "power2.out" },
-        10.25
+        { scaleX: 1, duration: 0.6, ease: "power2.out" },
+        9.8
       );
 
-      /* pin timeline span to the full 14s (invisible endcap; no visual exit — final-frame hold) */
-      tl.to("#h08-endcap", { opacity: 0.01, duration: 0.05 }, 13.9);
+      /* pin timeline span to the full 11.842s (invisible endcap; no visual exit — final-frame hold) */
+      tl.to("#h08-endcap", { opacity: 0.01, duration: 0.05 }, 11.78);
 
       window.__timelines["08-handoff"] = tl;
     })();

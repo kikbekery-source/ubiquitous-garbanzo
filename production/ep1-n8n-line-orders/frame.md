@@ -11,13 +11,13 @@ unit: the frame — 1920×1080 primary; 9:16 and 1:1 documented
 principle: atoms are sacred · composition is free · numbers come from the script
 
 colors:
-  green: "#175D4F"
-  green-deep: "#12493E"
-  green-lite: "#1D7362"
+  green: "#111725"
+  green-deep: "#0A0E16"
+  green-lite: "#4A5875"
   pink: "#3ECFB2"
   pink-deep: "#FF6D7E"
   cream: "#EEF2FA"
-  cream-2: "#BCEEE4"
+  cream-2: "#D6DEF0"
   ink: "#0A0E16"
 
 typography:

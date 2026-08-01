@@ -491,7 +491,7 @@
     </style>
 
     <!-- track 0 — ground -->
-    <div class="clip" data-start="0" data-duration="16" data-track-index="0">
+    <div class="clip" data-start="0" data-duration="9.149" data-track-index="0">
       <div class="p7-bgfield"></div>
       <svg class="p7-dots" id="p7-dots" aria-hidden="true">
         <defs>
@@ -504,7 +504,7 @@
     </div>
 
     <!-- track 1 — camera-journey world -->
-    <div class="clip p7-scene" data-start="0" data-duration="16" data-track-index="1">
+    <div class="clip p7-scene" data-start="0" data-duration="9.149" data-track-index="1">
       <svg width="0" height="0" aria-hidden="true" style="position: absolute">
         <filter id="p7-fblur" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur id="p7-fblur-node" in="SourceGraphic" stdDeviation="0 0"></feGaussianBlur>
@@ -613,7 +613,7 @@
     </div>
 
     <!-- track 2 — comparison strip -->
-    <div class="clip" data-start="10.2" data-duration="5.8" data-track-index="2">
+    <div class="clip" data-start="4.6" data-duration="4.549" data-track-index="2">
       <div class="p7-strip-in" id="p7-strip-in">
         <div class="p7-cmp" id="p7-cmp-old">
           <span class="p7-cmp-old-txt">ทำมือ 2 ชม./วัน<span class="p7-strike" id="p7-strike"></span></span>
@@ -625,7 +625,7 @@
     </div>
 
     <!-- track 3 — hero slam -->
-    <div class="clip" data-start="13.4" data-duration="2.6" data-track-index="3">
+    <div class="clip" data-start="7.4" data-duration="1.749" data-track-index="3">
       <div class="p7-band" id="p7-band">
         <div class="p7-hline" id="p7-hline1">ประหยัด <span class="p7-acc">2 ชั่วโมง</span></div>
         <div class="p7-hline" id="p7-hline2">ทุกวัน</div>
@@ -634,7 +634,7 @@
     </div>
 
     <!-- track 4 — chrome: topbar + series clock -->
-    <div class="clip" data-start="0" data-duration="16" data-track-index="4">
+    <div class="clip" data-start="0" data-duration="9.149" data-track-index="4">
       <div class="p7-topbar" id="p7-topbar">EP.01 — Live Order</div>
       <div class="p7-clock" id="p7-clock">
         <span class="p7-clock-d" id="p7-clock-d">01:40:33</span>
@@ -733,43 +733,43 @@
         function invP2IO(s) {
           return s < 0.5 ? Math.sqrt(s / 2) : 1 - Math.sqrt((1 - s) / 2);
         }
-        var TRAV_AT = 2.7,
-          TRAV_DUR = 4.3;
+        var TRAV_AT = 1.4,
+          TRAV_DUR = 1.3;
         var tN1 = TRAV_AT + TRAV_DUR * invP2IO(arcFrac(380, 1780));
         var tN2 = TRAV_AT + TRAV_DUR * invP2IO(arcFrac(700, 2280));
 
-        /* ================= Scene 1 (0.0–2.6) — storefront + physics press ================= */
+        /* ================= Scene 1 (0.0–1.4) — storefront up immediately, press on กดสั่ง @1.24 ================= */
         tl.fromTo(
           "#p7-sf",
           { opacity: 0, y: 34, scale: 0.97 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out", immediateRender: true },
-          0.06
+          { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "power3.out", immediateRender: true },
+          0.02
         );
         tl.fromTo(
           ".p7-sf-item",
           { opacity: 0, y: 18 },
-          { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", stagger: 0.08, immediateRender: true },
-          0.22
+          { opacity: 1, y: 0, duration: 0.35, ease: "power2.out", stagger: 0.06, immediateRender: true },
+          0.12
         );
         tl.fromTo(
           "#p7-topbar",
           { opacity: 0, y: -14 },
-          { opacity: 1, y: 0, duration: 0.45, ease: "power2.out", immediateRender: true },
-          0.12
+          { opacity: 1, y: 0, duration: 0.35, ease: "power2.out", immediateRender: true },
+          0.08
         );
         tl.fromTo(
           "#p7-clock",
           { opacity: 0, y: -14 },
-          { opacity: 1, y: 0, duration: 0.45, ease: "power2.out", immediateRender: true },
-          0.18
+          { opacity: 1, y: 0, duration: 0.35, ease: "power2.out", immediateRender: true },
+          0.12
         );
 
-        // slow push-in while the card reads (keeps card centered: Ty = -260 + 380*S)
+        // short push-in while the card reads (keeps card centered: Ty = -260 + 380*S)
         tl.to(
           cam,
           {
             scale: 1.14,
-            duration: 2.55,
+            duration: 1.2,
             ease: "sine.inOut",
             onUpdate: function () {
               cam.y = -260 + 380 * cam.scale;
@@ -779,23 +779,23 @@
           0.05
         );
 
-        // cursor approach → synced press → release (physics-press-reaction)
-        tl.to("#p7-cursor", { x: 540, y: 780, duration: 1.0, ease: "power2.inOut" }, 0.55);
-        tl.to(["#p7-btn", "#p7-cursor"], { scale: 0.92, duration: 0.16, ease: "power1.in" }, 1.6);
-        tl.to("#p7-btn", { backgroundColor: "#0A0E16", duration: 0.16, ease: "power1.in" }, 1.6);
-        tl.to(["#p7-btn", "#p7-cursor"], { scale: 1, duration: 0.5, ease: "back.out(2)" }, 1.86);
-        tl.to("#p7-btn", { backgroundColor: "#111725", duration: 0.4, ease: "power2.out" }, 1.86);
+        // cursor approach → synced press → release (physics-press-reaction), press on the VO cue
+        tl.to("#p7-cursor", { x: 540, y: 780, duration: 0.7, ease: "power2.inOut" }, 0.45);
+        tl.to(["#p7-btn", "#p7-cursor"], { scale: 0.92, duration: 0.12, ease: "power1.in" }, 1.25);
+        tl.to("#p7-btn", { backgroundColor: "#0A0E16", duration: 0.12, ease: "power1.in" }, 1.25);
+        tl.to(["#p7-btn", "#p7-cursor"], { scale: 1, duration: 0.4, ease: "back.out(2)" }, 1.45);
+        tl.to("#p7-btn", { backgroundColor: "#111725", duration: 0.35, ease: "power2.out" }, 1.45);
         tl.fromTo(
           "#p7-ripple",
           { scale: 0.35, opacity: 0.9 },
-          { scale: 1.5, opacity: 0, duration: 0.55, ease: "power2.out" },
-          1.88
+          { scale: 1.5, opacity: 0, duration: 0.45, ease: "power2.out" },
+          1.47
         );
 
         // pulse spawns at the button
-        tl.fromTo(dotEl, { scale: 0 }, { scale: 1, duration: 0.22, ease: "back.out(2.5)" }, 2.6);
+        tl.fromTo(dotEl, { scale: 0 }, { scale: 1, duration: 0.18, ease: "back.out(2.5)" }, 1.32);
 
-        /* ================= Scene 2 (2.6–7.0) — camera chases the coral pulse ================= */
+        /* ================= Scene 2 (1.4–2.7) — fast camera chase of the coral pulse ================= */
         var wmix = { v: 0 }; // pose-A → focus-lock blend (camera mode crossfade)
         var trav = { p: 0 };
         var A_X = 0,
@@ -811,14 +811,14 @@
           gsap.set(dotEl, { x: pt.x, y: pt.y });
           comet.style.strokeDashoffset = COMET - p * LEN;
         }
-        tl.to(wmix, { v: 1, duration: 0.9, ease: "power2.inOut" }, TRAV_AT);
+        tl.to(wmix, { v: 1, duration: 0.4, ease: "power2.inOut" }, TRAV_AT);
         tl.to(trav, { p: 1, duration: TRAV_DUR, ease: "power2.inOut", onUpdate: travUpdate }, TRAV_AT);
-        tl.to(cam, { scale: 0.96, duration: 1.7, ease: "power2.in" }, 2.8);
-        tl.to(cam, { scale: 1.06, duration: 2.1, ease: "power2.out" }, 4.7);
+        tl.to(cam, { scale: 0.96, duration: 0.55, ease: "power2.in" }, 1.45);
+        tl.to(cam, { scale: 1.06, duration: 0.65, ease: "power2.out" }, 2.0);
 
-        // vertical velocity blur peaks at peak speed (~4.85s), sharp at the land
-        tl.to(wb, { v: 14, duration: 1.95, ease: "power2.in", onUpdate: writeWB }, 2.9);
-        tl.to(wb, { v: 0, duration: 2.15, ease: "power2.out", onUpdate: writeWB }, 4.85);
+        // vertical velocity blur peaks at peak speed (~2.05s), sharp at the land
+        tl.to(wb, { v: 16, duration: 0.6, ease: "power2.in", onUpdate: writeWB }, 1.45);
+        tl.to(wb, { v: 0, duration: 0.62, ease: "power2.out", onUpdate: writeWB }, 2.05);
 
         // node hits as the pulse passes
         function nodePop(sel, at, restBorder) {
@@ -830,145 +830,145 @@
         nodePop("#p7-node1", tN1, "#111725");
         nodePop("#p7-node2", tN2, "#0A0E16");
 
-        // seconds counter — 0.0 → 4.0, real time
+        // seconds counter — 0.0 → 4.0 across the chase, landing on เข้าไลน์แล้ว @2.84
         tl.fromTo(
           "#p7-counter",
           { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.4, ease: "power3.out", immediateRender: true },
-          2.55
+          { opacity: 1, y: 0, duration: 0.3, ease: "power3.out", immediateRender: true },
+          1.35
         );
-        tl.to(cnt, { v: 4, duration: 4.0, ease: "none", onUpdate: writeCnt }, 3.0);
+        tl.to(cnt, { v: 4, duration: 1.35, ease: "none", onUpdate: writeCnt }, 1.5);
 
-        // clock ticks down slowly through the whole approach + travel (01:40:33 → 01:40:26)
-        tl.to(clock, { v: 6026, duration: 7.0, ease: "none", onUpdate: writeClock }, 0);
+        // clock ticks down slowly until the landing beat (01:40:33 → 01:40:30)
+        tl.to(clock, { v: 6030, duration: 2.85, ease: "none", onUpdate: writeClock }, 0);
 
-        /* ================= Scene 3 (7.0–10.2) — landing + clock collapse (signature) ================= */
+        /* ================= Scene 3 (2.85–4.6) — landing + clock collapse (signature) ================= */
         // camera settles onto the notification card
         tl.to(
           cam,
-          { x: 0, y: -320 - 1670 * 1.02, scale: 1.02, duration: 0.75, ease: "power3.out", onUpdate: applyCamera },
-          7.02
+          { x: 0, y: -320 - 1670 * 1.02, scale: 1.02, duration: 0.6, ease: "power3.out", onUpdate: applyCamera },
+          2.87
         );
         // pulse absorbed into the card on impact
-        tl.to(dotEl, { scale: 0, duration: 0.28, ease: "power2.in" }, 7.0);
+        tl.to(dotEl, { scale: 0, duration: 0.22, ease: "power2.in" }, 2.85);
 
-        // notification spring-pop
+        // notification spring-pop on เข้าไลน์แล้ว @2.84
         tl.fromTo(
           "#p7-notif",
           { scale: 0.55, autoAlpha: 0 },
-          { scale: 1, autoAlpha: 1, duration: 0.75, ease: "back.out(1.8)", immediateRender: true },
-          7.05
+          { scale: 1, autoAlpha: 1, duration: 0.6, ease: "back.out(1.8)", immediateRender: true },
+          2.88
         );
         tl.fromTo(
           ".p7-bar",
           { scaleX: 0 },
-          { scaleX: 1, duration: 0.5, ease: "power3.out", stagger: 0.12, immediateRender: true },
-          7.5
+          { scaleX: 1, duration: 0.4, ease: "power3.out", stagger: 0.1, immediateRender: true },
+          3.2
         );
         tl.fromTo(
           "#p7-chip1",
           { opacity: 0, y: 26, scale: 0.9 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.8)", immediateRender: true },
-          7.85
+          { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.8)", immediateRender: true },
+          3.65
         );
         tl.fromTo(
           "#p7-chip2",
           { opacity: 0, y: 26, scale: 0.9 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.8)", immediateRender: true },
-          8.3
+          { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.8)", immediateRender: true },
+          4.1
         );
 
-        // THE BEAT — clock collapses in a fast downward blur to 00:00:04
-        tl.to(clock, { v: 4, duration: 0.55, ease: "power3.in", onUpdate: writeClock }, 7.0);
-        tl.to(cb, { v: 15, duration: 0.3, ease: "power2.in", onUpdate: writeCB }, 7.0);
-        tl.to(cb, { v: 0, duration: 0.32, ease: "power3.out", onUpdate: writeCB }, 7.3);
-        tl.to(clockDigits, { y: 9, duration: 0.3, ease: "power2.in" }, 7.0);
-        tl.to(clockDigits, { y: 0, duration: 0.32, ease: "power3.out" }, 7.3);
+        // THE BEAT — clock collapses in a fast downward blur to 00:00:04, same beat as the landing
+        tl.to(clock, { v: 4, duration: 0.5, ease: "power3.in", onUpdate: writeClock }, 2.85);
+        tl.to(cb, { v: 15, duration: 0.28, ease: "power2.in", onUpdate: writeCB }, 2.85);
+        tl.to(cb, { v: 0, duration: 0.3, ease: "power3.out", onUpdate: writeCB }, 3.13);
+        tl.to(clockDigits, { y: 9, duration: 0.28, ease: "power2.in" }, 2.85);
+        tl.to(clockDigits, { y: 0, duration: 0.3, ease: "power3.out" }, 3.13);
         // one coral flash, then hold at 00:00:04
-        tl.to(clockDigits, { color: "#ff6d7e", duration: 0.09, ease: "none" }, 7.56);
-        tl.to(clockChip, { borderColor: "#ff6d7e", duration: 0.09, ease: "none" }, 7.56);
-        tl.to(clockChip, { scale: 1.08, duration: 0.1, ease: "power2.out" }, 7.56);
-        tl.to(clockChip, { scale: 1, duration: 0.4, ease: "back.out(2)" }, 7.66);
-        tl.to(clockDigits, { color: "#0A0E16", duration: 0.55, ease: "power2.out" }, 7.85);
-        tl.to(clockChip, { borderColor: "#111725", duration: 0.55, ease: "power2.out" }, 7.85);
+        tl.to(clockDigits, { color: "#ff6d7e", duration: 0.09, ease: "none" }, 3.36);
+        tl.to(clockChip, { borderColor: "#ff6d7e", duration: 0.09, ease: "none" }, 3.36);
+        tl.to(clockChip, { scale: 1.08, duration: 0.1, ease: "power2.out" }, 3.36);
+        tl.to(clockChip, { scale: 1, duration: 0.35, ease: "back.out(2)" }, 3.46);
+        tl.to(clockDigits, { color: "#0A0E16", duration: 0.45, ease: "power2.out" }, 3.62);
+        tl.to(clockChip, { borderColor: "#111725", duration: 0.45, ease: "power2.out" }, 3.62);
 
         // counter lands on 4.0 with the same beat
-        tl.to("#p7-counter", { scale: 1.1, duration: 0.1, ease: "power2.out" }, 7.0);
-        tl.to("#p7-counter", { scale: 1, duration: 0.4, ease: "back.out(2)" }, 7.1);
-        tl.to(cntEl, { color: "#ff6d7e", duration: 0.1, ease: "none" }, 7.0);
-        tl.to(cntEl, { color: "#0A0E16", duration: 0.5, ease: "power2.out" }, 7.35);
+        tl.to("#p7-counter", { scale: 1.1, duration: 0.1, ease: "power2.out" }, 2.85);
+        tl.to("#p7-counter", { scale: 1, duration: 0.35, ease: "back.out(2)" }, 2.95);
+        tl.to(cntEl, { color: "#ff6d7e", duration: 0.1, ease: "none" }, 2.85);
+        tl.to(cntEl, { color: "#0A0E16", duration: 0.4, ease: "power2.out" }, 3.15);
 
         // quiet macro push while the proof reads
         tl.to(
           cam,
           {
             scale: 1.045,
-            duration: 5.5,
+            duration: 3.8,
             ease: "sine.inOut",
             onUpdate: function () {
               cam.y = -320 - 1670 * cam.scale;
               applyCamera();
             },
           },
-          7.85
+          3.5
         );
 
-        /* ================= Scene 4 (10.2–13.4) — before/after strip ================= */
+        /* ================= Scene 4 (4.7–7.4) — before/after strip (สองชั่วโมงต่อวัน @4.63 → เหลือศูนย์ @6.63) ================= */
         tl.fromTo(
           "#p7-cmp-old",
           { xPercent: -104 },
-          { xPercent: 0, duration: 0.6, ease: "expo.out", immediateRender: true },
-          10.25
-        );
-        tl.fromTo(
-          "#p7-cmp-new",
-          { xPercent: 104 },
-          { xPercent: 0, duration: 0.6, ease: "expo.out", immediateRender: true },
-          10.7
+          { xPercent: 0, duration: 0.55, ease: "expo.out", immediateRender: true },
+          4.7
         );
         tl.fromTo(
           "#p7-strike",
           { scaleX: 0 },
           { scaleX: 1, duration: 0.4, ease: "power3.inOut", immediateRender: true },
-          10.95
+          5.35
         );
-        tl.to("#p7-zero", { scale: 1.3, duration: 0.14, ease: "power2.out" }, 11.5);
-        tl.to("#p7-zero", { scale: 1, duration: 0.45, ease: "back.out(2.4)" }, 11.64);
+        tl.fromTo(
+          "#p7-cmp-new",
+          { xPercent: 104 },
+          { xPercent: 0, duration: 0.45, ease: "expo.out", immediateRender: true },
+          6.4
+        );
+        tl.to("#p7-zero", { scale: 1.3, duration: 0.12, ease: "power2.out" }, 6.65);
+        tl.to("#p7-zero", { scale: 1, duration: 0.4, ease: "back.out(2.4)" }, 6.77);
 
-        /* ================= Scene 5 (13.4–16.0) — kinetic-beat-slam hero ================= */
+        /* ================= Scene 5 (7.4–9.149) — kinetic-beat-slam hero (ไม่ต้องเฝ้าจอ @7.44) ================= */
         // context steps back; chrome + clock stay full
-        tl.to(["#p7-world", "#p7-strip-in", "#p7-counter"], { opacity: 0.16, duration: 0.5, ease: "power2.inOut" }, 13.4);
+        tl.to(["#p7-world", "#p7-strip-in", "#p7-counter"], { opacity: 0.16, duration: 0.4, ease: "power2.inOut" }, 7.4);
 
-        // one tempo grid: PULSE 0.4 from 13.45
-        var PULSE = 0.4;
-        var B0 = 13.45;
+        // one tempo grid: PULSE 0.35 from 7.5
+        var PULSE = 0.35;
+        var B0 = 7.5;
         tl.fromTo(
           "#p7-band",
           { scaleX: 0 },
-          { scaleX: 1, duration: 0.5, ease: "expo.out", immediateRender: true },
+          { scaleX: 1, duration: 0.45, ease: "expo.out", immediateRender: true },
           B0
         );
         tl.fromTo(
           "#p7-hline1",
           { scale: 1.55, opacity: 0, filter: "blur(14px)" },
-          { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power4.out", immediateRender: true },
+          { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "power4.out", immediateRender: true },
           B0 + PULSE
         );
         tl.fromTo(
           "#p7-hline2",
           { x: -300, opacity: 0 },
-          { x: 0, opacity: 1, duration: 0.45, ease: "expo.out", immediateRender: true },
-          B0 + PULSE * 3
+          { x: 0, opacity: 1, duration: 0.4, ease: "expo.out", immediateRender: true },
+          B0 + PULSE * 2
         );
         // rhythm chrome on the same grid
         gsap.utils.toArray(".p7-ticks i").forEach(function (tick, i) {
           var t = B0 + PULSE * i;
-          tl.to(tick, { opacity: 1, duration: 0.09, ease: "none" }, t);
-          tl.to(tick, { opacity: 0.22, duration: 0.22, ease: "power1.out" }, t + 0.09);
+          tl.to(tick, { opacity: 1, duration: 0.08, ease: "none" }, t);
+          tl.to(tick, { opacity: 0.22, duration: 0.15, ease: "power1.out" }, t + 0.08);
         });
         // finite settle breath, then hold to the cut (no exit — not the final frame)
-        tl.to("#p7-band", { scale: 1.012, duration: 0.4, ease: "sine.inOut" }, 15.2);
-        tl.to("#p7-band", { scale: 1, duration: 0.38, ease: "sine.inOut" }, 15.6);
+        tl.to("#p7-band", { scale: 1.012, duration: 0.18, ease: "sine.inOut" }, 8.75);
+        tl.to("#p7-band", { scale: 1, duration: 0.18, ease: "sine.inOut" }, 8.93);
       })();
     </script>
   </div>

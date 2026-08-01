@@ -70,7 +70,7 @@
         top: 0;
         width: 100%;
         height: 1960px; /* extra tail so the slow upward drift never exposes an edge */
-        background-image: radial-gradient(circle, #4A5875 2.2px, transparent 2.8px);
+        background-image: radial-gradient(circle, #4a5875 2.2px, transparent 2.8px);
         background-size: 46px 46px;
         background-position: 23px 23px;
         opacity: 0.5;
@@ -104,7 +104,7 @@
         left: 54px;
         top: 150px;
         background: #3ecfb2;
-        color: #0A0E16;
+        color: #0a0e16; /* green-deep (navy-ink) on pink surface per frame.md */
         border-radius: 6px;
         padding: 26px 36px 30px;
         opacity: 0;
@@ -149,7 +149,7 @@
         display: flex;
         align-items: center;
         gap: 30px;
-        border-bottom: 2px solid #4A5875;
+        border-bottom: 2px solid #4a5875;
         font-weight: 500;
         font-size: 48px;
         letter-spacing: -0.01em;
@@ -257,8 +257,8 @@
         top: 54px;
         width: 170px;
         height: 48px;
-        background: #0A0E16;
-        border: 2px solid #4A5875;
+        background: #0a0e16;
+        border: 2px solid #4a5875;
         border-radius: 6px;
         opacity: 0;
         transform-origin: center center;
@@ -267,12 +267,12 @@
     </style>
 
     <!-- full-bleed ground (never on #root) -->
-    <div class="clip pain2-bg" data-start="0" data-duration="13" data-track-index="0">
+    <div class="clip pain2-bg" data-start="0" data-duration="16.951" data-track-index="0">
       <div class="pain2-dots" id="pain2-dots"></div>
     </div>
 
     <!-- content stage -->
-    <div class="clip" data-start="0" data-duration="13" data-track-index="1">
+    <div class="clip" data-start="0" data-duration="16.951" data-track-index="1">
       <div class="pain2-topbar">
         <div class="pain2-topbar-label" id="pain2-topbar-label">EP.01 — MANUAL LOOP</div>
       </div>
@@ -339,7 +339,7 @@
           topbarLabel = $("pain2-topbar-label");
 
         /* ambient macro move: dot grid drifts up across the whole shot */
-        tl.fromTo(dots, { y: 0 }, { y: -26, duration: 13, ease: "none" }, 0);
+        tl.fromTo(dots, { y: 0 }, { y: -32, duration: 16.951, ease: "none" }, 0);
 
         /* chrome in fast */
         tl.fromTo(
@@ -349,29 +349,31 @@
           0.05
         );
 
-        /* ---- Scene 1 (0.0–2.4s): first loop line slides in left + coral cross,
-                counter chip "ออเดอร์ที่ 1" top-left ---- */
-        tl.set(row1, { opacity: 1, x: -90 }, 0.18);
-        tl.to(row1, { x: 0, duration: 0.42, ease: "power4.out" }, 0.18);
-        tl.fromTo(
-          "#pain2-x-1",
-          { scale: 0, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.32, ease: "back.out(2)" },
-          0.4
-        );
+        /* ---- VO@0.00 "เมื่อก่อนผมนั่งเฝ้า..." — opening line + counter chip
+                land 0.2–1.0, then ambient while the VO sets the scene ---- */
+        tl.set(row1, { opacity: 1, x: -90 }, 0.2);
+        tl.to(row1, { x: 0, duration: 0.42, ease: "power4.out" }, 0.2);
         tl.fromTo(
           counterChip,
           { opacity: 0, scale: 0.7 },
           { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.6)" },
-          0.65
+          0.55
+        );
+        /* cue@4.93 "ก็ก็อปชื่อลูกค้า" — the loop starts: coral cross checks line 1 */
+        tl.fromTo(
+          "#pain2-x-1",
+          { scale: 0, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.32, ease: "back.out(2)" },
+          4.93
         );
 
-        /* ---- Scene 2 (2.4–5.8s): waterfall-entry rows pile down on VO cues
-                (binary opacity via set, whip from below, power4.out) ---- */
+        /* ---- loop rows waterfall on their VO cues: ก็อปที่อยู่@5.92,
+                วางในไลน์@6.59, ทำซ้ำ@7.6 (binary opacity via set, whip from
+                below, power4.out) ---- */
         var wf = [
-          [row2, 2.5],
-          [row3, 3.45],
-          [row4, 4.45]
+          [row2, 5.92],
+          [row3, 6.59],
+          [row4, 7.6]
         ];
         var i, r, t;
         for (i = 0; i < wf.length; i++) {
@@ -381,37 +383,38 @@
           tl.to(r, { y: 0, duration: 0.16, ease: "power4.out" }, t);
         }
 
-        /* counter 1→34, counting-dynamic-scale: value + scale share ease/duration */
+        /* counter 1→34 on cue@8.65 "วันนึงสามสิบกว่าออเดอร์" —
+           counting-dynamic-scale: value + scale share ease/duration */
         var count = { v: 1 };
         tl.to(
           count,
           {
             v: 34,
-            duration: 3.2,
+            duration: 1.85,
             ease: "power2.out",
             onUpdate: function () {
               countEl.textContent = String(Math.round(count.v));
             }
           },
-          2.4
+          8.65
         );
         tl.fromTo(
           countEl,
           { scale: 0.62 },
-          { scale: 1, duration: 3.2, ease: "power2.out" },
-          2.4
+          { scale: 1, duration: 1.85, ease: "power2.out" },
+          8.65
         );
 
-        /* ---- Scene 3 (5.8–8.6s): error row inserts — "ทำซ้ำ…" shifts down,
-                error row enters with one finite chromatic-glitch burst ---- */
-        tl.to(row4, { y: 122, duration: 0.38, ease: "power3.out" }, 5.82);
+        /* ---- error beat AFTER the count-up (spoken order): cue@13.28
+                "แล้วบางทีก็อปพลาด" — "ทำซ้ำ…" shifts down to open the slot ---- */
+        tl.to(row4, { y: 122, duration: 0.38, ease: "power3.out" }, 13.3);
 
         var gcopies = [$("pain2-gwarm"), $("pain2-gcool")];
         var glitchHash = function (n) {
           var x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
           return x - Math.floor(x); /* pure — same frame on every seek */
         };
-        var GLITCH_START = 6.05,
+        var GLITCH_START = 14.41, /* cue "ที่อยู่ผิด" */
           GLITCH_DUR = 0.38,
           JITTER_STEP = 1 / 24,
           MAX_SPLIT = 8,
@@ -447,20 +450,21 @@
         /* clamp ghosts to exact rest — the snap-sharp */
         tl.set(gcopies, { x: 0, y: 0, opacity: 0 }, GLITCH_START + GLITCH_DUR);
 
-        /* other lines dim while the mistake holds focus */
-        tl.to([row1, row2, row3, row4], { opacity: 0.45, duration: 0.5, ease: "power2.inOut" }, 6.35);
+        /* other lines dim deeper while the mistake holds focus (error row stays
+           bright — rows are dimmed individually, never the list container) */
+        tl.to([row1, row2, row3, row4], { opacity: 0.28, duration: 0.5, ease: "power2.inOut" }, 13.35);
 
-        /* ---- Scene 4 (8.6–13.0s): list recedes to 40%, hero time count-up,
-                then the single journey to the top-right series-clock dock ---- */
-        tl.to([row1, row2, row3, row4], { opacity: 1, duration: 0.7, ease: "power2.inOut" }, 8.62);
-        tl.to(list, { opacity: 0.4, scale: 0.965, duration: 0.7, ease: "power2.inOut" }, 8.62);
-        tl.to(counterChip, { opacity: 0.4, scale: 0.94, duration: 0.7, ease: "power2.inOut" }, 8.62);
+        /* ---- cue@10.79 "รวมแล้วเสียเวลาไปสองชั่วโมงต่อวัน" — list recedes
+                to 40% and the hero time count-up takes the frame ---- */
+        tl.to([row1, row2, row3, row4], { opacity: 0.4, duration: 0.7, ease: "power2.inOut" }, 10.6);
+        tl.to(list, { scale: 0.965, duration: 0.7, ease: "power2.inOut" }, 10.6);
+        tl.to(counterChip, { opacity: 0.4, scale: 0.94, duration: 0.7, ease: "power2.inOut" }, 10.6);
 
         tl.fromTo(
           clockLabel,
           { opacity: 0, y: 14 },
           { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-          9.0
+          11.0
         );
 
         /* count 00:00:00 → 02:00:00 (proxy seconds 0→7200), scale 0.5→1,
@@ -476,35 +480,40 @@
             s = v % 60;
           clock.textContent = pad2(h) + ":" + pad2(m) + ":" + pad2(s);
         };
-        tl.fromTo(clock, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out" }, 8.75);
-        tl.fromTo(clock, { scale: 0.5 }, { scale: 1, duration: 2.0, ease: "power2.out" }, 8.75);
-        tl.to(timeState, { v: 7200, duration: 2.0, ease: "power2.out", onUpdate: fmtClock }, 8.75);
+        tl.fromTo(clock, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out" }, 10.8);
+        tl.fromTo(clock, { scale: 0.5 }, { scale: 1, duration: 2.2, ease: "power2.out" }, 10.8);
+        tl.to(timeState, { v: 7200, duration: 2.2, ease: "power2.out", onUpdate: fmtClock }, 10.8);
 
-        /* hold ~0.5s at full size (10.75–11.25), then ONE long journey:
+        /* clock holds full size 13.0–15.4 while the error beat plays below it;
+           the error row joins the dimmed background as the finale starts */
+        tl.to(rowErr, { opacity: 0.4, duration: 0.5, ease: "power2.inOut" }, 15.4);
+
+        /* then ONE long journey 15.4–16.5:
            center (540,545) → chip center (941,78), scale 1→0.25
            (112px type × 0.25 ≈ 28px docked digits inside the 170×48 chip) */
-        tl.to(clock, { x: 401, y: -467, scale: 0.25, duration: 1.1, ease: "power3.inOut" }, 11.25);
-        tl.to(clockLabel, { opacity: 0, y: -10, duration: 0.4, ease: "power2.in" }, 11.25);
+        tl.to(clock, { x: 401, y: -467, scale: 0.25, duration: 1.1, ease: "power3.inOut" }, 15.4);
+        tl.to(clockLabel, { opacity: 0, y: -10, duration: 0.4, ease: "power2.in" }, 15.4);
 
         /* chip frame materializes just before touchdown */
         tl.fromTo(
           chip,
           { opacity: 0, scale: 0.85 },
           { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" },
-          12.05
+          16.2
         );
-        /* landing: one coral accent flash, decays to rest — then still to cut */
+        /* landing: one coral accent flash, decays to the chip's CSS rest colors
+           (#0A0E16 / #4A5875 — palette-true, matches .pain2-chip) — still to 16.951 */
         tl.fromTo(
           chip,
           { backgroundColor: "#FF6D7E", borderColor: "#FF6D7E" },
-          { backgroundColor: "#0A0E16", borderColor: "#4A5875", duration: 0.45, ease: "power2.out" },
-          12.35
+          { backgroundColor: "#0A0E16", borderColor: "#4A5875", duration: 0.35, ease: "power2.out" },
+          16.5
         );
         tl.fromTo(
           clock,
           { color: "#0A0E16" },
-          { color: "#3ECFB2", duration: 0.45, ease: "power2.out" },
-          12.35
+          { color: "#3ECFB2", duration: 0.35, ease: "power2.out" },
+          16.5
         );
 
         window.__timelines["02-pain"] = tl;

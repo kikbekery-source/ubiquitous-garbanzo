@@ -1,6 +1,6 @@
 ---
 format: 1080x1920
-duration: 113s
+duration: 98s
 message: "งานเฝ้าออเดอร์ 2 ชั่วโมงต่อวัน เหลือศูนย์ ด้วย n8n ตัวเดียว"
 arc: Bumper+Cold Open → ความเจ็บ → เครื่องมือ → ลงมือทำ 3 ขั้น → พิสูจน์ → ส่งไม้ต่อ
 audience: เจ้าของร้าน/ผู้ประกอบการไทยที่ไม่ใช่โปรแกรมเมอร์ ดู Shorts บนมือถือ ส่วนใหญ่ปิดเสียง
@@ -34,12 +34,12 @@ music: none
 
 - type: hook
 - blueprint: kinetic-type-beats (Adapt)
-- duration: 8s
+- duration: 10.263s
 - transition_in: cut
 - status: animated
 - poster: 5s
 - scene: แท่งสี 7 แท่งติดไล่กันเป็น bumper ซีรีส์ แล้วตัดเข้าแชท — ออเดอร์เด้งเข้าเองต่อหน้าคนดู
-- voiceover: "อันนี้คือออเดอร์ที่เพิ่งเข้ามาเมื่อกี้ เด้งเข้า LINE ผมเองอัตโนมัติ ผมไม่ได้แตะอะไรเลยนะ"
+- voiceover: "ผมจะสอนทำระบบออโตเมติกด้วย n8n แบบฟรีๆ ไม่ต้องเสียตังค์สักบาท ดูนะ ออเดอร์เพิ่งเข้าเมื่อกี้ เด้งเข้า LINE เองเลย ผมไม่ได้แตะอะไรเลย"
 - focal: การ์ดแจ้งเตือนออเดอร์ (ใบแรก)
 - roles: การ์ดแจ้งเตือน ×2 = foreground subject · แท่งสี 7 แท่ง + ชื่อซีรีส์ = supporting (เฉพาะ 0–3s) · ผิวแชทเข้ม + dot-grid = background (หรี่ ~40%)
 - sfx: seven ascending pings, notification pop ×2, kinetic slam
@@ -64,7 +64,7 @@ Scene 5 (6.2–8.0s): บรรทัดฮีโร่ "ผมไม่ได�
 
 - type: pain_point
 - blueprint: dataviz-countup (Adapt)
-- duration: 13s
+- duration: 16.951s
 - transition_in: cut
 - status: animated
 - scene: ลูปงานมือทับถมเป็นรายการ ตัวนับออเดอร์ไต่ 1→34 แล้ว count-up เวลา 02:00:00 กลายเป็นนาฬิกาประจำตอน
@@ -92,7 +92,7 @@ Scene 4 (8.6–13.0s): ทั้งรายการหรี่ 40% ถอย�
 
 - type: product_intro
 - blueprint: logo-assemble-lockup (Reproduce)
-- duration: 10s
+- duration: 9.799s
 - transition_in: cut
 - status: animated
 - scene: โหนดวิ่งมาต่อสายกันแล้วประกอบเป็นเวิร์ดมาร์ก n8n + ป้าย ฟรี · OPEN SOURCE
@@ -119,7 +119,7 @@ Scene 4 (7.0–10.0s): ป้าย pill สแนปเข้าทีละใ
 
 - type: feature_showcase
 - blueprint: cursor-ui-demo (Adapt)
-- duration: 17s
+- duration: 13.932s
 - transition_in: cut
 - status: animated
 - scene: chapter card 01 แล้วเคอร์เซอร์ใหญ่สร้าง workflow เลือก Webhook ได้ลิงก์มาก็อปเก็บ
@@ -148,7 +148,7 @@ Scene 5 (12.4–17.0s): ช่องลิงก์เลื่อนออก�
 
 - type: feature_showcase
 - blueprint: panel-edit-live-sync (Adapt)
-- duration: 17s
+- duration: 15.372s
 - transition_in: cut
 - status: animated
 - scene: chapter card 02 แล้ววางลิงก์ในแผงร้าน กด Test — ข้อมูลจริงวิ่งเข้าฝั่ง n8n ทันที
@@ -177,7 +177,7 @@ Scene 5 (13.0–17.0s): ชิปเขียวมิ้นต์ "Test ผ่�
 
 - type: feature_showcase
 - blueprint: cursor-ui-demo (Adapt)
-- duration: 18s
+- duration: 10.681s
 - transition_in: cut
 - status: animated
 - scene: chapter card 03 ลากชิปข้อมูลจากโหนดแรกไปวางในข้อความ แล้วสับสวิตช์ Active ทั้งเส้นติดสว่าง
@@ -206,7 +206,7 @@ Scene 5 (15.0–18.0s): ป้าย "ระบบทำงานแล้ว" �
 
 - type: benefit_highlight
 - blueprint: camera-journey (Reproduce)
-- duration: 16s
+- duration: 9.149s
 - transition_in: cut
 - status: animated
 - scene: สั่งจริง กล้องพุ่งตามพัลส์จากปุ่มสั่งซื้อผ่านเส้นถึงแจ้งเตือน แล้วนาฬิกายุบ 02:00:00 → 00:00:04
@@ -236,7 +236,7 @@ Scene 5 (13.4–16.0s): บรรทัดฮีโร่ "ประหยัด
 
 - type: cta
 - blueprint: titlecard-reveal (Reproduce)
-- duration: 14s
+- duration: 11.842s
 - transition_in: cut
 - status: animated
 - poster: 6s

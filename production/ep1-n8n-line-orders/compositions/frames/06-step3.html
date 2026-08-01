@@ -594,11 +594,11 @@
 
   <div id="root" data-composition-id="06-step3" data-width="1080" data-height="1920">
     <!-- Full-bleed ground on its own clip (never on #root) -->
-    <div id="f06-bg" class="clip" data-start="0" data-duration="18" data-track-index="0">
+    <div id="f06-bg" class="clip" data-start="0" data-duration="10.681" data-track-index="0">
       <div class="f06-grounddots"></div>
     </div>
 
-    <div id="f06-main" class="clip" data-start="0" data-duration="18" data-track-index="1">
+    <div id="f06-main" class="clip" data-start="0" data-duration="10.681" data-track-index="1">
       <!-- Topbar: chrome label + series clock chip (present from t=0; covered by the chapter card) -->
       <div class="f06-topbar">
         <div class="f06-toplabel">EP 01 &middot; AUTOMATION</div>
@@ -789,8 +789,8 @@
       </div>
     </div>
 
-    <!-- Scene 1: chapter card, hard cut out at 0.8s (clip-gated) -->
-    <div id="f06-card" class="clip" data-start="0" data-duration="0.8" data-track-index="2">
+    <!-- Scene 1: chapter card, hard cut out at 0.9s (clip-gated) -->
+    <div id="f06-card" class="clip" data-start="0" data-duration="0.9" data-track-index="2">
       <div id="f06-card-inner">
         <div id="f06-card-ord">03</div>
         <div id="f06-card-rule"></div>
@@ -821,8 +821,8 @@
       tl.to(
         clock,
         {
-          t: 12,
-          duration: 18,
+          t: 7,
+          duration: 10.681,
           ease: "none",
           onUpdate: function () {
             var total = CLOCK_START - Math.floor(clock.t);
@@ -836,7 +836,7 @@
         0,
       );
 
-      /* ── Scene 1 (0.0–0.85s): chapter card — title settles, then the clip hard-cuts out ── */
+      /* ── Scene 1 (0.0–0.9s): chapter card — cut lands on VO cue "ต่อบล็อกไลน์" @0.95 ── */
       tl.fromTo(
         "#f06-card-title",
         { opacity: 0, y: 26 },
@@ -844,32 +844,32 @@
         0.03,
       );
 
-      /* ── Scene 2 (0.8–4.6s): canvas revealed; chat node spring-pops; wire draws itself ── */
+      /* ── Scene 2 (0.95–2.9s): canvas revealed; chat node spring-pops; wire draws itself ── */
       tl.fromTo(
         "#f06-canvas",
         { scale: 0.985 },
-        { scale: 1, duration: 0.45, ease: "power2.out", immediateRender: false },
-        0.8,
+        { scale: 1, duration: 0.4, ease: "power2.out", immediateRender: false },
+        0.9,
       );
       tl.fromTo(
         ["#f06-kick", "#f06-head"],
         { opacity: 0, y: 14 },
-        { opacity: 1, y: 0, duration: 0.4, ease: "power3.out", stagger: 0.08, immediateRender: false },
-        0.84,
+        { opacity: 1, y: 0, duration: 0.35, ease: "power3.out", stagger: 0.07, immediateRender: false },
+        0.93,
       );
 
-      /* chat node spring-pop onto the end of the line */
+      /* chat node spring-pop onto the end of the line (VO @0.95) */
       tl.fromTo(
         "#f06-node-chat",
         { opacity: 0, scale: 0.55 },
-        { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.9)", immediateRender: false },
-        1.55,
+        { opacity: 1, scale: 1, duration: 0.55, ease: "back.out(1.9)", immediateRender: false },
+        1.0,
       );
       tl.fromTo(
         ["#f06-chat-label", "#f06-port-in"],
         { opacity: 0 },
         { opacity: 1, duration: 0.25, ease: "power1.out", immediateRender: false },
-        2.0,
+        1.35,
       );
 
       /* wire draws from Webhook to the new node (svg-path-draw: measured length) */
@@ -879,78 +879,78 @@
       wireBase.style.strokeDashoffset = String(wireLen);
       tl.to(
         "#f06-wire-base",
-        { strokeDashoffset: 0, duration: 1.0, ease: "power2.out" },
-        2.35,
+        { strokeDashoffset: 0, duration: 0.8, ease: "power2.out" },
+        1.65,
       );
 
       /* message field pops open + rows assemble */
       tl.fromTo(
         "#f06-msg",
         { opacity: 0, scale: 0.95 },
-        { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out", immediateRender: false },
-        3.7,
+        { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out", immediateRender: false },
+        2.45,
       );
       tl.fromTo(
         ".f06-msg-in",
         { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.32, ease: "power2.out", stagger: 0.09, immediateRender: false },
-        3.9,
+        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out", stagger: 0.07, immediateRender: false },
+        2.6,
       );
 
-      /* tray chips appear just before the drag verb */
+      /* tray chips appear on the drag cue (VO "แล้วลากชื่อลูกค้า..." @2.91) */
       tl.fromTo(
         "#f06-traylabel",
         { opacity: 0, y: 10 },
         { opacity: 1, y: 0, duration: 0.3, ease: "power2.out", immediateRender: false },
-        4.05,
+        2.7,
       );
       tl.fromTo(
         "#f06-chip-1",
         { opacity: 0, y: 12, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power3.out", immediateRender: false },
-        4.15,
+        { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power3.out", immediateRender: false },
+        2.78,
       );
       tl.fromTo(
         "#f06-chip-2",
         { opacity: 0, y: 12, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power3.out", immediateRender: false },
-        4.3,
+        { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power3.out", immediateRender: false },
+        2.9,
       );
 
-      /* ── Scene 3 (4.6–11.0s): cursor-drag ×2 — grab, ghost ride, drop-snap ── */
+      /* ── Scene 3 (2.95–5.9s): cursor-drag ×2 — grab, ghost ride, drop-snap (tightened) ── */
 
       /* cursor enters from the frame edge and approaches chip 1 */
-      tl.set("#f06-cursor", { opacity: 1 }, 4.55);
+      tl.set("#f06-cursor", { opacity: 1 }, 2.95);
       tl.fromTo(
         "#f06-cursor",
         { x: 1030, y: 1150 },
         {
           x: CHIP1.x + GRIP.dx,
           y: CHIP1.y + GRIP.dy,
-          duration: 0.78,
+          duration: 0.55,
           ease: "power2.inOut",
           immediateRender: false,
         },
-        4.55,
+        2.95,
       );
 
       /* grab 1: press dip on cursor + chip together (physics-press-reaction) */
-      tl.to(["#f06-cursor", "#f06-chip-1"], { scale: 0.93, duration: 0.1, ease: "power1.in" }, 5.38);
-      tl.set("#f06-ghost-1", { opacity: 0.65 }, 5.48);
+      tl.to(["#f06-cursor", "#f06-chip-1"], { scale: 0.93, duration: 0.1, ease: "power1.in" }, 3.52);
+      tl.set("#f06-ghost-1", { opacity: 0.65 }, 3.62);
       tl.fromTo(
         "#f06-ghost-1",
         { scale: 1 },
-        { scale: 1.06, duration: 0.16, ease: "power2.out", immediateRender: false },
-        5.48,
+        { scale: 1.06, duration: 0.14, ease: "power2.out", immediateRender: false },
+        3.62,
       );
-      tl.to(["#f06-cursor", "#f06-chip-1"], { scale: 1, duration: 0.18, ease: "power2.out" }, 5.5);
+      tl.to(["#f06-cursor", "#f06-chip-1"], { scale: 1, duration: 0.16, ease: "power2.out" }, 3.64);
 
       /* travel 1 — MATCHED tweens, absolute endpoints, same duration + ease (lockstep) */
       tl.fromTo(
         "#f06-ghost-1",
         { x: 0, y: 0 },
-        { x: D1.x, y: D1.y, duration: 0.8, ease: "power2.inOut", immediateRender: false },
-        5.72,
+        { x: D1.x, y: D1.y, duration: 0.6, ease: "power2.inOut", immediateRender: false },
+        3.86,
       );
       tl.fromTo(
         "#f06-cursor",
@@ -958,60 +958,60 @@
         {
           x: CHIP1.x + GRIP.dx + D1.x,
           y: CHIP1.y + GRIP.dy + D1.y,
-          duration: 0.8,
+          duration: 0.6,
           ease: "power2.inOut",
           immediateRender: false,
         },
-        5.72,
+        3.86,
       );
 
       /* drop 1 — state commit: ghost off + placed field on at the same position */
-      tl.set("#f06-ghost-1", { opacity: 0 }, 6.52);
-      tl.set("#f06-slot-1", { opacity: 0 }, 6.52);
+      tl.set("#f06-ghost-1", { opacity: 0 }, 4.46);
+      tl.set("#f06-slot-1", { opacity: 0 }, 4.46);
       tl.fromTo(
         "#f06-placed-1",
         { opacity: 0, scale: 0.9 },
-        { opacity: 1, scale: 1, duration: 0.24, ease: "power3.out", immediateRender: false },
-        6.52,
+        { opacity: 1, scale: 1, duration: 0.22, ease: "power3.out", immediateRender: false },
+        4.46,
       );
       tl.fromTo(
         "#f06-selbox-1",
         { opacity: 0 },
-        { opacity: 1, duration: 0.16, ease: "power2.out", immediateRender: false },
-        6.62,
+        { opacity: 1, duration: 0.14, ease: "power2.out", immediateRender: false },
+        4.52,
       );
       tl.fromTo(
         "#f06-selbox-1 .f06-handle",
         { scale: 0.4 },
-        { scale: 1, duration: 0.2, ease: "power3.out", stagger: 0.03, immediateRender: false },
-        6.64,
+        { scale: 1, duration: 0.16, ease: "power3.out", stagger: 0.02, immediateRender: false },
+        4.54,
       );
-      tl.to("#f06-selbox-1", { opacity: 0, duration: 0.25, ease: "power1.out" }, 7.35);
+      tl.to("#f06-selbox-1", { opacity: 0, duration: 0.2, ease: "power1.out" }, 4.9);
 
       /* approach chip 2 */
       tl.to(
         "#f06-cursor",
-        { x: CHIP2.x + GRIP.dx, y: CHIP2.y + GRIP.dy, duration: 0.6, ease: "power2.inOut" },
-        7.65,
+        { x: CHIP2.x + GRIP.dx, y: CHIP2.y + GRIP.dy, duration: 0.4, ease: "power2.inOut" },
+        4.62,
       );
 
       /* grab 2 */
-      tl.to(["#f06-cursor", "#f06-chip-2"], { scale: 0.93, duration: 0.1, ease: "power1.in" }, 8.3);
-      tl.set("#f06-ghost-2", { opacity: 0.65 }, 8.4);
+      tl.to(["#f06-cursor", "#f06-chip-2"], { scale: 0.93, duration: 0.1, ease: "power1.in" }, 5.04);
+      tl.set("#f06-ghost-2", { opacity: 0.65 }, 5.14);
       tl.fromTo(
         "#f06-ghost-2",
         { scale: 1 },
-        { scale: 1.06, duration: 0.16, ease: "power2.out", immediateRender: false },
-        8.4,
+        { scale: 1.06, duration: 0.14, ease: "power2.out", immediateRender: false },
+        5.14,
       );
-      tl.to(["#f06-cursor", "#f06-chip-2"], { scale: 1, duration: 0.18, ease: "power2.out" }, 8.42);
+      tl.to(["#f06-cursor", "#f06-chip-2"], { scale: 1, duration: 0.16, ease: "power2.out" }, 5.16);
 
       /* travel 2 — matched pair */
       tl.fromTo(
         "#f06-ghost-2",
         { x: 0, y: 0 },
-        { x: D2.x, y: D2.y, duration: 0.8, ease: "power2.inOut", immediateRender: false },
-        8.62,
+        { x: D2.x, y: D2.y, duration: 0.52, ease: "power2.inOut", immediateRender: false },
+        5.38,
       );
       tl.fromTo(
         "#f06-cursor",
@@ -1019,37 +1019,37 @@
         {
           x: CHIP2.x + GRIP.dx + D2.x,
           y: CHIP2.y + GRIP.dy + D2.y,
-          duration: 0.8,
+          duration: 0.52,
           ease: "power2.inOut",
           immediateRender: false,
         },
-        8.62,
+        5.38,
       );
 
-      /* drop 2 */
-      tl.set("#f06-ghost-2", { opacity: 0 }, 9.42);
-      tl.set("#f06-slot-2", { opacity: 0 }, 9.42);
+      /* drop 2 — lands on VO cue "มาวางในช่องข้อความ" @5.94 */
+      tl.set("#f06-ghost-2", { opacity: 0 }, 5.9);
+      tl.set("#f06-slot-2", { opacity: 0 }, 5.9);
       tl.fromTo(
         "#f06-placed-2",
         { opacity: 0, scale: 0.9 },
-        { opacity: 1, scale: 1, duration: 0.24, ease: "power3.out", immediateRender: false },
-        9.42,
+        { opacity: 1, scale: 1, duration: 0.22, ease: "power3.out", immediateRender: false },
+        5.9,
       );
       tl.fromTo(
         "#f06-selbox-2",
         { opacity: 0 },
-        { opacity: 1, duration: 0.16, ease: "power2.out", immediateRender: false },
-        9.52,
+        { opacity: 1, duration: 0.14, ease: "power2.out", immediateRender: false },
+        5.98,
       );
       tl.fromTo(
         "#f06-selbox-2 .f06-handle",
         { scale: 0.4 },
-        { scale: 1, duration: 0.2, ease: "power3.out", stagger: 0.03, immediateRender: false },
-        9.54,
+        { scale: 1, duration: 0.16, ease: "power3.out", stagger: 0.02, immediateRender: false },
+        6.0,
       );
-      tl.to("#f06-selbox-2", { opacity: 0, duration: 0.3, ease: "power1.out" }, 10.25);
+      tl.to("#f06-selbox-2", { opacity: 0, duration: 0.25, ease: "power1.out" }, 6.5);
 
-      /* template complete — mint flash + check stamp draws (svg-path-draw) */
+      /* template complete (5.95–6.9) — mint flash; check stamp on "เท่านี้คือจบแล้ว" @7.38 */
       var ring = document.getElementById("f06-check-ring");
       var ringLen = ring.getTotalLength();
       ring.style.strokeDasharray = String(ringLen);
@@ -1062,112 +1062,96 @@
         "#f06-msg-flash",
         { opacity: 0 },
         { opacity: 1, duration: 0.25, ease: "power1.out", immediateRender: false },
-        10.0,
+        5.98,
       );
-      tl.to("#f06-msg-flash", { opacity: 0, duration: 0.3, ease: "power1.out" }, 10.85);
-      tl.to("#f06-check-ring", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 10.0);
-      tl.to("#f06-check-tick", { strokeDashoffset: 0, duration: 0.25, ease: "power2.out" }, 10.3);
+      tl.to("#f06-msg-flash", { opacity: 0, duration: 0.3, ease: "power1.out" }, 6.6);
+      tl.to("#f06-check-ring", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 7.4);
+      tl.to("#f06-check-tick", { strokeDashoffset: 0, duration: 0.22, ease: "power2.out" }, 7.65);
 
       /* gentle camera breathe under the drags, settling before the toggle beat */
-      tl.to("#f06-canvas", { scale: 1.018, duration: 6.0, ease: "power1.inOut" }, 4.6);
-      tl.to("#f06-canvas", { scale: 1, duration: 2.2, ease: "power2.inOut" }, 11.0);
+      tl.to("#f06-canvas", { scale: 1.018, duration: 3.6, ease: "power1.inOut" }, 2.95);
+      tl.to("#f06-canvas", { scale: 1, duration: 1.6, ease: "power2.inOut" }, 7.0);
 
-      /* ── Scene 4 (11.0–15.0s): Active toggle — press, snap ON, whole line powers up ── */
+      /* ── Scene 4 (8.05–9.6s): Active toggle on "กดแอคทีฟมุมขวาบน" @8.82 — line powers up ── */
       tl.to(
         "#f06-cursor",
-        { x: TOGGLE.x, y: TOGGLE.y, duration: 0.95, ease: "power2.inOut" },
-        11.05,
+        { x: TOGGLE.x, y: TOGGLE.y, duration: 0.75, ease: "power2.inOut" },
+        8.05,
       );
 
       /* physics-press-reaction: cursor + track compress together, spring back together */
-      tl.to(["#f06-cursor", "#f06-track"], { scale: 0.92, duration: 0.12, ease: "power1.in" }, 12.05);
-      tl.to(["#f06-cursor", "#f06-track"], { scale: 1, duration: 0.45, ease: "back.out(2)" }, 12.17);
+      tl.to(["#f06-cursor", "#f06-track"], { scale: 0.92, duration: 0.1, ease: "power1.in" }, 8.85);
+      tl.to(["#f06-cursor", "#f06-track"], { scale: 1, duration: 0.35, ease: "back.out(2)" }, 8.95);
 
       /* switch commits: knob slides, track floods mint */
       tl.fromTo(
         "#f06-knob",
         { x: 0 },
-        { x: 64, duration: 0.28, ease: "power3.out", immediateRender: false },
-        12.17,
+        { x: 64, duration: 0.24, ease: "power3.out", immediateRender: false },
+        8.95,
       );
       tl.fromTo(
         "#f06-track-on",
         { opacity: 0 },
-        { opacity: 1, duration: 0.2, ease: "power1.in", immediateRender: false },
-        12.17,
+        { opacity: 1, duration: 0.18, ease: "power1.in", immediateRender: false },
+        8.95,
       );
 
       /* the whole line lights up in one beat */
       tl.fromTo(
         "#f06-wire-on",
         { opacity: 0 },
-        { opacity: 1, duration: 0.35, ease: "power2.out", immediateRender: false },
-        12.72,
+        { opacity: 1, duration: 0.3, ease: "power2.out", immediateRender: false },
+        9.0,
       );
       tl.fromTo(
         "#f06-hook-lit",
         { opacity: 0 },
-        { opacity: 1, duration: 0.35, ease: "power2.out", immediateRender: false },
-        12.72,
+        { opacity: 1, duration: 0.3, ease: "power2.out", immediateRender: false },
+        9.0,
       );
       tl.to(
         ["#f06-node-hook", "#f06-node-chat"],
-        { scale: 1.045, duration: 0.16, ease: "power2.out" },
-        12.72,
+        { scale: 1.045, duration: 0.14, ease: "power2.out" },
+        9.0,
       );
       tl.to(
         ["#f06-node-hook", "#f06-node-chat"],
-        { scale: 1, duration: 0.3, ease: "power2.out" },
-        12.9,
+        { scale: 1, duration: 0.26, ease: "power2.out" },
+        9.16,
       );
 
       /* cursor steps aside so the lit switch reads */
-      tl.to("#f06-cursor", { x: 872, y: 84, duration: 0.5, ease: "power2.out" }, 13.05);
+      tl.to("#f06-cursor", { x: 872, y: 84, duration: 0.4, ease: "power2.out" }, 9.2);
 
       /* pulses run the line (svg-icon-enrichment dash-flow — limited cycles, linear) */
       tl.fromTo(
         "#f06-wire-pulse",
         { opacity: 0 },
         { opacity: 0.9, duration: 0.3, ease: "power1.out", immediateRender: false },
-        13.1,
+        9.2,
       );
       var flow = { offset: 0 };
       var pulseEl = document.getElementById("f06-wire-pulse");
       tl.to(
         flow,
         {
-          offset: -330 /* 11 × dash period (16+14) — integer multiple */,
-          duration: 4.8,
+          offset: -120 /* 4 × dash period (16+14) — integer multiple */,
+          duration: 1.44,
           ease: "none",
           onUpdate: function () {
             pulseEl.style.strokeDashoffset = String(flow.offset);
           },
         },
-        13.1,
+        9.2,
       );
 
-      /* ── Scene 5 (15.0–18.0s): badge pops above the line, then a quiet held read ── */
+      /* ── Scene 5 (9.6–10.681s): badge pops above the line, still by ~10.1 ── */
       tl.fromTo(
         "#f06-badge",
         { opacity: 0, scale: 0.7, y: 16 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.55, ease: "back.out(1.8)", immediateRender: false },
-        15.2,
-      );
-
-      /* status dot breathes softly (sine proxy, 2 full cycles, lands at rest) */
-      var dotEl = document.getElementById("f06-badge-dot");
-      var pulse = { p: 0 };
-      tl.to(
-        pulse,
-        {
-          p: Math.PI * 4,
-          duration: 2.1,
-          ease: "none",
-          onUpdate: function () {
-            gsap.set(dotEl, { scale: 1 + Math.sin(pulse.p) * 0.12 });
-          },
-        },
-        15.8,
+        { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "back.out(1.8)", immediateRender: false },
+        9.6,
       );
 
       window.__timelines = window.__timelines || {};
