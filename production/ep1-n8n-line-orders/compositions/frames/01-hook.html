@@ -195,10 +195,10 @@
     </style>
 
     <!-- full-bleed ground -->
-    <div class="clip" id="01-hook-bg" data-start="0" data-duration="10.263" data-track-index="0"></div>
+    <div class="clip" id="01-hook-bg" data-start="0" data-duration="8.88" data-track-index="0"></div>
 
-    <!-- Bumper compressed: bars + series title, hard clip-cut out at 2.0s -->
-    <div class="clip" id="01-hook-bumper" data-start="0" data-duration="2" data-track-index="1">
+    <!-- Bumper compressed: bars + series title, hard clip-cut out at 1.75s -->
+    <div class="clip" id="01-hook-bumper" data-start="0" data-duration="1.75" data-track-index="1">
       <div id="01-hook-cam0">
         <div id="01-hook-strip">
           <div class="01-hook-col">
@@ -237,8 +237,8 @@
       </div>
     </div>
 
-    <!-- Promise headline: coach-mandated opening (2.0-5.6s) -->
-    <div class="clip" id="01-hook-promise" data-start="2" data-duration="3.6" data-track-index="2">
+    <!-- Promise headline: coach-mandated opening (1.75-5.2s) -->
+    <div class="clip" id="01-hook-promise" data-start="1.75" data-duration="3.45" data-track-index="2">
       <div id="01-hook-pwrap">
         <div id="01-hook-p1">สอนทำระบบออโตเมติก</div>
         <div id="01-hook-pn">n8n</div>
@@ -247,7 +247,7 @@
     </div>
 
     <!-- Chat phase: dark surface + order cards + kinetic slam -->
-    <div class="clip" id="01-hook-chat" data-start="5.6" data-duration="4.663" data-track-index="3">
+    <div class="clip" id="01-hook-chat" data-start="5.2" data-duration="3.68" data-track-index="3">
       <div id="01-hook-cam">
         <div id="01-hook-surface"></div>
         <div id="01-hook-dots"></div>
@@ -303,7 +303,7 @@
     </div>
 
     <!-- mono topbar: the series spine, persists across the hard cut -->
-    <div class="clip" id="01-hook-topbar" data-start="0" data-duration="10.263" data-track-index="4">
+    <div class="clip" id="01-hook-topbar" data-start="0" data-duration="8.88" data-track-index="4">
       <span id="01-hook-tb-l">7 TOOLS · EP.01</span>
       <span id="01-hook-tb-r">01 / 07</span>
     </div>
@@ -353,9 +353,9 @@
         /* subtle macro drift under the bumper */
         tl.fromTo('[id="01-hook-cam0"]',
           { scale: 1.03 },
-          { scale: 1.0, duration: 1.95, ease: "sine.out" }, 0);
+          { scale: 1.0, duration: 1.7, ease: "sine.out" }, 0);
 
-        /* ============ Bumper beat 2 (1.0-2.0s) ============
+        /* ============ Bumper beat 2 (1.0-1.75s) ============
            Series title snaps in under the bars (waterfall words),
            holds, then the whole set hard-cuts out — the cut itself
            is the clip gate at 3.0s (no exit tween). */
@@ -369,83 +369,83 @@
         tl.set('[id="01-hook-w3"]', { opacity: 1, y: 66 }, u2);
         tl.to('[id="01-hook-w3"]', { y: 0, duration: 0.14, ease: "power4.out" }, u2);
 
-        /* ============ Promise headline (2.0-5.6s clip) ============
+        /* ============ Promise headline (1.75-5.2s clip) ============
            kinetic-beat-slam on the real VO grid: Thai lead-in rises
-           @2.06, "n8n" slams on its spoken cue @2.22, accent line
-           side-snaps on cue @3.47 (ไม่ต้องเสียตังค์สักบาท); quick
-           upward autoAlpha exit clears the stage before the chat
-           clip mounts at 5.6s (internal seam, coordinator-mandated). */
+           @1.78, "n8n" slams on its spoken cue @1.87, accent line
+           side-snaps on cue @3.36 (ไม่ต้องเสียตังค์); quick upward
+           autoAlpha exit (4.95-5.15) clears the stage before the
+           chat clip mounts at 5.2s (internal seam, coordinator-mandated). */
         tl.fromTo('[id="01-hook-p1"]',
           { y: 60, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.4, ease: "power4.out" }, 2.06);
+          { y: 0, opacity: 1, duration: 0.4, ease: "power4.out" }, 1.78);
         tl.fromTo('[id="01-hook-pn"]',
           { scale: 1.6, opacity: 0, filter: "blur(16px)" },
-          { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power4.out" }, 2.22);
+          { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power4.out" }, 1.87);
         tl.fromTo('[id="01-hook-p2"]',
           { x: -320, opacity: 0 },
-          { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 3.47);
+          { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 3.36);
         tl.to('[id="01-hook-pwrap"]',
-          { y: -140, autoAlpha: 0, duration: 0.22, ease: "power3.in" }, 5.35);
-        tl.set('[id="01-hook-pwrap"]', { autoAlpha: 0 }, 5.6);
+          { y: -140, autoAlpha: 0, duration: 0.2, ease: "power3.in" }, 4.95);
+        tl.set('[id="01-hook-pwrap"]', { autoAlpha: 0 }, 5.2);
 
-        /* ============ Chat phase (5.6s, cue ออเดอร์เพิ่งเข้าเมื่อกี้) ============
+        /* ============ Chat phase (5.2s, cue ออเดอร์เพิ่งเข้า@5.16) ============
            Dark chat surface lands (layered-depth settle, dimmed),
            first order card spring-pops center. */
         tl.fromTo('[id="01-hook-surface"]',
           { scale: 1.06 },
-          { scale: 1.0, duration: 0.7, ease: "expo.out" }, 5.6);
+          { scale: 1.0, duration: 0.7, ease: "expo.out" }, 5.2);
         tl.fromTo('[id="01-hook-dots"]',
           { scale: 1.1 },
-          { scale: 1.0, duration: 0.85, ease: "expo.out" }, 5.6);
+          { scale: 1.0, duration: 0.85, ease: "expo.out" }, 5.2);
         gsap.utils.toArray('[class~="01-hook-bub"]').forEach(function (b, i) {
           tl.fromTo(b,
             { opacity: 0, y: 18 },
-            { opacity: 0.12, y: 0, duration: 0.4, ease: "power3.out" }, 5.68 + i * 0.08);
+            { opacity: 0.12, y: 0, duration: 0.4, ease: "power3.out" }, 5.26 + i * 0.08);
         });
         /* slow camera push through the whole chat phase */
         tl.fromTo('[id="01-hook-cam"]',
           { scale: 1.0 },
-          { scale: 1.025, duration: 4.4, ease: "sine.inOut" }, 5.7);
+          { scale: 1.025, duration: 3.45, ease: "sine.inOut" }, 5.3);
 
         /* spring-pop-entrance: smooth long-tail settle, no overshoot */
         tl.fromTo('[id="01-hook-card1"]',
           { scale: 0, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.55, ease: "power3.out" }, 5.7);
+          { scale: 1, opacity: 1, duration: 0.55, ease: "power3.out" }, 5.25);
         gsap.utils.toArray('[class~="01-hook-r1"]').forEach(function (r, i) {
           tl.fromTo(r,
             { opacity: 0, y: 16 },
-            { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 5.98 + i * 0.08);
+            { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 5.55 + i * 0.08);
         });
 
-        /* ============ Card 2 + chip (7.1s, cue เด้งเข้าไลน์เองเลย) ============
+        /* ============ Card 2 + chip (6.45s, cue เด้งเข้าไลน์@6.43) ============
            Second card stacks in offset (spring-pop, short stagger),
            mint chip pops off the card corner. */
         tl.fromTo('[id="01-hook-card2"]',
           { scale: 0, opacity: 0, y: 26 },
-          { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 7.1);
+          { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 6.45);
         gsap.utils.toArray('[class~="01-hook-r2"]').forEach(function (r, i) {
           tl.fromTo(r,
             { opacity: 0, y: 14 },
-            { opacity: 1, y: 0, duration: 0.26, ease: "power3.out" }, 7.3 + i * 0.07);
+            { opacity: 1, y: 0, duration: 0.26, ease: "power3.out" }, 6.65 + i * 0.07);
         });
         /* corner-anchored accent pop — the one playful beat */
         tl.fromTo('[id="01-hook-chip"]',
           { scale: 0, opacity: 0, rotation: -6 },
-          { scale: 1, opacity: 1, rotation: 0, duration: 0.45, ease: "back.out(1.7)" }, 7.55);
+          { scale: 1, opacity: 1, rotation: 0, duration: 0.45, ease: "back.out(1.7)" }, 6.9);
 
-        /* ============ Hero slam (8.4s, cue ผมไม่ได้แตะอะไรเลย) ============
+        /* ============ Hero slam (7.85s, cue ผมไม่ได้แตะอะไรเลย@7.84) ============
            kinetic-beat-slam, two beats on the pulse grid:
-           beat 1 scale+blur slam, beat 2 side snap — then dead-still
-           until the frame cut (no exit: non-final frame). */
+           beat 1 scale+blur slam, beat 2 side snap — resolved ~8.6,
+           dead-still until the frame cut (no exit: non-final frame). */
         tl.fromTo('[id="01-hook-h1"]',
           { scale: 1.55, opacity: 0, filter: "blur(14px)" },
-          { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power4.out" }, 8.4);
+          { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power4.out" }, 7.85);
         tl.fromTo('[id="01-hook-h2"]',
           { x: -300, opacity: 0 },
-          { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 8.8);
+          { x: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, 8.2);
         /* focus shift: card stack recedes under the slam */
         tl.to('[id="01-hook-stack"]',
-          { y: 34, scale: 0.965, opacity: 0.85, duration: 0.6, ease: "power3.out" }, 8.4);
+          { y: 34, scale: 0.965, opacity: 0.85, duration: 0.5, ease: "power3.out" }, 7.85);
 
         window.__timelines = window.__timelines || {};
         window.__timelines["01-hook"] = tl;

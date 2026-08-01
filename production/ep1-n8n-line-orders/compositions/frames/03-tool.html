@@ -103,7 +103,7 @@
       color: #D6DEF0;
     }
 
-    /* ── Scene 1: nodes + connecting lines ── */
+    /* ── Phase 1: nodes + quick connecting lines (0.1–1.0s) ── */
     #f03-tool-lines {
       position: absolute;
       inset: 0;
@@ -163,7 +163,7 @@
       border: 2.5px solid #3ecfb2;
     }
 
-    /* ── Scene 2: glow (behind), assemble ring, wordmark ── */
+    /* ── Phase 2: glow (behind), assemble ring, wordmark (lands @~1.2 on cue) ── */
     #f03-tool-glow {
       position: absolute;
       left: 50px;
@@ -195,7 +195,6 @@
       top: 0;
       height: 1920px;
       z-index: 5;
-      will-change: transform;
     }
     #f03-tool-wordmark {
       position: absolute;
@@ -217,7 +216,7 @@
       opacity: 0;
     }
 
-    /* ── Scene 3: Thai subline (waterfall tokens) ── */
+    /* ── Phase 3: Thai subline (waterfall tokens, 2.5–4.0s) ── */
     #f03-tool-subline {
       position: absolute;
       left: 54px;
@@ -242,12 +241,32 @@
       will-change: transform;
     }
 
-    /* ── Scene 4: feature badges ── */
+    /* ── Phase 4: connect-line mini-flow emphasis (@4.4 on cue) ── */
+    #f03-tool-miniflow {
+      position: absolute;
+      left: 280px;
+      top: 1210px;
+      width: 520px;
+      height: 120px;
+      z-index: 5;
+    }
+    #f03-tool-miniflow path {
+      fill: none;
+      stroke: #3ecfb2;
+      stroke-width: 5;
+      stroke-linecap: round;
+    }
+    .f03-tool-mini-node {
+      transform-origin: 50% 50%;
+      opacity: 0;
+    }
+
+    /* ── Phase 5: feature badges (each on its own VO cue) ── */
     #f03-tool-pills {
       position: absolute;
       left: 54px;
       right: 54px;
-      top: 1188px;
+      top: 1360px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -293,11 +312,11 @@
 
   <div id="root" data-composition-id="03-tool" data-width="1080" data-height="1920">
     <!-- Full-bleed ground on its own clip (never on #root) -->
-    <div id="f03-tool-bg" class="clip" data-start="0" data-duration="10" data-track-index="0">
+    <div id="f03-tool-bg" class="clip" data-start="0" data-duration="10.24" data-track-index="0">
       <div class="f03-tool-dots"></div>
     </div>
 
-    <div id="f03-tool-main" class="clip" data-start="0" data-duration="10" data-track-index="1">
+    <div id="f03-tool-main" class="clip" data-start="0" data-duration="10.24" data-track-index="1">
       <!-- Topbar: chrome label + series clock chip (present from t=0, quiet) -->
       <div class="f03-tool-topbar">
         <div class="f03-tool-toplabel">EP 01 &middot; AUTOMATION</div>
@@ -338,6 +357,15 @@
         </div>
       </div>
 
+      <!-- Connect-line mini-flow: drag blocks, connect with a line (z5) -->
+      <svg id="f03-tool-miniflow" viewBox="0 0 520 120" xmlns="http://www.w3.org/2000/svg">
+        <path id="f03-tool-mini-line-1" d="M 58 60 L 242 60" />
+        <path id="f03-tool-mini-line-2" d="M 278 60 L 462 60" />
+        <circle class="f03-tool-mini-node" id="f03-tool-mini-node-1" cx="40" cy="60" r="18" fill="#3ecfb2" />
+        <circle class="f03-tool-mini-node" id="f03-tool-mini-node-2" cx="260" cy="60" r="18" fill="#eef2fa" />
+        <circle class="f03-tool-mini-node" id="f03-tool-mini-node-3" cx="480" cy="60" r="18" fill="#ff6d7e" />
+      </svg>
+
       <!-- Feature badges (z6) -->
       <div id="f03-tool-pills">
         <div class="f03-tool-pill" id="f03-tool-pill-1">ฟรี</div>
@@ -351,7 +379,6 @@
   <script>
     (function () {
       var tl = gsap.timeline({ paused: true });
-      var F = 1 / 60;
 
       /* ── Series clock: counts down from 01:58:41 across the whole frame (deterministic) ── */
       var clockEl = document.getElementById("f03-tool-clock-time");
@@ -360,8 +387,8 @@
       tl.to(
         clock,
         {
-          t: 10,
-          duration: 10,
+          t: 10.24,
+          duration: 10.24,
           ease: "none",
           onUpdate: function () {
             var total = CLOCK_START - Math.floor(clock.t);
@@ -375,7 +402,7 @@
         0,
       );
 
-      /* ── Scene 1 (0.0–2.2s): 5 nodes spring-pop in (power3.out, group lands in one beat) ── */
+      /* ── Phase 1 (0.1–1.0s, cue ตัวที่ผมใช้ชื่อ@0.00): 5 nodes spring-pop in ── */
       var nodeIds = [
         "#f03-tool-node-a",
         "#f03-tool-node-b",
@@ -389,12 +416,12 @@
         tl.fromTo(
           sel,
           { scale: 0, opacity: 0, y: 24 },
-          { scale: 1, opacity: nodeOpacity[i], y: 0, duration: 0.55, ease: "power3.out" },
-          0.1 + i * 0.1,
+          { scale: 1, opacity: nodeOpacity[i], y: 0, duration: 0.42, ease: "power3.out" },
+          0.08 + i * 0.08,
         );
       });
 
-      /* Connector lines draw themselves (svg-path-draw: measured lengths, staggered ~75%) */
+      /* Quick connector draws between the scattered nodes (svg-path-draw: measured lengths) */
       var edges = [
         "#f03-tool-edge-1",
         "#f03-tool-edge-2",
@@ -411,12 +438,13 @@
       edges.forEach(function (sel, i) {
         tl.to(
           sel,
-          { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" },
-          0.9 + i * 0.3,
+          { strokeDashoffset: 0, duration: 0.26, ease: "power2.out" },
+          0.3 + i * 0.1,
         );
       });
 
-      /* ── Scene 2 (2.2–4.6s): nodes + lines converge, wordmark assembles ── */
+      /* ── Phase 2 (0.8–1.25s): converge; wordmark + glow land as ONE beat @~1.22
+         (cue เอ็นเอทเอ็น@1.12) ── */
       var CX = 540;
       var CY = 806;
       var nodeCenters = [
@@ -434,10 +462,10 @@
             y: CY - nodeCenters[i].y,
             scale: 0.14,
             opacity: 0,
-            duration: 0.75,
+            duration: 0.36,
             ease: "power2.in",
           },
-          2.45 + i * 0.06,
+          0.82 + i * 0.02,
         );
       });
       tl.to(
@@ -446,32 +474,32 @@
           scale: 0.1,
           opacity: 0,
           svgOrigin: "540 806",
-          duration: 0.85,
+          duration: 0.42,
           ease: "power2.in",
         },
-        2.5,
+        0.8,
       );
 
       /* Assemble ring accent: one finite expanding pass at the impact beat */
       tl.fromTo(
         "#f03-tool-ring",
         { scale: 0.4, opacity: 0.7 },
-        { scale: 2.2, opacity: 0, duration: 0.7, ease: "power2.out" },
-        3.05,
+        { scale: 2.2, opacity: 0, duration: 0.6, ease: "power2.out" },
+        0.9,
       );
 
-      /* Wordmark pops in — calm settle; glow blooms behind it, landing as ONE beat */
+      /* Wordmark pops in — calm settle; glow blooms behind it, landing together @1.22 */
       tl.fromTo(
         "#f03-tool-wordmark",
         { scale: 0.5, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.8, ease: "power3.out" },
-        3.15,
+        { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+        0.72,
       );
       tl.fromTo(
         "#f03-tool-glow",
         { opacity: 0, scale: 0.85 },
-        { opacity: 0.32, scale: 1, duration: 0.8, ease: "power2.out" },
-        3.15,
+        { opacity: 0.32, scale: 1, duration: 0.5, ease: "power2.out" },
+        0.72,
       );
 
       /* Bounded glow breathe during the hold — finite phase tween, sin(0)=0, amp within ceiling */
@@ -480,8 +508,8 @@
       tl.to(
         phase,
         {
-          p: Math.PI * 2 * 2,
-          duration: 5.9,
+          p: Math.PI * 2 * 3,
+          duration: 8.85,
           ease: "none",
           onUpdate: function () {
             var s = Math.sin(phase.p);
@@ -489,34 +517,71 @@
             glowEl.style.transform = "scale(" + (1 + s * 0.015) + ")";
           },
         },
-        3.95,
+        1.25,
       );
 
-      /* ── Scene 3 (4.6–7.0s): Thai subline, waterfall-entry word by word (binary opacity) ── */
-      var t0 = 4.7; /* anchor phrase: heaviest — biggest travel, longest settle */
+      /* ── Phase 3 (2.5–4.0s, cue มันคือเครื่องมือต่องานอัตโนมัติ@2.40): subline waterfall ── */
+      var t0 = 2.5; /* anchor phrase: heaviest — biggest travel, longest settle */
       tl.set("#f03-tool-word-1", { opacity: 1, y: 70 }, t0);
       tl.to("#f03-tool-word-1", { y: 0, duration: 0.18, ease: "power4.out" }, t0);
-      var t1 = t0 + 0.18 + 2 * F; /* light dash: snaps in tight */
+      var t1 = 3.1; /* light dash: snaps in tight */
       tl.set("#f03-tool-word-2", { opacity: 1, y: 40 }, t1);
       tl.to("#f03-tool-word-2", { y: 0, duration: 0.12, ease: "power4.out" }, t1);
-      var t2 = t1 + 0.12 - F; /* closing phrase: overlaps the dash */
+      var t2 = 3.55; /* closing phrase: lands inside the 2.5–4.0 window */
       tl.set("#f03-tool-word-3", { opacity: 1, y: 55 }, t2);
       tl.to("#f03-tool-word-3", { y: 0, duration: 0.16, ease: "power4.out" }, t2);
 
-      /* Lockup nudges up to make room for the badge row */
-      tl.to("#f03-tool-lockup", { y: -22, duration: 0.6, ease: "power2.inOut" }, 6.85);
+      /* ── Phase 4 (cue ลากบล็อกต่อกันเป็นเส้น@4.40): connect-line draw emphasis —
+         block → line draws → block → line draws → block ── */
+      var miniLines = ["#f03-tool-mini-line-1", "#f03-tool-mini-line-2"];
+      miniLines.forEach(function (sel) {
+        var p = document.querySelector(sel);
+        var len = p.getTotalLength();
+        p.style.strokeDasharray = String(len);
+        p.style.strokeDashoffset = String(len);
+      });
+      tl.fromTo(
+        "#f03-tool-mini-node-1",
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" },
+        4.35,
+      );
+      tl.to(
+        "#f03-tool-mini-line-1",
+        { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" },
+        4.45,
+      );
+      tl.fromTo(
+        "#f03-tool-mini-node-2",
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" },
+        4.9,
+      );
+      tl.to(
+        "#f03-tool-mini-line-2",
+        { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" },
+        5.0,
+      );
+      tl.fromTo(
+        "#f03-tool-mini-node-3",
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" },
+        5.45,
+      );
 
-      /* ── Scene 4 (7.0–10.0s): badges snap in (spring-pop, stagger ≤0.5s), then held read ── */
-      var pills = ["#f03-tool-pill-1", "#f03-tool-pill-2", "#f03-tool-pill-3"];
-      pills.forEach(function (sel, i) {
+      /* ── Phase 5: badges snap on their own VO cues — ฟรี@5.9 · OPEN SOURCE@6.5 ·
+         ไม่มีค่ารายเดือน@9.2 (the third pill waits for its cue) ── */
+      var pillSels = ["#f03-tool-pill-1", "#f03-tool-pill-2", "#f03-tool-pill-3"];
+      var pillStarts = [5.9, 6.5, 9.2];
+      pillSels.forEach(function (sel, i) {
         tl.fromTo(
           sel,
           { scale: 0, opacity: 0, y: 24 },
-          { scale: 1, opacity: 1, y: 0, duration: 0.55, ease: "power3.out" },
-          7.1 + i * 0.22,
+          { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+          pillStarts[i],
         );
       });
-      /* 8.1s → 10s: held read — lockup dead still; only the clock ticks and the glow breathes */
+      /* 9.7 → 10.24: held read — lockup dead still; only the clock ticks and the glow breathes */
 
       window.__timelines = window.__timelines || {};
       window.__timelines["03-tool"] = tl;

@@ -34,7 +34,7 @@ music: none
 
 - type: hook
 - blueprint: kinetic-type-beats (Adapt)
-- duration: 10.263s
+- duration: 8.88s
 - transition_in: cut
 - status: animated
 - poster: 5s
@@ -64,7 +64,7 @@ Scene 5 (6.2–8.0s): บรรทัดฮีโร่ "ผมไม่ได�
 
 - type: pain_point
 - blueprint: dataviz-countup (Adapt)
-- duration: 16.951s
+- duration: 15.2s
 - transition_in: cut
 - status: animated
 - scene: ลูปงานมือทับถมเป็นรายการ ตัวนับออเดอร์ไต่ 1→34 แล้ว count-up เวลา 02:00:00 กลายเป็นนาฬิกาประจำตอน
@@ -92,7 +92,7 @@ Scene 4 (8.6–13.0s): ทั้งรายการหรี่ 40% ถอย�
 
 - type: product_intro
 - blueprint: logo-assemble-lockup (Reproduce)
-- duration: 9.799s
+- duration: 10.24s
 - transition_in: cut
 - status: animated
 - scene: โหนดวิ่งมาต่อสายกันแล้วประกอบเป็นเวิร์ดมาร์ก n8n + ป้าย ฟรี · OPEN SOURCE
@@ -119,7 +119,7 @@ Scene 4 (7.0–10.0s): ป้าย pill สแนปเข้าทีละใ
 
 - type: feature_showcase
 - blueprint: cursor-ui-demo (Adapt)
-- duration: 13.932s
+- duration: 13.68s
 - transition_in: cut
 - status: animated
 - scene: chapter card 01 แล้วเคอร์เซอร์ใหญ่สร้าง workflow เลือก Webhook ได้ลิงก์มาก็อปเก็บ
@@ -148,7 +148,7 @@ Scene 5 (12.4–17.0s): ช่องลิงก์เลื่อนออก�
 
 - type: feature_showcase
 - blueprint: panel-edit-live-sync (Adapt)
-- duration: 15.372s
+- duration: 15.6s
 - transition_in: cut
 - status: animated
 - scene: chapter card 02 แล้ววางลิงก์ในแผงร้าน กด Test — ข้อมูลจริงวิ่งเข้าฝั่ง n8n ทันที
@@ -177,7 +177,7 @@ Scene 5 (13.0–17.0s): ชิปเขียวมิ้นต์ "Test ผ่�
 
 - type: feature_showcase
 - blueprint: cursor-ui-demo (Adapt)
-- duration: 10.681s
+- duration: 9.6s
 - transition_in: cut
 - status: animated
 - scene: chapter card 03 ลากชิปข้อมูลจากโหนดแรกไปวางในข้อความ แล้วสับสวิตช์ Active ทั้งเส้นติดสว่าง
@@ -206,7 +206,7 @@ Scene 5 (15.0–18.0s): ป้าย "ระบบทำงานแล้ว" �
 
 - type: benefit_highlight
 - blueprint: camera-journey (Reproduce)
-- duration: 9.149s
+- duration: 10s
 - transition_in: cut
 - status: animated
 - scene: สั่งจริง กล้องพุ่งตามพัลส์จากปุ่มสั่งซื้อผ่านเส้นถึงแจ้งเตือน แล้วนาฬิกายุบ 02:00:00 → 00:00:04
@@ -236,7 +236,7 @@ Scene 5 (13.4–16.0s): บรรทัดฮีโร่ "ประหยัด
 
 - type: cta
 - blueprint: titlecard-reveal (Reproduce)
-- duration: 11.842s
+- duration: 13.36s
 - transition_in: cut
 - status: animated
 - poster: 6s

@@ -10,7 +10,7 @@ import sys
 import urllib.request
 
 VOICE = "OeVmyiPzojQWoTlEJLRA"
-MODEL = "eleven_turbo_v2_5"
+MODEL = "eleven_v3"
 KEY = os.environ["ELEVENLABS_API_KEY"]
 URL = (
     f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE}/with-timestamps"
@@ -27,7 +27,7 @@ assert len(meta["voices"]) == 8
 
 for i, text in enumerate(lines, start=1):
     nn = f"{i:02d}"
-    body = json.dumps({"text": text, "model_id": MODEL}).encode()
+    body = json.dumps({"text": text, "model_id": MODEL, "language_code": "th"}).encode()
     req = urllib.request.Request(
         URL, data=body,
         headers={"xi-api-key": KEY, "Content-Type": "application/json"},
@@ -73,6 +73,24 @@ for i, text in enumerate(lines, start=1):
             "end": round(ends[pos + len(tok_chars) - 1], 3),
         })
         pos += len(tok_chars)
+
+    # listen-gate: the audio must transcribe back close to the script
+    import difflib, tempfile, shutil
+    td = tempfile.mkdtemp()
+    subprocess.run(["npx", "hyperframes", "transcribe", f"assets/voice/{nn}.wav",
+                    "--model", "small", "--language", "th", "--dir", td],
+                   capture_output=True, cwd=".")
+    heard = ""
+    try:
+        heard = " ".join(w["text"] for w in json.load(open(f"{td}/transcript.json")))
+    except Exception:
+        pass
+    shutil.rmtree(td, ignore_errors=True)
+    norm = lambda t: re.sub(r"[\s\u0e48-\u0e4c]", "", t)
+    ratio = difflib.SequenceMatcher(None, norm(text), norm(heard)).ratio()
+    print(f"  listen-gate {nn}: ratio={ratio:.2f} heard[:60]={heard[:60]!r}")
+    if ratio < 0.5:
+        sys.exit(f"line {nn} FAILED listen-gate (ratio {ratio:.2f}) — not shipping garbled audio")
 
     v = meta["voices"][i - 1]
     v["duration_s"] = round(dur, 3)
